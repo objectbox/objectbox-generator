@@ -18,23 +18,16 @@ var DBinding = d_EntityInfo{
 	Entity: objectbox.Entity{
 		Id: 4,
 	},
-	Uid: 2518412263346885298,
+	Uid: 6044372234677422456,
 }
 
 // D_ contains type-based Property helpers to facilitate some common operations such as Queries.
 var D_ = struct {
-	Id    *objectbox.PropertyUint64
-	Value *objectbox.PropertyFloat64
+	Id *objectbox.PropertyInt64
 }{
-	Id: &objectbox.PropertyUint64{
+	Id: &objectbox.PropertyInt64{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     1,
-			Entity: &DBinding.Entity,
-		},
-	},
-	Value: &objectbox.PropertyFloat64{
-		BaseProperty: &objectbox.BaseProperty{
-			Id:     2,
 			Entity: &DBinding.Entity,
 		},
 	},
@@ -47,21 +40,20 @@ func (d_EntityInfo) GeneratorVersion() int {
 
 // AddToModel is called by ObjectBox during model build
 func (d_EntityInfo) AddToModel(model *objectbox.Model) {
-	model.Entity("D", 4, 2518412263346885298)
-	model.Property("Id", 6, 1, 5617773211005988520)
+	model.Entity("D", 4, 6044372234677422456)
+	model.Property("Id", 6, 1, 8274930044578894929)
 	model.PropertyFlags(1)
-	model.Property("Value", 8, 2, 2339563716805116249)
-	model.EntityLastPropertyId(2, 2339563716805116249)
+	model.EntityLastPropertyId(1, 8274930044578894929)
 }
 
 // GetId is called by ObjectBox during Put operations to check for existing ID on an object
 func (d_EntityInfo) GetId(object interface{}) (uint64, error) {
-	return object.(*D).IdAndFloat64Value.Id, nil
+	return object.(*D).Id, nil
 }
 
 // SetId is called by ObjectBox during Put to update an ID on an object that has just been inserted
 func (d_EntityInfo) SetId(object interface{}, id uint64) {
-	object.(*D).IdAndFloat64Value.Id = id
+	object.(*D).Id = id
 }
 
 // PutRelated is called by ObjectBox to put related entities before the object itself is flattened and put
@@ -71,12 +63,10 @@ func (d_EntityInfo) PutRelated(ob *objectbox.ObjectBox, object interface{}, id u
 
 // Flatten is called by ObjectBox to transform an object to a FlatBuffer
 func (d_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id uint64) error {
-	obj := object.(*D)
 
 	// build the FlatBuffers object
-	fbb.StartObject(2)
-	fbutils.SetUint64Slot(fbb, 0, id)
-	fbutils.SetFloat64Slot(fbb, 1, obj.IdAndFloat64Value.Value)
+	fbb.StartObject(1)
+	fbutils.SetInt64Slot(fbb, 0, id)
 	return nil
 }
 
@@ -86,13 +76,10 @@ func (d_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byte) (interface{}, er
 		Bytes: bytes,
 		Pos:   flatbuffers.GetUOffsetT(bytes),
 	}
-	var id = table.GetUint64Slot(4, 0)
+	var id = table.GetInt64Slot(4, 0)
 
 	return &D{
-		IdAndFloat64Value: &IdAndFloat64Value{
-			Id:    id,
-			Value: fbutils.GetFloat64Slot(table, 6),
-		},
+		Id: id,
 	}, nil
 }
 
@@ -119,14 +106,14 @@ func BoxForD(ob *objectbox.ObjectBox) *DBox {
 }
 
 // Put synchronously inserts/updates a single object.
-// In case the IdAndFloat64Value.Id is not specified, it would be assigned automatically (auto-increment).
-// When inserting, the D.IdAndFloat64Value.Id property on the passed object will be assigned the new ID as well.
+// In case the Id is not specified, it would be assigned automatically (auto-increment).
+// When inserting, the D.Id property on the passed object will be assigned the new ID as well.
 func (box *DBox) Put(object *D) (uint64, error) {
 	return box.Box.Put(object)
 }
 
 // PutAsync asynchronously inserts/updates a single object.
-// When inserting, the D.IdAndFloat64Value.Id property on the passed object will be assigned the new ID as well.
+// When inserting, the D.Id property on the passed object will be assigned the new ID as well.
 //
 // It's executed on a separate internal thread for better performance.
 //
@@ -148,12 +135,12 @@ func (box *DBox) PutAsync(object *D) (uint64, error) {
 }
 
 // PutMany inserts multiple objects in single transaction.
-// In case IdAndFloat64Value.Ids are not set on the objects, they would be assigned automatically (auto-increment).
+// In case Ids are not set on the objects, they would be assigned automatically (auto-increment).
 //
 // Returns: IDs of the put objects (in the same order).
-// When inserting, the D.IdAndFloat64Value.Id property on the objects in the slice will be assigned the new IDs as well.
+// When inserting, the D.Id property on the objects in the slice will be assigned the new IDs as well.
 //
-// Note: In case an error occurs during the transaction, some of the objects may already have the D.IdAndFloat64Value.Id assigned
+// Note: In case an error occurs during the transaction, some of the objects may already have the D.Id assigned
 // even though the transaction has been rolled back and the objects are not stored under those IDs.
 //
 // Note: The slice may be empty or even nil; in both cases, an empty IDs slice and no error is returned.
@@ -206,7 +193,7 @@ func (box *DBox) Remove(object *D) error {
 func (box *DBox) RemoveMany(objects ...*D) (uint64, error) {
 	var ids = make([]uint64, len(objects))
 	for k, object := range objects {
-		ids[k] = object.IdAndFloat64Value.Id
+		ids[k] = object.Id
 	}
 	return box.Box.RemoveIds(ids...)
 }
