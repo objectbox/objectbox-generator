@@ -21,13 +21,13 @@ import (
 	"fmt"
 
 	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
-	"github.com/objectbox/objectbox-go/internal/generator/modelinfo"
+	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
 // fbSchemaReader reads FlatBuffers schema and populates a model
 type fbSchemaReader struct {
 	// model produced by reading the schema
-	model *modelinfo.ModelInfo
+	model *model.ModelInfo
 }
 
 func (r *fbSchemaReader) read(schema *reflection.Schema) error {
@@ -46,7 +46,7 @@ func (r *fbSchemaReader) read(schema *reflection.Schema) error {
 }
 
 func (r *fbSchemaReader) readObject(object *reflection.Object) error {
-	var entity = modelinfo.CreateEntity(r.model, 0, 0)
+	var entity = model.CreateEntity(r.model, 0, 0)
 	entity.Name = string(object.Name())
 
 	for i := 0; i < object.FieldsLength(); i++ {
@@ -64,8 +64,8 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	return nil
 }
 
-func (r *fbSchemaReader) readObjectField(entity *modelinfo.Entity, field *reflection.Field) error {
-	var property = modelinfo.CreateProperty(entity, 0, 0)
+func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection.Field) error {
+	var property = model.CreateProperty(entity, 0, 0)
 	property.Name = string(field.Name())
 
 	if fbsType := field.Type(nil); fbsType == nil {
@@ -76,11 +76,11 @@ func (r *fbSchemaReader) readObjectField(entity *modelinfo.Entity, field *reflec
 			var fbsElBaseType = fbsType.Element()
 			switch fbsElBaseType {
 			case reflection.BaseTypeString:
-				property.Type = modelinfo.PropertyTypeStringVector
+				property.Type = model.PropertyTypeStringVector
 			case reflection.BaseTypeByte:
 				fallthrough
 			case reflection.BaseTypeUByte:
-				property.Type = modelinfo.PropertyTypeByteVector
+				property.Type = model.PropertyTypeByteVector
 			default:
 				return fmt.Errorf("unsupported vector element type: %s", reflection.EnumNamesBaseType[fbsElBaseType])
 			}

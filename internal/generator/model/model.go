@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package modelinfo
+package model
 
 import (
 	"fmt"
@@ -38,7 +38,7 @@ const (
 	maxModelVersion = ModelVersion
 )
 
-// ModelInfo is a serialization interface for the model JSON file
+// ModelInfo represents a database model and also serves as a serialization interface for the model JSON file
 type ModelInfo struct {
 	// NOTE don't change order of these json exported properties because it will change users' model.json files
 	Note1                string    `json:"_note1"`

@@ -26,11 +26,11 @@ import (
 	"github.com/objectbox/objectbox-go/internal/generator"
 	"github.com/objectbox/objectbox-go/internal/generator/c/templates"
 	"github.com/objectbox/objectbox-go/internal/generator/fbsparser"
-	"github.com/objectbox/objectbox-go/internal/generator/modelinfo"
+	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
 type CGenerator struct {
-	model *modelinfo.ModelInfo
+	model *model.ModelInfo
 }
 
 // BindingFile returns a name of the binding file for the given entity file.
@@ -51,13 +51,13 @@ func (CGenerator) IsGeneratedFile(file string) bool {
 		strings.HasSuffix(name, ".obx.c") || strings.HasSuffix(name, ".obx.h")
 }
 
-func (gen *CGenerator) ParseSource(sourceFile string) (*modelinfo.ModelInfo, error) {
+func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) {
 	schemaReflection, err := fbsparser.ParseSchemaFile(sourceFile)
 	if err != nil {
 		return nil, err // already includes file name so no more context should be necessary
 	}
 
-	reader := fbSchemaReader{model: &modelinfo.ModelInfo{}}
+	reader := fbSchemaReader{model: &model.ModelInfo{}}
 	if err = reader.read(schemaReflection); err != nil {
 		return nil, fmt.Errorf("error generating model from schema %s: %s", sourceFile, err)
 	}
@@ -70,7 +70,7 @@ func (gen *CGenerator) WriteBindingFiles(sourceFile string, options generator.Op
 	return nil
 }
 
-func (gen *CGenerator) WriteModelBindingFile(options generator.Options, modelInfo *modelinfo.ModelInfo) error {
+func (gen *CGenerator) WriteModelBindingFile(options generator.Options, modelInfo *model.ModelInfo) error {
 	var err, err2 error
 
 	var modelFile = ModelFile(options.ModelInfoFile)
@@ -98,12 +98,12 @@ func (gen *CGenerator) WriteModelBindingFile(options generator.Options, modelInf
 	return nil
 }
 
-func generateModelFile(model *modelinfo.ModelInfo) (data []byte, err error) {
+func generateModelFile(model *model.ModelInfo) (data []byte, err error) {
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 
 	var tplArguments = struct {
-		Model            *modelinfo.ModelInfo
+		Model            *model.ModelInfo
 		GeneratorVersion int
 	}{model, generator.Version}
 

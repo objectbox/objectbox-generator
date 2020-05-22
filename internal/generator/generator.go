@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/objectbox/objectbox-go/internal/generator/modelinfo"
+	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
 // Version specifies the current generator version.
@@ -45,13 +45,13 @@ type CodeGenerator interface {
 	IsGeneratedFile(file string) bool
 
 	// ParseSource reads the source file and creates a model representation
-	ParseSource(sourceFile string) (*modelinfo.ModelInfo, error)
+	ParseSource(sourceFile string) (*model.ModelInfo, error)
 
 	// WriteBindingFiles generates and writes binding source code files
 	WriteBindingFiles(sourceFile string, options Options) error
 
 	// WriteBindingFiles generates and writes binding source code file for model setup
-	WriteModelBindingFile(options Options, modelInfo *modelinfo.ModelInfo) error
+	WriteModelBindingFile(options Options, modelInfo *model.ModelInfo) error
 }
 
 // WriteFile writes data to targetFile, while using permissions either from the targetFile or permSource
@@ -83,9 +83,9 @@ func Process(sourceFile string, options Options) error {
 		options.ModelInfoFile = ModelInfoFile(filepath.Dir(sourceFile))
 	}
 
-	var modelInfo *modelinfo.ModelInfo
+	var modelInfo *model.ModelInfo
 
-	modelInfo, err = modelinfo.LoadOrCreateModel(options.ModelInfoFile)
+	modelInfo, err = model.LoadOrCreateModel(options.ModelInfoFile)
 	if err != nil {
 		return fmt.Errorf("can't init ModelInfo: %s", err)
 	}
@@ -98,8 +98,8 @@ func Process(sourceFile string, options Options) error {
 	}
 
 	// if the model is valid, upgrade it to the latest version
-	modelInfo.MinimumParserVersion = modelinfo.ModelVersion
-	modelInfo.ModelVersion = modelinfo.ModelVersion
+	modelInfo.MinimumParserVersion = model.ModelVersion
+	modelInfo.ModelVersion = model.ModelVersion
 
 	if err = createBinding(options, sourceFile, modelInfo); err != nil {
 		return err
@@ -112,7 +112,7 @@ func Process(sourceFile string, options Options) error {
 	return nil
 }
 
-func createBinding(options Options, sourceFile string, storedModel *modelinfo.ModelInfo) error {
+func createBinding(options Options, sourceFile string, storedModel *model.ModelInfo) error {
 	currentModel, err := options.CodeGenerator.ParseSource(sourceFile)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func createBinding(options Options, sourceFile string, storedModel *modelinfo.Mo
 	return options.CodeGenerator.WriteBindingFiles(sourceFile, options)
 }
 
-func createModel(options Options, modelInfo *modelinfo.ModelInfo) error {
+func createModel(options Options, modelInfo *model.ModelInfo) error {
 	if err := modelInfo.Write(); err != nil {
 		return fmt.Errorf("can't write model-info file %s: %s", options.ModelInfoFile, err)
 	}

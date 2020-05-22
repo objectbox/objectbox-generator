@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/objectbox/objectbox-go/internal/generator/modelinfo"
+	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
-func mergeBindingWithModelInfo(currentModel *modelinfo.ModelInfo, storedModel *modelinfo.ModelInfo) error {
+func mergeBindingWithModelInfo(currentModel *model.ModelInfo, storedModel *model.ModelInfo) error {
 	// we need to first prepare all entities - otherwise relations wouldn't be able to find them in the model
-	var models = make([]*modelinfo.Entity, len(currentModel.Entities))
+	var models = make([]*model.Entity, len(currentModel.Entities))
 	var err error
 	for k, entity := range currentModel.Entities {
 		models[k], err = getModelEntity(entity, storedModel)
@@ -46,7 +46,7 @@ func mergeBindingWithModelInfo(currentModel *modelinfo.ModelInfo, storedModel *m
 	return nil
 }
 
-func getModelEntity(currentEntity *modelinfo.Entity, storedModel *modelinfo.ModelInfo) (*modelinfo.Entity, error) {
+func getModelEntity(currentEntity *model.Entity, storedModel *model.ModelInfo) (*model.Entity, error) {
 	if uid, err := currentEntity.Id.GetUidAllowZero(); err != nil {
 		return nil, err
 	} else if uid != 0 {
@@ -78,7 +78,7 @@ func getModelEntity(currentEntity *modelinfo.Entity, storedModel *modelinfo.Mode
 	return entity, nil
 }
 
-func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.Entity, storedModel *modelinfo.ModelInfo) (err error) {
+func mergeModelEntity(currentEntity *model.Entity, storedEntity *model.Entity, storedModel *model.ModelInfo) (err error) {
 	storedEntity.Name = currentEntity.Name
 
 	// TODO not sure we need this check
@@ -100,7 +100,7 @@ func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.E
 		}
 
 		// remove the missing (removed) properties
-		removedProperties := make([]*modelinfo.Property, 0)
+		removedProperties := make([]*model.Property, 0)
 		for _, modelProperty := range storedEntity.Properties {
 			if !bindingPropertyExists(modelProperty, currentEntity) {
 				removedProperties = append(removedProperties, modelProperty)
@@ -128,7 +128,7 @@ func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.E
 		}
 
 		// remove the missing (removed) relations
-		removedRelations := make([]*modelinfo.StandaloneRelation, 0)
+		removedRelations := make([]*model.StandaloneRelation, 0)
 		for _, modelRelation := range storedEntity.Relations {
 			if !bindingRelationExists(modelRelation, currentEntity) {
 				removedRelations = append(removedRelations, modelRelation)
@@ -145,7 +145,7 @@ func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.E
 	return nil
 }
 
-func getModelProperty(currentProperty *modelinfo.Property, storedEntity *modelinfo.Entity, storedModel *modelinfo.ModelInfo) (*modelinfo.Property, error) {
+func getModelProperty(currentProperty *model.Property, storedEntity *model.Entity, storedModel *model.ModelInfo) (*model.Property, error) {
 	if uid, err := currentProperty.Id.GetUidAllowZero(); err != nil {
 		return nil, err
 	} else if uid != 0 {
@@ -196,7 +196,7 @@ func getModelProperty(currentProperty *modelinfo.Property, storedEntity *modelin
 	return property, nil
 }
 
-func mergeModelProperty(currentProperty *modelinfo.Property, storedProperty *modelinfo.Property) error {
+func mergeModelProperty(currentProperty *model.Property, storedProperty *model.Property) error {
 	storedProperty.Name = currentProperty.Name
 
 	// handle "reset property data" use-case - adding a new UID to an existing property
@@ -207,7 +207,7 @@ func mergeModelProperty(currentProperty *modelinfo.Property, storedProperty *mod
 		if err != nil {
 			return err
 		}
-		storedProperty.Id = modelinfo.CreateIdUid(id, uid)
+		storedProperty.Id = model.CreateIdUid(id, uid)
 	}
 
 	// TODO not sure we need this check
@@ -236,7 +236,7 @@ func mergeModelProperty(currentProperty *modelinfo.Property, storedProperty *mod
 		if id, uid, err := storedProperty.IndexId.Get(); err != nil {
 			return err
 		} else {
-			var idUid = modelinfo.CreateIdUid(id, uid)
+			var idUid = model.CreateIdUid(id, uid)
 			currentProperty.IndexId = &idUid
 		}
 	}
@@ -248,7 +248,7 @@ func mergeModelProperty(currentProperty *modelinfo.Property, storedProperty *mod
 	return nil
 }
 
-func bindingPropertyExists(modelProperty *modelinfo.Property, bindingEntity *modelinfo.Entity) bool {
+func bindingPropertyExists(modelProperty *model.Property, bindingEntity *model.Entity) bool {
 	for _, bindingProperty := range bindingEntity.Properties {
 		if bindingProperty.Name == modelProperty.Name {
 			return true
@@ -258,7 +258,7 @@ func bindingPropertyExists(modelProperty *modelinfo.Property, bindingEntity *mod
 	return false
 }
 
-func getModelRelation(currentRelation *modelinfo.StandaloneRelation, storedEntity *modelinfo.Entity) (*modelinfo.StandaloneRelation, error) {
+func getModelRelation(currentRelation *model.StandaloneRelation, storedEntity *model.Entity) (*model.StandaloneRelation, error) {
 	if uid, err := currentRelation.Id.GetUidAllowZero(); err != nil {
 		return nil, err
 	} else if uid != 0 {
@@ -291,7 +291,7 @@ func getModelRelation(currentRelation *modelinfo.StandaloneRelation, storedEntit
 	return relation, nil
 }
 
-func mergeModelRelation(currentRelation *modelinfo.StandaloneRelation, storedRelation *modelinfo.StandaloneRelation, storedModel *modelinfo.ModelInfo) (err error) {
+func mergeModelRelation(currentRelation *model.StandaloneRelation, storedRelation *model.StandaloneRelation, storedModel *model.ModelInfo) (err error) {
 	storedRelation.Name = currentRelation.Name
 
 	if _, _, err = storedRelation.Id.Get(); err != nil {
@@ -313,7 +313,7 @@ func mergeModelRelation(currentRelation *modelinfo.StandaloneRelation, storedRel
 	return nil
 }
 
-func bindingRelationExists(modelRelation *modelinfo.StandaloneRelation, bindingEntity *modelinfo.Entity) bool {
+func bindingRelationExists(modelRelation *model.StandaloneRelation, bindingEntity *model.Entity) bool {
 	for _, bindingRelation := range bindingEntity.Relations {
 		if bindingRelation.Name == modelRelation.Name {
 			return true

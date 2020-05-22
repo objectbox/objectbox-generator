@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package modelinfo
+package model
 
 const (
 	PropertyFlagId                   = 1

@@ -18,24 +18,24 @@ package cgenerator
 
 import (
 	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
-	"github.com/objectbox/objectbox-go/internal/generator/modelinfo"
+	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
 var fbsTypeToObxType = map[reflection.BaseType]int{
 	reflection.BaseTypeNone:   0,
 	reflection.BaseTypeUType:  0,
-	reflection.BaseTypeBool:   modelinfo.PropertyTypeBool,
-	reflection.BaseTypeByte:   modelinfo.PropertyTypeByte,
-	reflection.BaseTypeUByte:  modelinfo.PropertyTypeByte,
-	reflection.BaseTypeShort:  modelinfo.PropertyTypeShort,
-	reflection.BaseTypeUShort: modelinfo.PropertyTypeShort,
-	reflection.BaseTypeInt:    modelinfo.PropertyTypeInt,
-	reflection.BaseTypeUInt:   modelinfo.PropertyTypeInt,
-	reflection.BaseTypeLong:   modelinfo.PropertyTypeLong,
-	reflection.BaseTypeULong:  modelinfo.PropertyTypeLong,
-	reflection.BaseTypeFloat:  modelinfo.PropertyTypeFloat,
-	reflection.BaseTypeDouble: modelinfo.PropertyTypeDouble,
-	reflection.BaseTypeString: modelinfo.PropertyTypeString,
+	reflection.BaseTypeBool:   model.PropertyTypeBool,
+	reflection.BaseTypeByte:   model.PropertyTypeByte,
+	reflection.BaseTypeUByte:  model.PropertyTypeByte,
+	reflection.BaseTypeShort:  model.PropertyTypeShort,
+	reflection.BaseTypeUShort: model.PropertyTypeShort,
+	reflection.BaseTypeInt:    model.PropertyTypeInt,
+	reflection.BaseTypeUInt:   model.PropertyTypeInt,
+	reflection.BaseTypeLong:   model.PropertyTypeLong,
+	reflection.BaseTypeULong:  model.PropertyTypeLong,
+	reflection.BaseTypeFloat:  model.PropertyTypeFloat,
+	reflection.BaseTypeDouble: model.PropertyTypeDouble,
+	reflection.BaseTypeString: model.PropertyTypeString,
 	reflection.BaseTypeVector: 0, // handled in schema-reader
 	reflection.BaseTypeObj:    0, // TODO
 	reflection.BaseTypeUnion:  0, // TODO
@@ -43,8 +43,8 @@ var fbsTypeToObxType = map[reflection.BaseType]int{
 }
 
 var fbsTypeToObxFlag = map[reflection.BaseType]int{
-	reflection.BaseTypeUByte:  modelinfo.PropertyFlagUnsigned,
-	reflection.BaseTypeUShort: modelinfo.PropertyFlagUnsigned,
-	reflection.BaseTypeUInt:   modelinfo.PropertyFlagUnsigned,
-	reflection.BaseTypeULong:  modelinfo.PropertyFlagUnsigned,
+	reflection.BaseTypeUByte:  model.PropertyFlagUnsigned,
+	reflection.BaseTypeUShort: model.PropertyFlagUnsigned,
+	reflection.BaseTypeUInt:   model.PropertyFlagUnsigned,
+	reflection.BaseTypeULong:  model.PropertyFlagUnsigned,
 }

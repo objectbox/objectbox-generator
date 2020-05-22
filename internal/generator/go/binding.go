@@ -27,7 +27,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/objectbox/objectbox-go/internal/generator/modelinfo"
+	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
 type uid = uint64
@@ -65,7 +65,7 @@ type Entity struct {
 	Fields         []*Field // the tree of struct fields (necessary for embedded structs)
 	Properties     []*Property
 	IdProperty     *Property
-	LastPropertyId modelinfo.IdUid
+	LastPropertyId model.IdUid
 	Relations      map[string]*StandaloneRelation
 	Annotations    map[string]*Annotation
 	UidRequest     bool
@@ -267,7 +267,7 @@ func (binding *Binding) createEntityFromAst(strct *ast.StructType, name string, 
 			if strings.ToLower(property.Name) == "id" && property.hasValidTypeAsId() {
 				if entity.IdProperty == nil {
 					entity.IdProperty = property
-					property.addObFlag(modelinfo.PropertyFlagId)
+					property.addObFlag(model.PropertyFlagId)
 				} else {
 					// fail in case multiple fields match this condition
 					return fmt.Errorf(
@@ -297,7 +297,7 @@ func (binding *Binding) createEntityFromAst(strct *ast.StructType, name string, 
 
 	// IDs must not be tagged unsigned for compatibility reasons
 	// initially set for uint types by setBasicType()
-	entity.IdProperty.removeObFlag(modelinfo.PropertyFlagUnsigned)
+	entity.IdProperty.removeObFlag(model.PropertyFlagUnsigned)
 	entity.IdProperty.FbType = "Uint64" // always stored as Uint64
 
 	if !entity.IdProperty.hasValidTypeAsId() {
@@ -833,67 +833,67 @@ func (property *Property) setBasicType(baseType string) error {
 
 	ts := property.GoType
 	if property.GoType == "string" {
-		property.ObType = modelinfo.PropertyTypeString
+		property.ObType = model.PropertyTypeString
 		property.FbType = "UOffsetT"
 	} else if ts == "int" || ts == "int64" {
-		property.ObType = modelinfo.PropertyTypeLong
+		property.ObType = model.PropertyTypeLong
 		property.FbType = "Int64"
 	} else if ts == "uint" || ts == "uint64" {
-		property.ObType = modelinfo.PropertyTypeLong
+		property.ObType = model.PropertyTypeLong
 		property.FbType = "Uint64"
-		property.addObFlag(modelinfo.PropertyFlagUnsigned)
+		property.addObFlag(model.PropertyFlagUnsigned)
 	} else if ts == "int32" || ts == "rune" {
-		property.ObType = modelinfo.PropertyTypeInt
+		property.ObType = model.PropertyTypeInt
 		property.FbType = "Int32"
 	} else if ts == "uint32" {
-		property.ObType = modelinfo.PropertyTypeInt
+		property.ObType = model.PropertyTypeInt
 		property.FbType = "Uint32"
-		property.addObFlag(modelinfo.PropertyFlagUnsigned)
+		property.addObFlag(model.PropertyFlagUnsigned)
 	} else if ts == "int16" {
-		property.ObType = modelinfo.PropertyTypeShort
+		property.ObType = model.PropertyTypeShort
 		property.FbType = "Int16"
 	} else if ts == "uint16" {
-		property.ObType = modelinfo.PropertyTypeShort
+		property.ObType = model.PropertyTypeShort
 		property.FbType = "Uint16"
-		property.addObFlag(modelinfo.PropertyFlagUnsigned)
+		property.addObFlag(model.PropertyFlagUnsigned)
 	} else if ts == "int8" {
-		property.ObType = modelinfo.PropertyTypeByte
+		property.ObType = model.PropertyTypeByte
 		property.FbType = "Int8"
 	} else if ts == "uint8" || ts == "byte" {
-		property.ObType = modelinfo.PropertyTypeByte
+		property.ObType = model.PropertyTypeByte
 		property.FbType = "Uint8"
-		property.addObFlag(modelinfo.PropertyFlagUnsigned)
+		property.addObFlag(model.PropertyFlagUnsigned)
 	} else if ts == "[]byte" {
-		property.ObType = modelinfo.PropertyTypeByteVector
+		property.ObType = model.PropertyTypeByteVector
 		property.FbType = "UOffsetT"
 	} else if ts == "[]string" {
-		property.ObType = modelinfo.PropertyTypeStringVector
+		property.ObType = model.PropertyTypeStringVector
 		property.FbType = "UOffsetT"
 	} else if ts == "float64" {
-		property.ObType = modelinfo.PropertyTypeDouble
+		property.ObType = model.PropertyTypeDouble
 		property.FbType = "Float64"
 	} else if ts == "float32" {
-		property.ObType = modelinfo.PropertyTypeFloat
+		property.ObType = model.PropertyTypeFloat
 		property.FbType = "Float32"
 	} else if ts == "bool" {
-		property.ObType = modelinfo.PropertyTypeBool
+		property.ObType = model.PropertyTypeBool
 		property.FbType = "Bool"
 	} else {
 		return fmt.Errorf("unknown type %s", ts)
 	}
 
 	if property.Annotations["date"] != nil {
-		if property.ObType != modelinfo.PropertyTypeLong {
+		if property.ObType != model.PropertyTypeLong {
 			return fmt.Errorf("invalid underlying type (PropertyType %v) for date field; expecting long", property.ObType)
 		}
-		property.ObType = modelinfo.PropertyTypeDate
+		property.ObType = model.PropertyTypeDate
 	}
 
 	if property.Annotations["link"] != nil {
-		if property.ObType != modelinfo.PropertyTypeLong {
+		if property.ObType != model.PropertyTypeLong {
 			return fmt.Errorf("invalid underlying type (PropertyType %v) for relation field; expecting long", property.ObType)
 		}
-		property.ObType = modelinfo.PropertyTypeRelation
+		property.ObType = model.PropertyTypeRelation
 		property.Relation = &Relation{}
 		property.Relation.Target.Name = property.Annotations["link"].Value
 	}
@@ -919,24 +919,24 @@ func (property *Property) setIndex() error {
 
 func (property *Property) setObFlags() error {
 	if property.Annotations["id"] != nil {
-		property.addObFlag(modelinfo.PropertyFlagId)
+		property.addObFlag(model.PropertyFlagId)
 	}
 
 	if property.Annotations["index"] != nil {
 		switch strings.ToLower(property.Annotations["index"].Value) {
 		case "":
 			// if the user doesn't define index type use the default based on the data-type
-			if property.ObType == modelinfo.PropertyTypeString {
-				property.addObFlag(modelinfo.PropertyFlagIndexHash)
+			if property.ObType == model.PropertyTypeString {
+				property.addObFlag(model.PropertyFlagIndexHash)
 			} else {
-				property.addObFlag(modelinfo.PropertyFlagIndexed)
+				property.addObFlag(model.PropertyFlagIndexed)
 			}
 		case "value":
-			property.addObFlag(modelinfo.PropertyFlagIndexed)
+			property.addObFlag(model.PropertyFlagIndexed)
 		case "hash":
-			property.addObFlag(modelinfo.PropertyFlagIndexHash)
+			property.addObFlag(model.PropertyFlagIndexHash)
 		case "hash64":
-			property.addObFlag(modelinfo.PropertyFlagIndexHash64)
+			property.addObFlag(model.PropertyFlagIndexHash64)
 		default:
 			return fmt.Errorf("unknown index type %s", property.Annotations["index"].Value)
 		}
@@ -947,7 +947,7 @@ func (property *Property) setObFlags() error {
 	}
 
 	if property.Annotations["unique"] != nil {
-		property.addObFlag(modelinfo.PropertyFlagUnique)
+		property.addObFlag(model.PropertyFlagUnique)
 
 		if err := property.setIndex(); err != nil {
 			return err
@@ -955,8 +955,8 @@ func (property *Property) setObFlags() error {
 	}
 
 	if property.Relation != nil {
-		property.addObFlag(modelinfo.PropertyFlagIndexed)
-		property.addObFlag(modelinfo.PropertyFlagIndexPartialSkipZero)
+		property.addObFlag(model.PropertyFlagIndexed)
+		property.addObFlag(model.PropertyFlagIndexPartialSkipZero)
 		if err := property.setIndex(); err != nil {
 			return err
 		}
@@ -968,31 +968,31 @@ func (property *Property) setObFlags() error {
 // ObTypeString is called from the template
 func (property *Property) ObTypeString() string {
 	switch property.ObType {
-	case modelinfo.PropertyTypeBool:
+	case model.PropertyTypeBool:
 		return "Bool"
-	case modelinfo.PropertyTypeByte:
+	case model.PropertyTypeByte:
 		return "Byte"
-	case modelinfo.PropertyTypeShort:
+	case model.PropertyTypeShort:
 		return "Short"
-	case modelinfo.PropertyTypeChar:
+	case model.PropertyTypeChar:
 		return "Char"
-	case modelinfo.PropertyTypeInt:
+	case model.PropertyTypeInt:
 		return "Int"
-	case modelinfo.PropertyTypeLong:
+	case model.PropertyTypeLong:
 		return "Long"
-	case modelinfo.PropertyTypeFloat:
+	case model.PropertyTypeFloat:
 		return "Float"
-	case modelinfo.PropertyTypeDouble:
+	case model.PropertyTypeDouble:
 		return "Double"
-	case modelinfo.PropertyTypeString:
+	case model.PropertyTypeString:
 		return "String"
-	case modelinfo.PropertyTypeDate:
+	case model.PropertyTypeDate:
 		return "Date"
-	case modelinfo.PropertyTypeRelation:
+	case model.PropertyTypeRelation:
 		return "Relation"
-	case modelinfo.PropertyTypeByteVector:
+	case model.PropertyTypeByteVector:
 		return "ByteVector"
-	case modelinfo.PropertyTypeStringVector:
+	case model.PropertyTypeStringVector:
 		return "StringVector"
 	default:
 		panic(fmt.Errorf("unrecognized type %v", property.ObType))

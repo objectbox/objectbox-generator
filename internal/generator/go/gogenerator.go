@@ -10,11 +10,11 @@ import (
 
 	"github.com/objectbox/objectbox-go/internal/generator"
 	"github.com/objectbox/objectbox-go/internal/generator/go/templates"
-	"github.com/objectbox/objectbox-go/internal/generator/modelinfo"
+	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
 type GoGenerator struct {
-	currentModel *modelinfo.ModelInfo
+	currentModel *model.ModelInfo
 	binding      *Binding
 }
 
@@ -35,7 +35,7 @@ func (GoGenerator) IsGeneratedFile(file string) bool {
 	return name == "objectbox-model.go" || strings.HasSuffix(name, ".obx.go")
 }
 
-func (goGen *GoGenerator) ParseSource(sourceFile string) (*modelinfo.ModelInfo, error) {
+func (goGen *GoGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) {
 	var f *file
 	var err error
 
@@ -102,7 +102,7 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options) (data [
 	return b.Bytes(), nil
 }
 
-func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, modelInfo *modelinfo.ModelInfo) error {
+func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, modelInfo *model.ModelInfo) error {
 	var err, err2 error
 
 	var modelFile = ModelFile(options.ModelInfoFile)
@@ -129,12 +129,12 @@ func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, model
 	return nil
 }
 
-func generateModelFile(model *modelinfo.ModelInfo) (data []byte, err error) {
+func generateModelFile(model *model.ModelInfo) (data []byte, err error) {
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 
 	var tplArguments = struct {
-		Model            *modelinfo.ModelInfo
+		Model            *model.ModelInfo
 		GeneratorVersion int
 	}{model, generator.Version}
 
