@@ -27,16 +27,16 @@ func mergeBindingWithModelInfo(currentModel *modelinfo.ModelInfo, storedModel *m
 	// we need to first prepare all entities - otherwise relations wouldn't be able to find them in the model
 	var models = make([]*modelinfo.Entity, len(currentModel.Entities))
 	var err error
-	for k, bindingEntity := range currentModel.Entities {
-		models[k], err = getModelEntity(bindingEntity, storedModel)
+	for k, entity := range currentModel.Entities {
+		models[k], err = getModelEntity(entity, storedModel)
 		if err != nil {
-			return err
+			return fmt.Errorf("entity %s: %s", entity.Name, err)
 		}
 	}
 
-	for k, bindingEntity := range currentModel.Entities {
-		if err := mergeModelEntity(bindingEntity, models[k], storedModel); err != nil {
-			return err
+	for k, entity := range currentModel.Entities {
+		if err := mergeModelEntity(entity, models[k], storedModel); err != nil {
+			return fmt.Errorf("merging entity %s: %s", entity.Name, err)
 		}
 	}
 
@@ -47,7 +47,7 @@ func mergeBindingWithModelInfo(currentModel *modelinfo.ModelInfo, storedModel *m
 }
 
 func getModelEntity(currentEntity *modelinfo.Entity, storedModel *modelinfo.ModelInfo) (*modelinfo.Entity, error) {
-	if uid, err := currentEntity.Id.GetUid(); err != nil {
+	if uid, err := currentEntity.Id.GetUidAllowZero(); err != nil {
 		return nil, err
 	} else if uid != 0 {
 		return storedModel.FindEntityByUid(uid)
@@ -91,11 +91,11 @@ func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.E
 	{ //region Properties
 
 		// add all properties from the bindings to the model and update/rename the changed ones
-		for _, bindingProperty := range currentEntity.Properties {
-			if modelProperty, err := getModelProperty(bindingProperty, storedEntity, storedModel); err != nil {
-				return err
-			} else if err := mergeModelProperty(bindingProperty, modelProperty); err != nil {
-				return err
+		for _, currentProperty := range currentEntity.Properties {
+			if modelProperty, err := getModelProperty(currentProperty, storedEntity, storedModel); err != nil {
+				return fmt.Errorf("property %s: %s", currentProperty.Name, err)
+			} else if err := mergeModelProperty(currentProperty, modelProperty); err != nil {
+				return fmt.Errorf("merging property %s: %s", currentProperty.Name, err)
 			}
 		}
 
@@ -109,7 +109,7 @@ func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.E
 
 		for _, property := range removedProperties {
 			if err := storedEntity.RemoveProperty(property); err != nil {
-				return err
+				return fmt.Errorf("removing property %s: %s", property.Name, err)
 			}
 		}
 
@@ -119,11 +119,11 @@ func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.E
 	{ //region Relations
 
 		// add all standalone relations from the bindings to the model and update/rename the changed ones
-		for _, bindingRelation := range currentEntity.Relations {
-			if modelRelation, err := getModelRelation(bindingRelation, storedEntity); err != nil {
-				return err
-			} else if err := mergeModelRelation(bindingRelation, modelRelation, storedModel); err != nil {
-				return err
+		for _, currentRelation := range currentEntity.Relations {
+			if modelRelation, err := getModelRelation(currentRelation, storedEntity); err != nil {
+				return fmt.Errorf("relation %s: %s", currentRelation.Name, err)
+			} else if err := mergeModelRelation(currentRelation, modelRelation, storedModel); err != nil {
+				return fmt.Errorf("merging relation %s: %s", currentRelation.Name, err)
 			}
 		}
 
@@ -137,7 +137,7 @@ func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.E
 
 		for _, relation := range removedRelations {
 			if err := storedEntity.RemoveRelation(relation); err != nil {
-				return err
+				return fmt.Errorf("removing relation %s: %s", relation.Name, err)
 			}
 		}
 	} //endregion
@@ -146,7 +146,7 @@ func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.E
 }
 
 func getModelProperty(currentProperty *modelinfo.Property, storedEntity *modelinfo.Entity, storedModel *modelinfo.ModelInfo) (*modelinfo.Property, error) {
-	if uid, err := currentProperty.Id.GetUid(); err != nil {
+	if uid, err := currentProperty.Id.GetUidAllowZero(); err != nil {
 		return nil, err
 	} else if uid != 0 {
 		property, err := storedEntity.FindPropertyByUid(uid)
@@ -200,7 +200,7 @@ func mergeModelProperty(currentProperty *modelinfo.Property, storedProperty *mod
 	storedProperty.Name = currentProperty.Name
 
 	// handle "reset property data" use-case - adding a new UID to an existing property
-	if uid, err := currentProperty.Id.GetUid(); err != nil {
+	if uid, err := currentProperty.Id.GetUidAllowZero(); err != nil {
 		return err
 	} else if uid != 0 {
 		id, _, err := storedProperty.Id.Get()
@@ -259,7 +259,7 @@ func bindingPropertyExists(modelProperty *modelinfo.Property, bindingEntity *mod
 }
 
 func getModelRelation(currentRelation *modelinfo.StandaloneRelation, storedEntity *modelinfo.Entity) (*modelinfo.StandaloneRelation, error) {
-	if uid, err := currentRelation.Id.GetUid(); err != nil {
+	if uid, err := currentRelation.Id.GetUidAllowZero(); err != nil {
 		return nil, err
 	} else if uid != 0 {
 		return storedEntity.FindRelationByUid(uid)

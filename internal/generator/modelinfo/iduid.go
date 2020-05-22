@@ -17,6 +17,7 @@
 package modelinfo
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -30,18 +31,20 @@ func CreateIdUid(id Id, uid Uid) IdUid {
 	return IdUid(strconv.FormatInt(int64(id), 10) + ":" + strconv.FormatUint(uid, 10))
 }
 
+var componentNamesErr = [2]string{"id", "uid"}
+
 // Validate performs initial validation of loaded data so that it doesn't have to be checked in each function
 func (str *IdUid) Validate() error {
 	if _, err := str.GetUid(); err != nil {
-		return fmt.Errorf("uid: %s", err)
+		return err
 	}
 
 	if _, err := str.GetId(); err != nil {
-		return fmt.Errorf("id: %s", err)
+		return err
 	}
 
 	if len(strings.Split(string(*str), ":")) != 2 {
-		return fmt.Errorf("id invalid format - too many colons")
+		return errors.New("invalid id format - too many colons")
 	}
 
 	return nil
@@ -49,7 +52,7 @@ func (str *IdUid) Validate() error {
 
 // GetId returns the ID part
 func (str IdUid) GetId() (Id, error) {
-	id, err := str.getComponent(0, 32)
+	id, err := str.getComponent(0, 32, false)
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +61,11 @@ func (str IdUid) GetId() (Id, error) {
 
 // GetUid returns the UID part
 func (str *IdUid) GetUid() (Uid, error) {
-	return str.getComponent(1, 64)
+	return str.getComponent(1, 64, false)
+}
+
+func (str *IdUid) GetUidAllowZero() (Uid, error) {
+	return str.getComponent(1, 64, true)
 }
 
 // Get returns a pair of ID and UID
@@ -72,16 +79,16 @@ func (str *IdUid) Get() (Id, Uid, error) {
 	}
 }
 
-func (str IdUid) getComponent(n, bitsize int) (uint64, error) {
+func (str IdUid) getComponent(n, bitsize int, allowZero bool) (uint64, error) {
 	if len(str) == 0 {
-		return 0, fmt.Errorf("is undefined")
+		return 0, errors.New(componentNamesErr[n] + " is undefined")
 	}
 
 	idStr := strings.Split(string(str), ":")[n]
 	if component, err := strconv.ParseUint(idStr, 10, bitsize); err != nil {
 		return 0, fmt.Errorf("can't parse '%s' as unsigned int: %s", idStr, err)
-	} else if component == 0 {
-		return 0, fmt.Errorf("equals to zero")
+	} else if component == 0 && !allowZero {
+		return 0, errors.New(componentNamesErr[n] + " is zero")
 	} else {
 		return component, nil
 	}

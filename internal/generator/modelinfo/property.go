@@ -20,15 +20,15 @@ import "fmt"
 
 // Property in a model
 type Property struct {
-	Id             IdUid  `json:"id"`
-	Name           string `json:"name"`
-	IndexId        *IdUid `json:"indexId,omitempty"` // a pointer because it may be nil
-	Type           int    `json:"type"`
-	Flags          int    `json:"flags,omitempty"`
-	RelationTarget string `json:"relationTarget,omitempty"`
-	Entity         *Entity
-	UidRequest     bool   `json:"-"` // TODO
-	Path           string `json:"-"` // TODO
+	Id             IdUid   `json:"id"`
+	Name           string  `json:"name"`
+	IndexId        *IdUid  `json:"indexId,omitempty"` // a pointer because it may be nil
+	Type           int     `json:"type"`
+	Flags          int     `json:"flags,omitempty"`
+	RelationTarget string  `json:"relationTarget,omitempty"`
+	Entity         *Entity `json:"-"`
+	UidRequest     bool    `json:"-"` // TODO
+	Path           string  `json:"-"` // TODO
 }
 
 // CreateProperty creates a property
@@ -61,9 +61,9 @@ func (property *Property) Validate() error {
 
 	// NOTE type can't be validated because entities are update one-by-one and so
 	// on the second one, validate() during load would failonly check this
-	//if property.Type == 0 {
+	// if property.Type == 0 {
 	//	return fmt.Errorf("type is undefined")
-	//}
+	// }
 
 	return nil
 }

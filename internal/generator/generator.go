@@ -119,7 +119,7 @@ func createBinding(options Options, sourceFile string, storedModel *modelinfo.Mo
 	}
 
 	if err = mergeBindingWithModelInfo(currentModel, storedModel); err != nil {
-		return fmt.Errorf("can't merge currentModel model information: %s", err)
+		return fmt.Errorf("can't merge model information: %s", err)
 	}
 
 	if err = storedModel.CheckRelationCycles(); err != nil {
