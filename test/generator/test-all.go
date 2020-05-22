@@ -30,6 +30,7 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-go/internal/generator"
+	"github.com/objectbox/objectbox-go/internal/generator/go"
 	"github.com/objectbox/objectbox-go/test/assert"
 	"github.com/objectbox/objectbox-go/test/build"
 )
@@ -111,7 +112,7 @@ func generateOneDir(t *testing.T, overwriteExpected bool, srcDir string) {
 	modelInfoFile := generator.ModelInfoFile(dir)
 	modelInfoExpectedFile := modelInfoFile + ".expected"
 
-	modelFile := generator.ModelFile(modelInfoFile)
+	modelFile := gogenerator.ModelFile(modelInfoFile)
 	modelExpectedFile := modelFile + ".expected"
 
 	// run the generation twice, first time with deleting old modelInfo
@@ -211,7 +212,7 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 }
 
 func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInfoFile string, errorTransformer func(error) error) {
-	var modelFile = generator.ModelFile(modelInfoFile)
+	var modelFile = gogenerator.ModelFile(modelInfoFile)
 
 	// remove generated files during development (they might be syntactically wrong)
 	if overwriteExpected {
@@ -238,7 +239,8 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInf
 
 		t.Logf("  %s", filepath.Base(sourceFile))
 
-		err = errorTransformer(generator.Process(sourceFile, getOptions(t, sourceFile, modelInfoFile)))
+		options := getOptions(t, sourceFile, modelInfoFile)
+		err = errorTransformer(generator.Process(sourceFile, options))
 
 		// handle negative test
 		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail.go")
@@ -254,7 +256,7 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInf
 
 		assert.NoErr(t, err)
 
-		var bindingFile = generator.BindingFile(sourceFile)
+		var bindingFile = gogenerator.BindingFile(sourceFile)
 		var expectedFile = bindingFile + ".expected"
 		assertSameFile(t, bindingFile, expectedFile, overwriteExpected)
 	}
@@ -266,7 +268,8 @@ func getOptions(t *testing.T, sourceFile, modelInfoFile string) generator.Option
 	var options = generator.Options{
 		ModelInfoFile: modelInfoFile,
 		// NOTE zero seed for test-only - avoid changes caused by random numbers by fixing them to the same seed
-		Rand: rand.New(rand.NewSource(0)),
+		Rand:          rand.New(rand.NewSource(0)),
+		CodeGenerator: &gogenerator.GoGenerator{},
 	}
 
 	source, err := ioutil.ReadFile(sourceFile)

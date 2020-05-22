@@ -23,39 +23,41 @@ import (
 	"github.com/objectbox/objectbox-go/internal/generator/modelinfo"
 )
 
-func mergeBindingWithModelInfo(binding *Binding, modelInfo *modelinfo.ModelInfo) error {
+func mergeBindingWithModelInfo(currentModel *modelinfo.ModelInfo, storedModel *modelinfo.ModelInfo) error {
 	// we need to first prepare all entities - otherwise relations wouldn't be able to find them in the model
-	var models = make([]*modelinfo.Entity, len(binding.Entities))
+	var models = make([]*modelinfo.Entity, len(currentModel.Entities))
 	var err error
-	for k, bindingEntity := range binding.Entities {
-		models[k], err = getModelEntity(bindingEntity, modelInfo)
+	for k, bindingEntity := range currentModel.Entities {
+		models[k], err = getModelEntity(bindingEntity, storedModel)
 		if err != nil {
 			return err
 		}
 	}
 
-	for k, bindingEntity := range binding.Entities {
-		if err := mergeModelEntity(bindingEntity, models[k], modelInfo); err != nil {
+	for k, bindingEntity := range currentModel.Entities {
+		if err := mergeModelEntity(bindingEntity, models[k], storedModel); err != nil {
 			return err
 		}
 	}
 
 	// NOTE this is not ideal as there could be models across multiple packages
-	modelInfo.Package = binding.Package.Name()
+	storedModel.Package = currentModel.Package
 
 	return nil
 }
 
-func getModelEntity(bindingEntity *Entity, modelInfo *modelinfo.ModelInfo) (*modelinfo.Entity, error) {
-	if bindingEntity.Uid != 0 {
-		return modelInfo.FindEntityByUid(bindingEntity.Uid)
+func getModelEntity(currentEntity *modelinfo.Entity, storedModel *modelinfo.ModelInfo) (*modelinfo.Entity, error) {
+	if uid, err := currentEntity.Id.GetUid(); err != nil {
+		return nil, err
+	} else if uid != 0 {
+		return storedModel.FindEntityByUid(uid)
 	}
 
 	// we don't care about this error = either the entity is found or we create it
-	entity, _ := modelInfo.FindEntityByName(bindingEntity.Name)
+	entity, _ := storedModel.FindEntityByName(currentEntity.Name)
 
 	// handle uid request
-	if bindingEntity.uidRequest {
+	if currentEntity.UidRequest {
 		var errInfo string
 		if entity != nil {
 			uid, err := entity.Id.GetUid()
@@ -66,28 +68,31 @@ func getModelEntity(bindingEntity *Entity, modelInfo *modelinfo.ModelInfo) (*mod
 		} else {
 			errInfo = "entity not found in the model"
 		}
-		return nil, fmt.Errorf("uid annotation value must not be empty (%s) on entity %s", errInfo, bindingEntity.Name)
+		return nil, fmt.Errorf("uid annotation value must not be empty (%s) on entity %s", errInfo, currentEntity.Name)
 	}
 
 	if entity == nil {
-		return modelInfo.CreateEntity(bindingEntity.Name)
+		return storedModel.CreateEntity(currentEntity.Name)
 	}
 
 	return entity, nil
 }
 
-func mergeModelEntity(bindingEntity *Entity, modelEntity *modelinfo.Entity, modelInfo *modelinfo.ModelInfo) (err error) {
-	modelEntity.Name = bindingEntity.Name
+func mergeModelEntity(currentEntity *modelinfo.Entity, storedEntity *modelinfo.Entity, storedModel *modelinfo.ModelInfo) (err error) {
+	storedEntity.Name = currentEntity.Name
 
-	if bindingEntity.Id, bindingEntity.Uid, err = modelEntity.Id.Get(); err != nil {
+	// TODO not sure we need this check
+	if _, _, err := storedEntity.Id.Get(); err != nil {
 		return err
+	} else {
+		currentEntity.Id = storedEntity.Id
 	}
 
 	{ //region Properties
 
 		// add all properties from the bindings to the model and update/rename the changed ones
-		for _, bindingProperty := range bindingEntity.Properties {
-			if modelProperty, err := getModelProperty(bindingProperty, modelEntity, modelInfo); err != nil {
+		for _, bindingProperty := range currentEntity.Properties {
+			if modelProperty, err := getModelProperty(bindingProperty, storedEntity, storedModel); err != nil {
 				return err
 			} else if err := mergeModelProperty(bindingProperty, modelProperty); err != nil {
 				return err
@@ -96,42 +101,42 @@ func mergeModelEntity(bindingEntity *Entity, modelEntity *modelinfo.Entity, mode
 
 		// remove the missing (removed) properties
 		removedProperties := make([]*modelinfo.Property, 0)
-		for _, modelProperty := range modelEntity.Properties {
-			if !bindingPropertyExists(modelProperty, bindingEntity) {
+		for _, modelProperty := range storedEntity.Properties {
+			if !bindingPropertyExists(modelProperty, currentEntity) {
 				removedProperties = append(removedProperties, modelProperty)
 			}
 		}
 
 		for _, property := range removedProperties {
-			if err := modelEntity.RemoveProperty(property); err != nil {
+			if err := storedEntity.RemoveProperty(property); err != nil {
 				return err
 			}
 		}
 
-		bindingEntity.LastPropertyId = modelEntity.LastPropertyId
+		currentEntity.LastPropertyId = storedEntity.LastPropertyId
 	} //endregion
 
 	{ //region Relations
 
 		// add all standalone relations from the bindings to the model and update/rename the changed ones
-		for _, bindingRelation := range bindingEntity.Relations {
-			if modelRelation, err := getModelRelation(bindingRelation, modelEntity); err != nil {
+		for _, bindingRelation := range currentEntity.Relations {
+			if modelRelation, err := getModelRelation(bindingRelation, storedEntity); err != nil {
 				return err
-			} else if err := mergeModelRelation(bindingRelation, modelRelation, modelInfo); err != nil {
+			} else if err := mergeModelRelation(bindingRelation, modelRelation, storedModel); err != nil {
 				return err
 			}
 		}
 
 		// remove the missing (removed) relations
 		removedRelations := make([]*modelinfo.StandaloneRelation, 0)
-		for _, modelRelation := range modelEntity.Relations {
-			if !bindingRelationExists(modelRelation, bindingEntity) {
+		for _, modelRelation := range storedEntity.Relations {
+			if !bindingRelationExists(modelRelation, currentEntity) {
 				removedRelations = append(removedRelations, modelRelation)
 			}
 		}
 
 		for _, relation := range removedRelations {
-			if err := modelEntity.RemoveRelation(relation); err != nil {
+			if err := storedEntity.RemoveRelation(relation); err != nil {
 				return err
 			}
 		}
@@ -140,34 +145,36 @@ func mergeModelEntity(bindingEntity *Entity, modelEntity *modelinfo.Entity, mode
 	return nil
 }
 
-func getModelProperty(bindingProperty *Property, modelEntity *modelinfo.Entity, modelInfo *modelinfo.ModelInfo) (*modelinfo.Property, error) {
-	if bindingProperty.Uid != 0 {
-		property, err := modelEntity.FindPropertyByUid(bindingProperty.Uid)
+func getModelProperty(currentProperty *modelinfo.Property, storedEntity *modelinfo.Entity, storedModel *modelinfo.ModelInfo) (*modelinfo.Property, error) {
+	if uid, err := currentProperty.Id.GetUid(); err != nil {
+		return nil, err
+	} else if uid != 0 {
+		property, err := storedEntity.FindPropertyByUid(uid)
 		if err == nil {
 			return property, nil
 		}
 
 		// handle "reset property data" use-case - adding a new UID to an existing property
-		property, err2 := modelEntity.FindPropertyByName(bindingProperty.Name)
+		property, err2 := storedEntity.FindPropertyByName(currentProperty.Name)
 		if err2 != nil {
 			return nil, fmt.Errorf("%v; %v", err, err2)
 		}
 
-		log.Printf("Notice - new UID was specified for the same property name '%s' - resetting value (recreating the property)", bindingProperty.Path())
+		log.Printf("Notice - new UID was specified for the same property name '%s' - resetting value (recreating the property)", currentProperty.Path)
 		return property, nil
 	}
 
 	// we don't care about this error, either the property is found or we create it
-	property, _ := modelEntity.FindPropertyByName(bindingProperty.Name)
+	property, _ := storedEntity.FindPropertyByName(currentProperty.Name)
 
 	// handle uid request
-	if bindingProperty.uidRequest {
+	if currentProperty.UidRequest {
 		if property != nil {
 			uid, err := property.Id.GetUid()
 			if err != nil {
 				return nil, err
 			}
-			newUid, err := modelInfo.GenerateUid()
+			newUid, err := storedModel.GenerateUid()
 			if err != nil {
 				return nil, err
 			}
@@ -176,69 +183,72 @@ func getModelProperty(bindingProperty *Property, modelEntity *modelinfo.Entity, 
 			return nil, fmt.Errorf(`uid annotation value must not be empty on property %s, entity %s:
     [rename] apply the current UID %d
     [change/reset] apply a new UID %d`,
-				bindingProperty.Name, bindingProperty.entity.Name, uid, newUid)
+				currentProperty.Name, currentProperty.Entity.Name, uid, newUid)
 		}
 		return nil, fmt.Errorf("uid annotation value must not be empty on an unknown property %s, entity %s",
-			bindingProperty.Name, bindingProperty.entity.Name)
+			currentProperty.Name, currentProperty.Entity.Name)
 	}
 
 	if property == nil {
-		return modelEntity.CreateProperty()
+		return storedEntity.CreateProperty()
 	}
 
 	return property, nil
 }
 
-func mergeModelProperty(bindingProperty *Property, modelProperty *modelinfo.Property) (err error) {
-	modelProperty.Name = bindingProperty.Name
+func mergeModelProperty(currentProperty *modelinfo.Property, storedProperty *modelinfo.Property) error {
+	storedProperty.Name = currentProperty.Name
 
 	// handle "reset property data" use-case - adding a new UID to an existing property
-	if bindingProperty.Uid != 0 {
-		id, _, err := modelProperty.Id.Get()
+	if uid, err := currentProperty.Id.GetUid(); err != nil {
+		return err
+	} else if uid != 0 {
+		id, _, err := storedProperty.Id.Get()
 		if err != nil {
 			return err
 		}
-		modelProperty.Id = modelinfo.CreateIdUid(id, bindingProperty.Uid)
+		storedProperty.Id = modelinfo.CreateIdUid(id, uid)
 	}
 
-	if bindingProperty.Id, bindingProperty.Uid, err = modelProperty.Id.Get(); err != nil {
+	// TODO not sure we need this check
+	if _, _, err := storedProperty.Id.Get(); err != nil {
 		return err
+	} else {
+		currentProperty.Id = storedProperty.Id
 	}
 
-	if bindingProperty.Index == nil {
+	if currentProperty.IndexId == nil {
 		// if there shouldn't be an index
-		if modelProperty.IndexId != nil {
+		if storedProperty.IndexId != nil {
 			// if there originally was an index, remove it
-			if err = modelProperty.RemoveIndex(); err != nil {
+			if err := storedProperty.RemoveIndex(); err != nil {
 				return err
 			}
 		}
 	} else {
 		// if there should be an index, create it (or reuse an existing one)
-		if modelProperty.IndexId == nil {
-			if err = modelProperty.CreateIndex(); err != nil {
+		if storedProperty.IndexId == nil {
+			if err := storedProperty.CreateIndex(); err != nil {
 				return err
 			}
 		}
 
-		if bindingProperty.Index.Id, bindingProperty.Index.Uid, err = modelProperty.IndexId.Get(); err != nil {
+		if id, uid, err := storedProperty.IndexId.Get(); err != nil {
 			return err
+		} else {
+			var idUid = modelinfo.CreateIdUid(id, uid)
+			currentProperty.IndexId = &idUid
 		}
 	}
 
-	if bindingProperty.Relation != nil {
-		modelProperty.RelationTarget = bindingProperty.Relation.Target.Name
-	} else {
-		modelProperty.RelationTarget = ""
-	}
-
-	modelProperty.Type = bindingProperty.ObType
-	modelProperty.Flags = bindingProperty.ObFlagsCombined()
+	storedProperty.RelationTarget = currentProperty.RelationTarget
+	storedProperty.Type = currentProperty.Type
+	storedProperty.Flags = currentProperty.Flags
 
 	return nil
 }
 
-func bindingPropertyExists(modelProperty *modelinfo.Property, bindingEntity *Entity) bool {
+func bindingPropertyExists(modelProperty *modelinfo.Property, bindingEntity *modelinfo.Entity) bool {
 	for _, bindingProperty := range bindingEntity.Properties {
 		if bindingProperty.Name == modelProperty.Name {
 			return true
@@ -248,16 +258,18 @@ func bindingPropertyExists(modelProperty *modelinfo.Property, bindingEntity *Ent
 	return false
 }
 
-func getModelRelation(bindingRelation *StandaloneRelation, modelEntity *modelinfo.Entity) (*modelinfo.StandaloneRelation, error) {
-	if bindingRelation.Uid != 0 {
-		return modelEntity.FindRelationByUid(bindingRelation.Uid)
+func getModelRelation(currentRelation *modelinfo.StandaloneRelation, storedEntity *modelinfo.Entity) (*modelinfo.StandaloneRelation, error) {
+	if uid, err := currentRelation.Id.GetUid(); err != nil {
+		return nil, err
+	} else if uid != 0 {
+		return storedEntity.FindRelationByUid(uid)
 	}
 
 	// we don't care about this error, either the relation is found or we create it
-	relation, _ := modelEntity.FindRelationByName(bindingRelation.Name)
+	relation, _ := storedEntity.FindRelationByName(currentRelation.Name)
 
 	// handle uid request
-	if bindingRelation.uidRequest {
+	if currentRelation.UidRequest {
 		var errInfo string
 		if relation != nil {
 			uid, err := relation.Id.GetUid()
@@ -269,36 +281,39 @@ func getModelRelation(bindingRelation *StandaloneRelation, modelEntity *modelinf
 			errInfo = "relation not found in the model"
 		}
 		return nil, fmt.Errorf("uid annotation value must not be empty (%s) on relation %s, entity %s",
-			errInfo, bindingRelation.Name, modelEntity.Name)
+			errInfo, currentRelation.Name, storedEntity.Name)
 	}
 
 	if relation == nil {
-		return modelEntity.CreateRelation()
+		return storedEntity.CreateRelation()
 	}
 
 	return relation, nil
 }
 
-func mergeModelRelation(bindingRelation *StandaloneRelation, modelRelation *modelinfo.StandaloneRelation, modelInfo *modelinfo.ModelInfo) (err error) {
-	modelRelation.Name = bindingRelation.Name
+func mergeModelRelation(currentRelation *modelinfo.StandaloneRelation, storedRelation *modelinfo.StandaloneRelation, storedModel *modelinfo.ModelInfo) (err error) {
+	storedRelation.Name = currentRelation.Name
 
-	if bindingRelation.Id, bindingRelation.Uid, err = modelRelation.Id.Get(); err != nil {
+	if _, _, err = storedRelation.Id.Get(); err != nil {
 		return err
+	} else {
+		currentRelation.Id = storedRelation.Id
 	}
 
 	// find the target entity & read it's ID/UID for the binding code
-	if targetEntity, err := modelInfo.FindEntityByName(bindingRelation.Target.Name); err != nil {
+	if targetEntity, err := storedModel.FindEntityByName(currentRelation.Target.Name); err != nil {
 		return err
-	} else if bindingRelation.Target.Id, bindingRelation.Target.Uid, err = targetEntity.Id.Get(); err != nil {
+	} else if _, _, err = targetEntity.Id.Get(); err != nil {
 		return err
 	} else {
-		modelRelation.SetTarget(targetEntity)
+		currentRelation.Target.Id = targetEntity.Id
+		storedRelation.SetTarget(targetEntity)
 	}
 
 	return nil
 }
 
-func bindingRelationExists(modelRelation *modelinfo.StandaloneRelation, bindingEntity *Entity) bool {
+func bindingRelationExists(modelRelation *modelinfo.StandaloneRelation, bindingEntity *modelinfo.Entity) bool {
 	for _, bindingRelation := range bindingEntity.Relations {
 		if bindingRelation.Name == modelRelation.Name {
 			return true

@@ -28,6 +28,7 @@ type Entity struct {
 	Name           string                `json:"name"`
 	Properties     []*Property           `json:"properties"`
 	Relations      []*StandaloneRelation `json:"relations,omitempty"`
+	UidRequest     bool                  `json:"-"`
 
 	model *ModelInfo
 }
@@ -65,9 +66,9 @@ func (entity *Entity) Validate() (err error) {
 
 		var found = false
 		for _, property := range entity.Properties {
-			if property.entity == nil {
-				property.entity = entity
-			} else if property.entity != entity {
+			if property.Entity == nil {
+				property.Entity = entity
+			} else if property.Entity != entity {
 				return fmt.Errorf("relation %s %s has incorrect parent entity reference",
 					property.Name, property.Id)
 			}

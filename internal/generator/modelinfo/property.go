@@ -26,21 +26,22 @@ type Property struct {
 	Type           int    `json:"type"`
 	Flags          int    `json:"flags,omitempty"`
 	RelationTarget string `json:"relationTarget,omitempty"`
-
-	entity *Entity
+	Entity         *Entity
+	UidRequest     bool   `json:"-"` // TODO
+	Path           string `json:"-"` // TODO
 }
 
 // CreateProperty creates a property
 func CreateProperty(entity *Entity, id Id, uid Uid) *Property {
 	return &Property{
-		entity: entity,
+		Entity: entity,
 		Id:     CreateIdUid(id, uid),
 	}
 }
 
 // Validate performs initial validation of loaded data so that it doesn't have to be checked in each function
 func (property *Property) Validate() error {
-	if property.entity == nil {
+	if property.Entity == nil {
 		return fmt.Errorf("undefined parent entity")
 	}
 
@@ -73,7 +74,7 @@ func (property *Property) CreateIndex() error {
 		return fmt.Errorf("can't create an index - it already exists")
 	}
 
-	indexId, err := property.entity.model.createIndexId()
+	indexId, err := property.Entity.model.createIndexId()
 	if err != nil {
 		return err
 	}
@@ -88,7 +89,7 @@ func (property *Property) RemoveIndex() error {
 		return fmt.Errorf("can't remove index - it's not defined")
 	}
 
-	property.entity.model.RetiredIndexUids = append(property.entity.model.RetiredIndexUids, property.IndexId.getUidSafe())
+	property.Entity.model.RetiredIndexUids = append(property.Entity.model.RetiredIndexUids, property.IndexId.getUidSafe())
 
 	property.IndexId = nil
 

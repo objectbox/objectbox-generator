@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package generator
+package templates
 
-import "math/rand"
+import (
+	"strings"
+	"text/template"
+)
 
-// Options provide configuration for the generator
-type Options struct {
-	ModelInfoFile string
-	ByValue       bool
-	Rand          *rand.Rand
-	CodeGenerator CodeGenerator
+var funcMap = template.FuncMap{
+	"StringTitle": strings.Title,
+	"StringCamel": func(s string) string {
+		result := strings.Title(s)
+		return strings.ToLower(result[0:1]) + result[1:]
+	},
+	"TypeIdentifier": func(s string) string {
+		if strings.HasPrefix(s, "[]") {
+			return strings.Title(s[2:]) + "Vector"
+		}
+		return strings.Title(s)
+	},
 }

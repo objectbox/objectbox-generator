@@ -23,10 +23,11 @@ import (
 
 // StandaloneRelation in a model
 type StandaloneRelation struct {
-	Id       IdUid   `json:"id"`
-	Name     string  `json:"name"`
-	Target   *Entity `json:"-"`
-	TargetId IdUid   `json:"targetId"`
+	Id         IdUid   `json:"id"`
+	Name       string  `json:"name"`
+	Target     *Entity `json:"-"`
+	TargetId   IdUid   `json:"targetId"`
+	UidRequest bool    `json:"-"` // TODO
 
 	entity *Entity
 }
