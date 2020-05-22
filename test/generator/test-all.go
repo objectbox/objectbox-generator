@@ -30,13 +30,30 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-go/internal/generator"
-	"github.com/objectbox/objectbox-go/internal/generator/go"
+	cgenerator "github.com/objectbox/objectbox-go/internal/generator/c"
+	gogenerator "github.com/objectbox/objectbox-go/internal/generator/go"
+
+	// "github.com/objectbox/objectbox-go/internal/generator/go"
 	"github.com/objectbox/objectbox-go/test/assert"
 	"github.com/objectbox/objectbox-go/test/build"
 )
 
 // this containing module name - used for test case modules
 const moduleName = "github.com/objectbox/objectbox-go"
+
+type lang struct {
+	generatedExt string
+	sourceExt    string
+}
+
+// codeLanguage returns a source code extension, currently everything is "go" except when it's in "testdata/c"
+func codeLanguage(dir string) lang {
+	if filepath.Base(dir) == "c" {
+		return lang{generatedExt: "h", sourceExt: "fbs"}
+	} else {
+		return lang{generatedExt: "go", sourceExt: "go"}
+	}
+}
 
 // generateAllDirs walks through the "data" and generates bindings for each subdirectory
 // set overwriteExpected to TRUE to update all ".expected" files with the generated content
@@ -140,7 +157,7 @@ func generateOneDir(t *testing.T, overwriteExpected bool, srcDir string) {
 	}
 
 	// verify the result can be built
-	if !testing.Short() {
+	if !testing.Short() && codeLanguage(dir).generatedExt == "go" {
 		// override the defer to prevent cleanup before compilation is actually run
 		var cleanupAfterCompile = cleanup
 		cleanup = func() {}
@@ -214,23 +231,25 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInfoFile string, errorTransformer func(error) error) {
 	var modelFile = gogenerator.ModelFile(modelInfoFile)
 
+	var lang = codeLanguage(dir) // go|c
+
 	// remove generated files during development (they might be syntactically wrong)
 	if overwriteExpected {
-		inputFiles, err := filepath.Glob(filepath.Join(dir, "*.obx.go"))
+		files, err := filepath.Glob(filepath.Join(dir, "*.obx."+lang.generatedExt))
 		assert.NoErr(t, err)
 
-		for _, sourceFile := range inputFiles {
-			assert.NoErr(t, os.Remove(sourceFile))
+		for _, file := range files {
+			assert.NoErr(t, os.Remove(file))
 		}
 	}
 
 	// process all *.go files in the directory
-	inputFiles, err := filepath.Glob(filepath.Join(dir, "*.go"))
+	inputFiles, err := filepath.Glob(filepath.Join(dir, "*."+lang.sourceExt))
 	assert.NoErr(t, err)
 	for _, sourceFile := range inputFiles {
 		// skip generated files & "expected results" files
-		if strings.HasSuffix(sourceFile, ".obx.go") ||
-			strings.HasSuffix(sourceFile, ".skip.go") ||
+		if strings.HasSuffix(sourceFile, ".obx."+lang.generatedExt) ||
+			strings.HasSuffix(sourceFile, ".skip."+lang.sourceExt) ||
 			strings.HasSuffix(sourceFile, "expected") ||
 			strings.HasSuffix(sourceFile, "initial") ||
 			sourceFile == modelFile {
@@ -239,11 +258,11 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInf
 
 		t.Logf("  %s", filepath.Base(sourceFile))
 
-		options := getOptions(t, sourceFile, modelInfoFile)
+		options := getOptions(t, lang, sourceFile, modelInfoFile)
 		err = errorTransformer(generator.Process(sourceFile, options))
 
 		// handle negative test
-		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail.go")
+		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail."+lang.generatedExt)
 		if shouldFail {
 			if err == nil {
 				assert.Failf(t, "Unexpected PASS on a negative test %s", sourceFile)
@@ -264,12 +283,16 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInf
 
 var generatorArgsRegexp = regexp.MustCompile("//go:generate go run github.com/objectbox/objectbox-go/cmd/objectbox-gogen (.+)[\n|\r]")
 
-func getOptions(t *testing.T, sourceFile, modelInfoFile string) generator.Options {
+func getOptions(t *testing.T, lang lang, sourceFile, modelInfoFile string) generator.Options {
 	var options = generator.Options{
 		ModelInfoFile: modelInfoFile,
 		// NOTE zero seed for test-only - avoid changes caused by random numbers by fixing them to the same seed
 		Rand:          rand.New(rand.NewSource(0)),
 		CodeGenerator: &gogenerator.GoGenerator{},
+	}
+
+	if lang.generatedExt == "h" {
+		options.CodeGenerator = &cgenerator.CGenerator{}
 	}
 
 	source, err := ioutil.ReadFile(sourceFile)
