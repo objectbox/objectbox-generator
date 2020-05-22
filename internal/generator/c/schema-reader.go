@@ -91,6 +91,9 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 		if property.Type == 0 {
 			return fmt.Errorf("unsupported type: %s", reflection.EnumNamesBaseType[fbsBaseType])
 		}
+
+		// apply flags defined for this type (e.g. unsigned)
+		property.Flags = property.Flags | fbsTypeToObxFlag[fbsBaseType]
 	}
 
 	entity.Properties = append(entity.Properties, property)

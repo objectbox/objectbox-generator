@@ -48,10 +48,10 @@ type CodeGenerator interface {
 	ParseSource(sourceFile string) (*model.ModelInfo, error)
 
 	// WriteBindingFiles generates and writes binding source code files
-	WriteBindingFiles(sourceFile string, options Options) error
+	WriteBindingFiles(sourceFile string, options Options, mergedModel *model.ModelInfo) error
 
 	// WriteBindingFiles generates and writes binding source code file for model setup
-	WriteModelBindingFile(options Options, modelInfo *model.ModelInfo) error
+	WriteModelBindingFile(options Options, mergedModel *model.ModelInfo) error
 }
 
 // WriteFile writes data to targetFile, while using permissions either from the targetFile or permSource
@@ -126,7 +126,11 @@ func createBinding(options Options, sourceFile string, storedModel *model.ModelI
 		return err
 	}
 
-	return options.CodeGenerator.WriteBindingFiles(sourceFile, options)
+	if err = storedModel.Finalize(); err != nil {
+		return fmt.Errorf("model finalization failed: %s", err)
+	}
+
+	return options.CodeGenerator.WriteBindingFiles(sourceFile, options, storedModel)
 }
 
 func createModel(options Options, modelInfo *model.ModelInfo) error {

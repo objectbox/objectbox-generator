@@ -65,7 +65,34 @@ func (property *Property) Validate() error {
 	//	return fmt.Errorf("type is undefined")
 	// }
 
+	// IDs must not be tagged unsigned for compatibility reasons
+	if property.isIdProperty() {
+		if !property.hasValidTypeAsId() {
+			return fmt.Errorf("invalid type on property marked as ID: %d", property.Type)
+		}
+	}
+
 	return nil
+}
+
+func (property *Property) finalize() error {
+	if property.isIdProperty() {
+		// IDs must not be tagged unsigned for compatibility reasons
+		property.Flags = property.Flags & ^PropertyFlagUnsigned
+
+		// always stored as Long
+		property.Type = PropertyTypeLong
+	}
+
+	return property.Validate()
+}
+
+func (property *Property) isIdProperty() bool {
+	return property.Flags&PropertyFlagId != 0
+}
+
+func (property *Property) hasValidTypeAsId() bool {
+	return property.Type == PropertyTypeLong
 }
 
 // CreateIndex creates an index

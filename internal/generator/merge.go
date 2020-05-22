@@ -40,6 +40,10 @@ func mergeBindingWithModelInfo(currentModel *model.ModelInfo, storedModel *model
 		}
 	}
 
+	currentModel.LastEntityId = storedModel.LastEntityId
+	currentModel.LastIndexId = storedModel.LastIndexId
+	currentModel.LastRelationId = storedModel.LastRelationId
+
 	// NOTE this is not ideal as there could be models across multiple packages
 	storedModel.Package = currentModel.Package
 
@@ -88,7 +92,7 @@ func mergeModelEntity(currentEntity *model.Entity, storedEntity *model.Entity, s
 		currentEntity.Id = storedEntity.Id
 	}
 
-	{ //region Properties
+	{ // region Properties
 
 		// add all properties from the bindings to the model and update/rename the changed ones
 		for _, currentProperty := range currentEntity.Properties {
@@ -114,9 +118,9 @@ func mergeModelEntity(currentEntity *model.Entity, storedEntity *model.Entity, s
 		}
 
 		currentEntity.LastPropertyId = storedEntity.LastPropertyId
-	} //endregion
+	} // endregion
 
-	{ //region Relations
+	{ // region Relations
 
 		// add all standalone relations from the bindings to the model and update/rename the changed ones
 		for _, currentRelation := range currentEntity.Relations {
@@ -140,7 +144,7 @@ func mergeModelEntity(currentEntity *model.Entity, storedEntity *model.Entity, s
 				return fmt.Errorf("removing relation %s: %s", relation.Name, err)
 			}
 		}
-	} //endregion
+	} // endregion
 
 	return nil
 }

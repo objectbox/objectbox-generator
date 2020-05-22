@@ -14,8 +14,7 @@ import (
 )
 
 type GoGenerator struct {
-	currentModel *model.ModelInfo
-	binding      *Binding
+	binding *Binding
 }
 
 // BindingFile returns a name of the binding file for the given entity file.
@@ -55,7 +54,7 @@ func (goGen *GoGenerator) ParseSource(sourceFile string) (*model.ModelInfo, erro
 	return nil, nil
 }
 
-func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator.Options) error {
+func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
 	var bindingSource []byte
@@ -129,14 +128,14 @@ func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, model
 	return nil
 }
 
-func generateModelFile(model *model.ModelInfo) (data []byte, err error) {
+func generateModelFile(m *model.ModelInfo) (data []byte, err error) {
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 
 	var tplArguments = struct {
 		Model            *model.ModelInfo
 		GeneratorVersion int
-	}{model, generator.Version}
+	}{m, generator.Version}
 
 	if err = templates.ModelTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)

@@ -17,6 +17,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -94,10 +95,18 @@ func (entity *Entity) Validate() (err error) {
 		return fmt.Errorf("properties are not defined or not an array")
 	}
 
+	var idProp *Property
 	for _, property := range entity.Properties {
 		err = property.Validate()
 		if err != nil {
 			return fmt.Errorf("property %s %s is invalid: %s", property.Name, string(property.Id), err)
+		}
+		if property.isIdProperty() {
+			if idProp != nil {
+				return fmt.Errorf("multiple properties marked as ID: %s (%s) and %s (%s)",
+					idProp.Name, idProp.Id, property.Name, property.Id)
+			}
+			idProp = property
 		}
 	}
 
@@ -117,6 +126,53 @@ func (entity *Entity) Validate() (err error) {
 	return nil
 }
 
+func (entity *Entity) finalize() error {
+	for _, property := range entity.Properties {
+		if err := property.finalize(); err != nil {
+			return err
+		}
+	}
+	if err := entity.AutosetIdProperty(); err != nil {
+		return err
+	}
+	return entity.Validate()
+}
+
+func (entity *Entity) getIdProperty() *Property {
+	for _, property := range entity.Properties {
+		if property.isIdProperty() {
+			return property
+		}
+	}
+	return nil
+}
+
+func (entity *Entity) AutosetIdProperty() error {
+	if entity.getIdProperty() == nil {
+		// try to find an ID property automatically based on its name and type
+		var idProp *Property
+		for _, property := range entity.Properties {
+			if strings.ToLower(property.Name) == "id" && property.hasValidTypeAsId() {
+				if idProp != nil {
+					return fmt.Errorf("multiple properties recognized as an ID: %s (%s) and %s (%s)",
+						idProp.Name, idProp.Id, property.Name, property.Id)
+				}
+				idProp = property
+			}
+		}
+		if idProp == nil {
+			return errors.New("no property recognized as an ID")
+		}
+
+		idProp.Flags = idProp.Flags | PropertyFlagId
+
+		// IDs must not be tagged unsigned for compatibility reasons
+		idProp.Flags = idProp.Flags & ^PropertyFlagUnsigned
+	}
+
+	return nil
+}
+
 // FindPropertyByUid finds a property by Uid
 func (entity *Entity) FindPropertyByUid(uid Uid) (*Property, error) {
 	for _, property := range entity.Properties {
@@ -129,7 +185,7 @@ func (entity *Entity) FindPropertyByUid(uid Uid) (*Property, error) {
 	return nil, fmt.Errorf("property with Uid %d not found in '%s'", uid, entity.Name)
 }
 
-//FindPropertyByName finds a property by name
+// FindPropertyByName finds a property by name
 func (entity *Entity) FindPropertyByName(name string) (*Property, error) {
 	for _, property := range entity.Properties {
 		if strings.ToLower(property.Name) == strings.ToLower(name) {

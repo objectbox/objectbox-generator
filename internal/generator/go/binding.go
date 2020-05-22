@@ -261,6 +261,7 @@ func (binding *Binding) createEntityFromAst(strct *ast.StructType, name string, 
 		return fmt.Errorf("there are no properties in the entity %s", entity.Name)
 	}
 
+	// TODO use the version in the model
 	if entity.IdProperty == nil {
 		// try to find an ID property automatically based on it's name and type
 		for _, property := range entity.Properties {

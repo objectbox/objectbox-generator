@@ -47,7 +47,9 @@ OBX_model* create_obx_model() {
 		// {{$entity.Name}}
 		if (!obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}})) break;
 		{{range $property := $entity.Properties -}}
-			if (!obx_model_property(model, "{{$property.Name}}", {{$property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}})) break;
+		if (!obx_model_property(model, "{{$property.Name}}", {{$property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}})) break;
+		{{with $property.Flags}}if (!obx_model_property_flags(model, {{.}})) break;
+		{{end -}}
 		{{end -}}
 		if (!obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}})) break;
 		{{end}}

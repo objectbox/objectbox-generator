@@ -30,7 +30,6 @@ import (
 )
 
 type CGenerator struct {
-	model *model.ModelInfo
 }
 
 // BindingFile returns a name of the binding file for the given entity file.
@@ -65,18 +64,18 @@ func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) 
 	return reader.model, nil
 }
 
-func (gen *CGenerator) WriteBindingFiles(sourceFile string, options generator.Options) error {
+func (gen *CGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
 	// TODO
 	return nil
 }
 
-func (gen *CGenerator) WriteModelBindingFile(options generator.Options, modelInfo *model.ModelInfo) error {
+func (gen *CGenerator) WriteModelBindingFile(options generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
 	var modelFile = ModelFile(options.ModelInfoFile)
 	var modelSource []byte
 
-	if modelSource, err = generateModelFile(modelInfo); err != nil {
+	if modelSource, err = generateModelFile(mergedModel); err != nil {
 		return fmt.Errorf("can't generate model file %s: %s", modelFile, err)
 	}
 
@@ -98,14 +97,14 @@ func (gen *CGenerator) WriteModelBindingFile(options generator.Options, modelInf
 	return nil
 }
 
-func generateModelFile(model *model.ModelInfo) (data []byte, err error) {
+func generateModelFile(m *model.ModelInfo) (data []byte, err error) {
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 
 	var tplArguments = struct {
 		Model            *model.ModelInfo
 		GeneratorVersion int
-	}{model, generator.Version}
+	}{m, generator.Version}
 
 	if err = templates.ModelTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)

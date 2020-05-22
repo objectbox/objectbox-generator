@@ -93,13 +93,13 @@ func (model *ModelInfo) fillMissing() {
 func (model *ModelInfo) Validate() (err error) {
 	if model.ModelVersion < minModelVersion {
 		return fmt.Errorf("the loaded model is too old - version %d while the minimum supported is %d - "+
-			" consider upgrading with an older generator or manually.", model.ModelVersion, minModelVersion)
+			"consider upgrading with an older generator or manually", model.ModelVersion, minModelVersion)
 	}
 
 	if model.ModelVersion > maxModelVersion {
 		if model.MinimumParserVersion == 0 || model.MinimumParserVersion > ModelVersion {
 			return fmt.Errorf("the loaded model has been created with a newer generator version %d "+
-				" while the maximimum supported version is %d. Please upgrade your toolchain/generator",
+				"while the maximimum supported version is %d. Please upgrade your toolchain/generator",
 				model.ModelVersion, maxModelVersion)
 		}
 	}
@@ -204,6 +204,18 @@ func (model *ModelInfo) Validate() (err error) {
 	}
 
 	return nil
+}
+
+// Finalize should be called after making changes to the model (e.g. from user schema definitions) to verify and update
+// as necessary.
+func (model *ModelInfo) Finalize() error {
+	model.ModelVersion = ModelVersion
+	for _, entity := range model.Entities {
+		if err := entity.finalize(); err != nil {
+			return err
+		}
+	}
+	return model.Validate()
 }
 
 func (model *ModelInfo) hasRelations() bool {
