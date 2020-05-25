@@ -84,7 +84,7 @@ func getArgs() (path string, clean bool, options generator.Options) {
 	}
 
 	if printVersion {
-		fmt.Println(fmt.Sprintf("ObjectBox Go binding code generator version: %d", generator.Version))
+		fmt.Println(fmt.Sprintf("ObjectBox C/C++ binding code generator version: %d", generator.Version))
 		os.Exit(0)
 	}
 
