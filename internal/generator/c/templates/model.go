@@ -36,7 +36,7 @@ var ModelTemplate = template.Must(template.New("model").Parse(
 extern "C" {
 #endif
 
-// TODO property flags, relations, indexes
+// TODO property relations, indexes; have constants for entity & property IDs
 OBX_model* create_obx_model() {
     OBX_model* model = obx_model();
     if (!model) return NULL;
@@ -45,13 +45,13 @@ OBX_model* create_obx_model() {
 	do {
 		{{- range $entity := .Model.Entities}}
 		// {{$entity.Name}}
-		if (!obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}})) break;
+		if (obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}})) break;
 		{{range $property := $entity.Properties -}}
-		if (!obx_model_property(model, "{{$property.Name}}", OBXPropertyType({{$property.Type}}), {{$property.Id.GetId}}, {{$property.Id.GetUid}})) break;
-		{{with $property.Flags}}if (!obx_model_property_flags(model, OBXPropertyFlags({{.}}))) break;
+		if (obx_model_property(model, "{{$property.Name}}", OBXPropertyType({{$property.Type}}), {{$property.Id.GetId}}, {{$property.Id.GetUid}})) break;
+		{{with $property.Flags}}if (obx_model_property_flags(model, OBXPropertyFlags({{.}}))) break;
 		{{end -}}
 		{{end -}}
-		if (!obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}})) break;
+		if (obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}})) break;
 		{{end}}
 
 		obx_model_last_entity_id(model, {{.Model.LastEntityId.GetId}}, {{.Model.LastEntityId.GetUid}});
@@ -62,6 +62,8 @@ OBX_model* create_obx_model() {
 	} while (false);
 
 	if (!successful) {
+		// TODO error handling 
+		// obx_model_error_message(model);
 		obx_model_free(model);
         return NULL;
 	}

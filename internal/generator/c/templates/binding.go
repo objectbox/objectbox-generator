@@ -42,6 +42,7 @@ struct {{$entity.Name}} {
 #include "flatbuffers/flatbuffers.h"
 {{range $entity := .Model.Entities}}
 class {{$entity.Name}}Serializer {
+public:
 	/// Write given object to the FlatBufferBuilder
 	static void toFlatBuffer(flatbuffers::FlatBufferBuilder &fbb, const {{$entity.Name}}& object) {
 		{{- range $property := $entity.Properties}}{{$factory := $property.Meta.FbOffsetFactory}}{{if $factory}}
@@ -54,7 +55,9 @@ class {{$entity.Name}}Serializer {
 		{{- else}}fbb.TrackField({{$property.FbvTableOffset}}, fbb.PushElement<{{$property.Meta.CppType}}>(object.{{$property.Meta.CppName}}));
 		{{- end}}
 		{{end -}}
-		fbb.EndTable(fbStart);
+		flatbuffers::Offset<flatbuffers::Table> offset;
+        offset.o = fbb.EndTable(fbStart);
+        fbb.Finish(offset);
 	}
 	
 	/// Read an object from a valid FlatBuffer
