@@ -19,6 +19,7 @@ package cgenerator
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
 	"github.com/objectbox/objectbox-go/internal/generator/model"
@@ -59,6 +60,13 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 			return fmt.Errorf("field %d %s: %v", i, string(field.Name()), err)
 		}
 	}
+
+	// Schema reader provides fields ordered by name but we want them ordered by the order they appear in the input
+	// file. While that's not available on reflection.Field, there's an alternative: FlatBufferSchema ID, which is,
+	// unless explicitly overridden using an id attribute in the schema, the order in the input file.
+	sort.Slice(entity.Properties, func(i, j int) bool {
+		return entity.Properties[i].Meta.(*fbsProperty).fbsField.Id() < entity.Properties[j].Meta.(*fbsProperty).fbsField.Id()
+	})
 
 	r.model.Entities = append(r.model.Entities, entity)
 	return nil
