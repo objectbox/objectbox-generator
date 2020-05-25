@@ -67,6 +67,7 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection.Field) error {
 	var property = model.CreateProperty(entity, 0, 0)
 	property.Name = string(field.Name())
+	property.Meta = &fbsProperty{property, field}
 
 	if fbsType := field.Type(nil); fbsType == nil {
 		return errors.New("can't access Type() from the source schema")

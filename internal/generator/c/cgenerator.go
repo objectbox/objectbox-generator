@@ -65,8 +65,56 @@ func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) 
 }
 
 func (gen *CGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
-	// TODO
+	var err, err2 error
+
+	var bindingFile = BindingFile(sourceFile)
+
+	var bindingSource []byte
+	if bindingSource, err = gen.generateBindingFile(bindingFile, mergedModel); err != nil {
+		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
+	}
+
+	// TODO c source formatting
+	// if formattedSource, err := format.Source(bindingSource); err != nil {
+	// 	// we just store error but still write the file so that we can check it manually
+	// 	err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
+	// } else {
+	// 	bindingSource = formattedSource
+	// }
+
+	if err = generator.WriteFile(bindingFile, bindingSource, sourceFile); err != nil {
+		return fmt.Errorf("can't write binding file %s: %s", sourceFile, err)
+	} else if err2 != nil {
+		// now when the binding has been written (for debugging purposes), we can return the error
+		return err2
+	}
+
 	return nil
+}
+
+func (gen *CGenerator) generateBindingFile(bindingFile string, m *model.ModelInfo) (data []byte, err error) {
+	var b bytes.Buffer
+	writer := bufio.NewWriter(&b)
+
+	var replaceSpecialChars = strings.NewReplacer("-", "_", ".", "_")
+	var ifdefGuard = strings.ToUpper(filepath.Base(bindingFile))
+	ifdefGuard = replaceSpecialChars.Replace(ifdefGuard)
+
+	var tplArguments = struct {
+		Model            *model.ModelInfo
+		GeneratorVersion int
+		IfdefGuard       string
+	}{m, generator.Version, ifdefGuard}
+
+	if err = templates.BindingTemplate.Execute(writer, tplArguments); err != nil {
+		return nil, fmt.Errorf("template execution failed: %s", err)
+	}
+
+	if err = writer.Flush(); err != nil {
+		return nil, fmt.Errorf("failed to flush buffer: %s", err)
+	}
+
+	return b.Bytes(), nil
 }
 
 func (gen *CGenerator) WriteModelBindingFile(options generator.Options, mergedModel *model.ModelInfo) error {

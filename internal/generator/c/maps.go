@@ -48,3 +48,24 @@ var fbsTypeToObxFlag = map[reflection.BaseType]int{
 	reflection.BaseTypeUInt:   model.PropertyFlagUnsigned,
 	reflection.BaseTypeULong:  model.PropertyFlagUnsigned,
 }
+
+var fbsTypeToCppType = map[reflection.BaseType]string{
+	reflection.BaseTypeNone:   "",
+	reflection.BaseTypeUType:  "",
+	reflection.BaseTypeBool:   "bool",
+	reflection.BaseTypeByte:   "int8_t",
+	reflection.BaseTypeUByte:  "uint8_t",
+	reflection.BaseTypeShort:  "int16_t",
+	reflection.BaseTypeUShort: "uint16_t",
+	reflection.BaseTypeInt:    "int32_t",
+	reflection.BaseTypeUInt:   "uint32_t",
+	reflection.BaseTypeLong:   "int64_t",
+	reflection.BaseTypeULong:  "uint64_t",
+	reflection.BaseTypeFloat:  "float",
+	reflection.BaseTypeDouble: "double",
+	reflection.BaseTypeString: "std::string",
+	reflection.BaseTypeVector: "std::vector", // handled in fbsProperty
+	reflection.BaseTypeObj:    "",            // TODO
+	reflection.BaseTypeUnion:  "",            // TODO
+	reflection.BaseTypeArray:  "",            // TODO
+}

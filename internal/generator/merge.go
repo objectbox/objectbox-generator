@@ -203,6 +203,12 @@ func getModelProperty(currentProperty *model.Property, storedEntity *model.Entit
 func mergeModelProperty(currentProperty *model.Property, storedProperty *model.Property) error {
 	storedProperty.Name = currentProperty.Name
 
+	if currentProperty.Meta != nil {
+		storedProperty.Meta = currentProperty.Meta.Merge(storedProperty)
+	} else {
+		storedProperty.Meta = nil
+	}
+
 	// handle "reset property data" use-case - adding a new UID to an existing property
 	if uid, err := currentProperty.Id.GetUidAllowZero(); err != nil {
 		return err

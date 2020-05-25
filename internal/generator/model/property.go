@@ -20,15 +20,16 @@ import "fmt"
 
 // Property in a model
 type Property struct {
-	Id             IdUid   `json:"id"`
-	Name           string  `json:"name"`
-	IndexId        *IdUid  `json:"indexId,omitempty"` // a pointer because it may be nil
-	Type           int     `json:"type"`
-	Flags          int     `json:"flags,omitempty"`
-	RelationTarget string  `json:"relationTarget,omitempty"`
-	Entity         *Entity `json:"-"`
-	UidRequest     bool    `json:"-"` // TODO
-	Path           string  `json:"-"` // TODO
+	Id             IdUid        `json:"id"`
+	Name           string       `json:"name"`
+	IndexId        *IdUid       `json:"indexId,omitempty"` // a pointer because it may be nil
+	Type           int          `json:"type"`
+	Flags          int          `json:"flags,omitempty"`
+	RelationTarget string       `json:"relationTarget,omitempty"`
+	Entity         *Entity      `json:"-"`
+	UidRequest     bool         `json:"-"` // TODO
+	Path           string       `json:"-"` // TODO
+	Meta           PropertyMeta `json:"-"`
 }
 
 // CreateProperty creates a property
