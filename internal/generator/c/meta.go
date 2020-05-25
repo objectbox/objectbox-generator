@@ -31,6 +31,7 @@ func (mp *fbsProperty) Merge(property *model.Property) model.PropertyMeta {
 	return &fbsProperty{property, mp.fbsField}
 }
 
+// CppType returns C++ variable name with reserved keywords suffixed by an underscore
 func (mp *fbsProperty) CppName() string {
 	if reservedKeywords[mp.mProp.Name] {
 		return mp.mProp.Name + "_"
@@ -38,6 +39,7 @@ func (mp *fbsProperty) CppName() string {
 	return mp.mProp.Name
 }
 
+// CppType returns C++ type name
 func (mp *fbsProperty) CppType() string {
 	var fbsType = mp.fbsField.Type(nil)
 	var baseType = fbsType.BaseType()
@@ -46,4 +48,40 @@ func (mp *fbsProperty) CppType() string {
 		cppType = cppType + "<" + fbsTypeToCppType[fbsType.Element()] + ">"
 	}
 	return cppType
+}
+
+// FbOffsetFactory returns an offset factory used to build flatbuffers if this property is a complex type.
+// See also FbOffsetType().
+func (mp *fbsProperty) FbOffsetFactory() string {
+	switch mp.mProp.Type {
+	case model.PropertyTypeString:
+		return "CreateString"
+	case model.PropertyTypeByteVector:
+		return "CreateVector"
+	case model.PropertyTypeStringVector:
+		return "CreateVectorOfStrings"
+	}
+	return ""
+}
+
+// FbOffsetType returns a type used to read flatbuffers if this property is a complex type.
+// See also FbOffsetFactory().
+func (mp *fbsProperty) FbOffsetType() string {
+	switch mp.mProp.Type {
+	case model.PropertyTypeString:
+		return "flatbuffers::Vector<char>"
+	case model.PropertyTypeByteVector:
+		return "flatbuffers::Vector<" + fbsTypeToCppType[mp.fbsField.Type(nil).Element()] + ">"
+	case model.PropertyTypeStringVector:
+		return "" // NOTE custom handling in the template
+	}
+	return ""
+}
+
+// FbDefaultValue returns a default value for scalars
+func (mp *fbsProperty) FbDefaultValue() string {
+	if mp.mProp.Type == model.PropertyTypeFloat || mp.mProp.Type == model.PropertyTypeDouble {
+		return "0.0"
+	}
+	return "0"
 }

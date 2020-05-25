@@ -27,13 +27,61 @@ var BindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Parse
 #ifndef {{.IfdefGuard}}
 #define {{.IfdefGuard}}
 
-{{range $entity := .Model.Entities -}}
+#include <cstdint>
+#include <vector>
+#include <string>
+{{range $entity := .Model.Entities}}
 struct {{$entity.Name}} {
 	{{- range $property := $entity.Properties}}
 	{{$property.Meta.CppType}} {{$property.Meta.CppName}};
 	{{- end}}
-}
+};
 {{end}}
 
+{{/* TODO how to handle null values? TODO this is cpp only. TODO split header and implementation? */ -}}
+#include "flatbuffers/flatbuffers.h"
+{{range $entity := .Model.Entities}}
+class {{$entity.Name}}Serializer {
+	/// Write given object to the FlatBufferBuilder
+	static void toFlatBuffer(flatbuffers::FlatBufferBuilder &fbb, const {{$entity.Name}}& object) {
+		{{- range $property := $entity.Properties}}{{$factory := $property.Meta.FbOffsetFactory}}{{if $factory}}
+		auto offset{{$property.Meta.CppName}} = fbb.{{$factory}}(object.{{$property.Meta.CppName}});
+		{{- end}}{{end}}
+		flatbuffers::uoffset_t fbStart = fbb.StartTable();
+		{{range $property := $entity.Properties}}
+		{{- if $property.Meta.FbOffsetFactory}}fbb.AddOffset({{$property.FbvTableOffset}}, offset{{$property.Meta.CppName}});
+		{{- else if eq "bool" $property.Meta.CppType}}fbb.TrackField({{$property.FbvTableOffset}}, fbb.PushElement<uint8_t>(object.{{$property.Meta.CppName}} ? 1 : 0));
+		{{- else}}fbb.TrackField({{$property.FbvTableOffset}}, fbb.PushElement<{{$property.Meta.CppType}}>(object.{{$property.Meta.CppName}}));
+		{{- end}}
+		{{end -}}
+		fbb.EndTable(fbStart);
+	}
+	
+	/// Read an object from a valid FlatBuffer
+	static {{$entity.Name}} fromFlatBuffer(const void* data, size_t size) {
+		const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
+		assert(table);
+		{{$entity.Name}} object;
+		{{range $property := $entity.Properties}}
+		{{- if eq "std::vector<std::string>" $property.Meta.CppType}}{
+			auto* ptr = table->GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*>({{$property.FbvTableOffset}});
+			if (ptr) {
+				object.{{$property.Meta.CppName}}.reserve(ptr->size());
+				for (size_t i = 0; i < ptr->size(); i++) {
+					auto* itemPtr = ptr->Get(i);
+					if (itemPtr) object.{{$property.Meta.CppName}}.emplace_back(itemPtr->c_str());
+				}
+			}
+		}{{else if $property.Meta.FbOffsetType}}{
+			auto* ptr = table->GetPointer<const {{$property.Meta.FbOffsetType}}*>({{$property.FbvTableOffset}});
+			if (ptr) object.{{$property.Meta.CppName}}.assign(ptr->begin(), ptr->end()); 
+		}{{- else if eq "bool" $property.Meta.CppType}}object.{{$property.Meta.CppName}} = table->GetField<uint8_t>({{$property.FbvTableOffset}}, 0) != 0;
+		{{- else}}object.{{$property.Meta.CppName}} = table->GetField<{{$property.Meta.CppType}}>({{$property.FbvTableOffset}}, {{$property.Meta.FbDefaultValue}});
+		{{- end}}
+		{{end -}}
+		return object;
+	}
+};
+{{end}}
 #endif // {{.IfdefGuard}}
 `))

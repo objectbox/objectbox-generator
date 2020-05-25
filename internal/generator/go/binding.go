@@ -1114,6 +1114,7 @@ func (field *Field) HasPointersInPath() bool {
 	return field.parent.HasPointersInPath()
 }
 
+// TODO moved to model.Property
 // FbvTableOffset calculates flatbuffers vTableOffset.
 // Called from the template.
 func (property *Property) FbvTableOffset() uint16 {

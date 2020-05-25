@@ -136,3 +136,21 @@ func (property *Property) containsUid(searched Uid) bool {
 
 	return false
 }
+
+// FbvTableOffset calculates flatbuffers vTableOffset.
+func (property *Property) FbvTableOffset() (uint16, error) {
+	// derived from the FB generated code & https://google.github.io/flatbuffers/md__internals.html
+	var result = 4 + 2*uint32(property.FbSlot())
+
+	if uint32(uint16(result)) != result {
+		return 0, fmt.Errorf("can't calculate FlatBuffers VTableOffset: property %s ID %s is too large",
+			property.Name, property.Id)
+	}
+
+	return uint16(result), nil
+}
+
+// FbSlot is called from the template. It calculates flatbuffers slot number.
+func (property *Property) FbSlot() int {
+	return int(property.Id.getIdSafe() - 1)
+}
