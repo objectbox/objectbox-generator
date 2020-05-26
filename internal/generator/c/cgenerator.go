@@ -74,13 +74,12 @@ func (gen *CGenerator) WriteBindingFiles(sourceFile string, options generator.Op
 		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
 	}
 
-	// TODO c source formatting
-	// if formattedSource, err := format.Source(bindingSource); err != nil {
-	// 	// we just store error but still write the file so that we can check it manually
-	// 	err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
-	// } else {
-	// 	bindingSource = formattedSource
-	// }
+	if formattedSource, err := format(bindingSource); err != nil {
+		// we just store error but still write the file so that we can check it manually
+		err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
+	} else {
+		bindingSource = formattedSource
+	}
 
 	if err = generator.WriteFile(bindingFile, bindingSource, sourceFile); err != nil {
 		return fmt.Errorf("can't write binding file %s: %s", sourceFile, err)
@@ -127,13 +126,12 @@ func (gen *CGenerator) WriteModelBindingFile(options generator.Options, mergedMo
 		return fmt.Errorf("can't generate model file %s: %s", modelFile, err)
 	}
 
-	// TODO c source formatting
-	// if formattedSource, err := format.Source(modelSource); err != nil {
-	// 	// we just store error but still writ the file so that we can check it manually
-	// 	err2 = fmt.Errorf("failed to format generated model file %s: %s", modelFile, err)
-	// } else {
-	// 	modelSource = formattedSource
-	// }
+	if formattedSource, err := format(modelSource); err != nil {
+		// we just store error but still writ the file so that we can check it manually
+		err2 = fmt.Errorf("failed to format generated model file %s: %s", modelFile, err)
+	} else {
+		modelSource = formattedSource
+	}
 
 	if err = generator.WriteFile(modelFile, modelSource, options.ModelInfoFile); err != nil {
 		return fmt.Errorf("can't write model file %s: %s", modelFile, err)
@@ -163,4 +161,12 @@ func generateModelFile(m *model.ModelInfo) (data []byte, err error) {
 	}
 
 	return b.Bytes(), nil
+}
+
+func format(source []byte) ([]byte, error) {
+	// replace tabs with spaces
+	source = bytes.ReplaceAll(source, []byte("\t"), []byte("    "))
+
+	// TODO c source formatting
+	return source, nil
 }
