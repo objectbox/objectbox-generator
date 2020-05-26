@@ -26,7 +26,7 @@ const (
 	PropertyFlagIndexed              PropertyFlags = 8
 	PropertyFlagReserved             PropertyFlags = 16
 	PropertyFlagUnique               PropertyFlags = 32
-	PropertyFlaIdMonotonicSequence   PropertyFlags = 64
+	PropertyFlagIdMonotonicSequence  PropertyFlags = 64
 	PropertyFlagIdSelfAssignable     PropertyFlags = 128
 	PropertyFlagIndexPartialSkipNull PropertyFlags = 256
 	PropertyFlagIndexPartialSkipZero PropertyFlags = 512
@@ -35,6 +35,24 @@ const (
 	PropertyFlagIndexHash64          PropertyFlags = 4096
 	PropertyFlagUnsigned             PropertyFlags = 8192
 )
+
+// PropertyFlagNames assigns a name to each PropertyFlag
+var PropertyFlagNames = map[PropertyFlags]string{
+	PropertyFlagId:                   "Id",
+	PropertyFlagNonPrimitiveType:     "NonPrimitiveType",
+	PropertyFlagNotNull:              "NotNull",
+	PropertyFlagIndexed:              "Indexed",
+	PropertyFlagReserved:             "Reserved",
+	PropertyFlagUnique:               "Unique",
+	PropertyFlagIdMonotonicSequence:  "IdMonotonicSequence",
+	PropertyFlagIdSelfAssignable:     "IdSelfAssignable",
+	PropertyFlagIndexPartialSkipNull: "IndexPartialSkipNull",
+	PropertyFlagIndexPartialSkipZero: "IndexPartialSkipZero",
+	PropertyFlagVirtual:              "Virtual",
+	PropertyFlagIndexHash:            "IndexHash",
+	PropertyFlagIndexHash64:          "IndexHash64",
+	PropertyFlagUnsigned:             "Unsigned",
+}
 
 // PropertyType is an identifier of a property type corresponding with objectbox-c
 type PropertyType int8

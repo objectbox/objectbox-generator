@@ -17,13 +17,49 @@
 package templates
 
 import (
+	"strings"
 	"text/template"
 
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
+// cccToUc converts CapitalCamelCase to UPPER_CASE - only used converty Go PropertyFlags names to C/Core names.
+// Note: this isn't library quality, e.g. only handles ascii letters.
+func cccToUc(str string) string {
+	var result string
+	for _, char := range str {
+		// if it's an uppercase character and not the first one, prepend an underscore ("space")
+		if char >= 65 && char <= 90 && len(result) > 0 {
+			result += "_"
+		}
+		result += strings.ToUpper(string(char))
+	}
+	return result
+}
+
 var funcMap = template.FuncMap{
 	"CorePropType": func(val model.PropertyType) string {
 		return "OBXPropertyType_" + model.PropertyTypeNames[val]
+	},
+	"CorePropFlags": func(val model.PropertyFlags) string {
+		var result string
+		var count = 0
+
+		for flag, name := range model.PropertyFlagNames {
+			if val&flag != 0 { // if this flag is set
+				if count > 0 {
+					result += " | "
+				}
+				result += "OBXPropertyFlags_" + cccToUc(name)
+				count++
+			}
+		}
+
+		if count > 1 {
+			// if there's more than one, we need to cast the result of their combination back to the right type
+			result = "OBXPropertyFlags(" + result + ")"
+		}
+
+		return result
 	},
 }
