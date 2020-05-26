@@ -17,10 +17,13 @@
 package templates
 
 import (
-	"strings"
 	"text/template"
+
+	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
 var funcMap = template.FuncMap{
-	"StringToUpper": strings.ToUpper,
+	"CorePropType": func(val model.PropertyType) string {
+		return "OBXPropertyType_" + model.PropertyTypeNames[val]
+	},
 }

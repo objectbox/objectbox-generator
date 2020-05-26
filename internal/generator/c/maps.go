@@ -21,7 +21,7 @@ import (
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
-var fbsTypeToObxType = map[reflection.BaseType]int{
+var fbsTypeToObxType = map[reflection.BaseType]model.PropertyType{
 	reflection.BaseTypeNone:   0,
 	reflection.BaseTypeUType:  0,
 	reflection.BaseTypeBool:   model.PropertyTypeBool,
@@ -42,7 +42,7 @@ var fbsTypeToObxType = map[reflection.BaseType]int{
 	reflection.BaseTypeArray:  0, // TODO
 }
 
-var fbsTypeToObxFlag = map[reflection.BaseType]int{
+var fbsTypeToObxFlag = map[reflection.BaseType]model.PropertyFlags{
 	reflection.BaseTypeUByte:  model.PropertyFlagUnsigned,
 	reflection.BaseTypeUShort: model.PropertyFlagUnsigned,
 	reflection.BaseTypeUInt:   model.PropertyFlagUnsigned,

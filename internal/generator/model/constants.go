@@ -16,35 +16,58 @@
 
 package model
 
-const (
-	PropertyFlagId                   = 1
-	PropertyFlagNonPrimitiveType     = 2
-	PropertyFlagNotNull              = 4
-	PropertyFlagIndexed              = 8
-	PropertyFlagReserved             = 16
-	PropertyFlagUnique               = 32
-	PropertyFlaIdMonotonicSequence   = 64
-	PropertyFlagIdSelfAssignable     = 128
-	PropertyFlagIndexPartialSkipNull = 256
-	PropertyFlagIndexPartialSkipZero = 512
-	PropertyFlagVirtual              = 1024
-	PropertyFlagIndexHash            = 2048
-	PropertyFlagIndexHash64          = 4096
-	PropertyFlagUnsigned             = 8192
-)
+// PropertyFlags is a bit combination of 0..n property flags corresponding with objectbox-c
+type PropertyFlags int32
 
 const (
-	PropertyTypeBool         = 1
-	PropertyTypeByte         = 2
-	PropertyTypeShort        = 3
-	PropertyTypeChar         = 4
-	PropertyTypeInt          = 5
-	PropertyTypeLong         = 6
-	PropertyTypeFloat        = 7
-	PropertyTypeDouble       = 8
-	PropertyTypeString       = 9
-	PropertyTypeDate         = 10
-	PropertyTypeRelation     = 11
-	PropertyTypeByteVector   = 23
-	PropertyTypeStringVector = 30
+	PropertyFlagId                   PropertyFlags = 1
+	PropertyFlagNonPrimitiveType     PropertyFlags = 2
+	PropertyFlagNotNull              PropertyFlags = 4
+	PropertyFlagIndexed              PropertyFlags = 8
+	PropertyFlagReserved             PropertyFlags = 16
+	PropertyFlagUnique               PropertyFlags = 32
+	PropertyFlaIdMonotonicSequence   PropertyFlags = 64
+	PropertyFlagIdSelfAssignable     PropertyFlags = 128
+	PropertyFlagIndexPartialSkipNull PropertyFlags = 256
+	PropertyFlagIndexPartialSkipZero PropertyFlags = 512
+	PropertyFlagVirtual              PropertyFlags = 1024
+	PropertyFlagIndexHash            PropertyFlags = 2048
+	PropertyFlagIndexHash64          PropertyFlags = 4096
+	PropertyFlagUnsigned             PropertyFlags = 8192
 )
+
+// PropertyType is an identifier of a property type corresponding with objectbox-c
+type PropertyType int8
+
+const (
+	PropertyTypeBool         PropertyType = 1
+	PropertyTypeByte         PropertyType = 2
+	PropertyTypeShort        PropertyType = 3
+	PropertyTypeChar         PropertyType = 4
+	PropertyTypeInt          PropertyType = 5
+	PropertyTypeLong         PropertyType = 6
+	PropertyTypeFloat        PropertyType = 7
+	PropertyTypeDouble       PropertyType = 8
+	PropertyTypeString       PropertyType = 9
+	PropertyTypeDate         PropertyType = 10
+	PropertyTypeRelation     PropertyType = 11
+	PropertyTypeByteVector   PropertyType = 23
+	PropertyTypeStringVector PropertyType = 30
+)
+
+// PropertyTypeNames assigns a name to each PropertyType
+var PropertyTypeNames = map[PropertyType]string{
+	PropertyTypeBool:         "Bool",
+	PropertyTypeByte:         "Byte",
+	PropertyTypeShort:        "Short",
+	PropertyTypeChar:         "Char",
+	PropertyTypeInt:          "Int",
+	PropertyTypeLong:         "Long",
+	PropertyTypeFloat:        "Float",
+	PropertyTypeDouble:       "Double",
+	PropertyTypeString:       "String",
+	PropertyTypeDate:         "Date",
+	PropertyTypeRelation:     "Relation",
+	PropertyTypeByteVector:   "ByteVector",
+	PropertyTypeStringVector: "StringVector",
+}

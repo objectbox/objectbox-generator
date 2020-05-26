@@ -80,8 +80,8 @@ type Property struct {
 	Name        string // prefixed name (unique)
 	ObName      string // name of the field in DB
 	Annotations map[string]*Annotation
-	ObType      int
-	obFlags     map[int]bool
+	ObType      model.PropertyType
+	obFlags     map[model.PropertyFlags]bool
 	GoType      string
 	FbType      string
 	IsPointer   bool
@@ -327,7 +327,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 
 		var property = &Property{
 			Entity:      entity,
-			obFlags:     map[int]bool{},
+			obFlags:     map[model.PropertyFlags]bool{},
 			Annotations: make(map[string]*Annotation),
 		}
 
@@ -902,11 +902,11 @@ func (property *Property) setBasicType(baseType string) error {
 	return nil
 }
 
-func (property *Property) addObFlag(flag int) {
+func (property *Property) addObFlag(flag model.PropertyFlags) {
 	property.obFlags[flag] = true
 }
 
-func (property *Property) removeObFlag(flag int) {
+func (property *Property) removeObFlag(flag model.PropertyFlags) {
 	property.obFlags[flag] = false
 }
 
@@ -1001,8 +1001,8 @@ func (property *Property) ObTypeString() string {
 }
 
 // ObFlagsCombined called from the template
-func (property *Property) ObFlagsCombined() int {
-	var result = 0
+func (property *Property) ObFlagsCombined() model.PropertyFlags {
+	var result model.PropertyFlags = 0
 
 	for flag, isSet := range property.obFlags {
 		if isSet {
