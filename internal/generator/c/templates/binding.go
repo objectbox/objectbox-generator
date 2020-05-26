@@ -45,6 +45,7 @@ class {{$entity.Name}}Serializer {
 public:
 	/// Write given object to the FlatBufferBuilder
 	static void toFlatBuffer(flatbuffers::FlatBufferBuilder &fbb, const {{$entity.Name}}& object) {
+		fbb.Clear();
 		{{- range $property := $entity.Properties}}{{$factory := $property.Meta.FbOffsetFactory}}{{if $factory}}
 		auto offset{{$property.Meta.CppName}} = fbb.{{$factory}}(object.{{$property.Meta.CppName}});
 		{{- end}}{{end}}
@@ -56,33 +57,45 @@ public:
 		{{- end}}
 		{{end -}}
 		flatbuffers::Offset<flatbuffers::Table> offset;
-        offset.o = fbb.EndTable(fbStart);
-        fbb.Finish(offset);
+		offset.o = fbb.EndTable(fbStart);
+		fbb.Finish(offset);
 	}
 	
 	/// Read an object from a valid FlatBuffer
 	static {{$entity.Name}} fromFlatBuffer(const void* data, size_t size) {
+		{{$entity.Name}} object;
+		fromFlatBuffer(data, size, object);
+		return object;
+	}
+
+	/// Read an object from a valid FlatBuffer
+	static std::unique_ptr<{{$entity.Name}}> newFromFlatBuffer(const void* data, size_t size) {
+		auto object = std::unique_ptr<{{$entity.Name}}>(new {{$entity.Name}}());
+		fromFlatBuffer(data, size, *object);
+		return object;
+	}
+
+	/// Read an object from a valid FlatBuffer
+	static void fromFlatBuffer(const void* data, size_t size, {{$entity.Name}}& outObject) {
 		const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
 		assert(table);
-		{{$entity.Name}} object;
 		{{range $property := $entity.Properties}}
 		{{- if eq "std::vector<std::string>" $property.Meta.CppType}}{
 			auto* ptr = table->GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*>({{$property.FbvTableOffset}});
 			if (ptr) {
-				object.{{$property.Meta.CppName}}.reserve(ptr->size());
+				outObject.{{$property.Meta.CppName}}.reserve(ptr->size());
 				for (size_t i = 0; i < ptr->size(); i++) {
 					auto* itemPtr = ptr->Get(i);
-					if (itemPtr) object.{{$property.Meta.CppName}}.emplace_back(itemPtr->c_str());
+					if (itemPtr) outObject.{{$property.Meta.CppName}}.emplace_back(itemPtr->c_str());
 				}
 			}
 		}{{else if $property.Meta.FbOffsetType}}{
 			auto* ptr = table->GetPointer<const {{$property.Meta.FbOffsetType}}*>({{$property.FbvTableOffset}});
-			if (ptr) object.{{$property.Meta.CppName}}.assign(ptr->begin(), ptr->end()); 
-		}{{- else if eq "bool" $property.Meta.CppType}}object.{{$property.Meta.CppName}} = table->GetField<uint8_t>({{$property.FbvTableOffset}}, 0) != 0;
-		{{- else}}object.{{$property.Meta.CppName}} = table->GetField<{{$property.Meta.CppType}}>({{$property.FbvTableOffset}}, {{$property.Meta.FbDefaultValue}});
+			if (ptr) outObject.{{$property.Meta.CppName}}.assign(ptr->begin(), ptr->end()); 
+		}{{- else if eq "bool" $property.Meta.CppType}}outObject.{{$property.Meta.CppName}} = table->GetField<uint8_t>({{$property.FbvTableOffset}}, 0) != 0;
+		{{- else}}outObject.{{$property.Meta.CppName}} = table->GetField<{{$property.Meta.CppType}}>({{$property.FbvTableOffset}}, {{$property.Meta.FbDefaultValue}});
 		{{- end}}
-		{{end -}}
-		return object;
+		{{end}}
 	}
 };
 {{end}}
