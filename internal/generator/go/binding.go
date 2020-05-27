@@ -798,7 +798,7 @@ func parseAnnotations(tags string, annotations *map[string]*Annotation) error {
 		return nil
 	}
 
-	// tags are space separated
+	// tags are space-separated
 	for _, tag := range strings.Split(tags, " ") {
 		if len(tag) > 0 {
 			var name string

@@ -51,8 +51,17 @@ func (str *IdUid) Validate() error {
 }
 
 // GetId returns the ID part
-func (str IdUid) GetId() (Id, error) {
+func (str *IdUid) GetId() (Id, error) {
 	id, err := str.getComponent(0, 32, false)
+	if err != nil {
+		return 0, err
+	}
+	return Id(id), nil
+}
+
+// GetId returns the ID part, not returning an error in case of a zero value
+func (str *IdUid) GetIdAllowZero() (Id, error) {
+	id, err := str.getComponent(0, 32, true)
 	if err != nil {
 		return 0, err
 	}
@@ -64,6 +73,7 @@ func (str *IdUid) GetUid() (Uid, error) {
 	return str.getComponent(1, 64, false)
 }
 
+// GetUid returns the UID part, not returning an error in case of a zero value
 func (str *IdUid) GetUidAllowZero() (Uid, error) {
 	return str.getComponent(1, 64, true)
 }

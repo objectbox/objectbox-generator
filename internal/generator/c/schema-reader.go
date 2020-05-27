@@ -20,8 +20,11 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
+	"github.com/objectbox/objectbox-go/internal/generator/binding"
 	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
+	"github.com/objectbox/objectbox-go/internal/generator/go"
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
@@ -30,6 +33,8 @@ type fbSchemaReader struct {
 	// model produced by reading the schema
 	model *model.ModelInfo
 }
+
+// const annotationPrefix = "objectbox:"
 
 func (r *fbSchemaReader) read(schema *reflection.Schema) error {
 	for i := 0; i < schema.ObjectsLength(); i++ {
@@ -72,10 +77,23 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	return nil
 }
 
+var supportedFieldAnnotations = map[string]bool{
+	"-":      true,
+	"date":   true,
+	"id":     true,
+	"index":  true,
+	"link":   false,
+	"name":   true,
+	"uid":    true,
+	"unique": true,
+}
+
 func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection.Field) error {
 	var property = model.CreateProperty(entity, 0, 0)
-	property.Name = string(field.Name())
-	property.Meta = &fbsProperty{property, field}
+	var metaProperty = &fbsProperty{binding.CreateField(property), property, field}
+	property.Meta = metaProperty
+
+	metaProperty.SetName(string(field.Name()))
 
 	if fbsType := field.Type(nil); fbsType == nil {
 		return errors.New("can't access Type() from the source schema")
@@ -101,10 +119,100 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 			return fmt.Errorf("unsupported type: %s", reflection.EnumNamesBaseType[fbsBaseType])
 		}
 
-		// apply flags defined for this type (e.g. unsigned)
-		property.Flags = property.Flags | fbsTypeToObxFlag[fbsBaseType]
+		// apply flags defined for this type (e.g.
+		property.AddFlag(fbsTypeToObxFlag[fbsBaseType])
+	}
+
+	// look for annotations: "/// objectbox:..."
+	var annotations = make(map[string]*gogenerator.Annotation)
+	for i := 0; i < field.DocumentationLength(); i++ {
+		var comment = strings.TrimSpace(string(field.Documentation(i)))
+		if err := parseAnnotations(comment, &annotations, supportedFieldAnnotations); err != nil {
+			return err
+		}
+	}
+
+	if err := metaProperty.ProcessAnnotations(annotations); err != nil {
+		return err
+	}
+
+	if metaProperty.IsSkipped {
+		return nil
 	}
 
 	entity.Properties = append(entity.Properties, property)
+	return nil
+}
+
+// NOTE this is a copy of gogenerator.parseAnnotations with changes to accommodate a different format (not
+func parseAnnotations(comment string, annotations *map[string]*gogenerator.Annotation, supportedAnnotations map[string]bool) error {
+	if strings.HasPrefix(comment, "objectbox:") || strings.HasPrefix(comment, "ObjectBox:") {
+		comment = strings.TrimSpace(comment[len("objectbox:"):])
+		if len(comment) == 0 {
+			return nil
+		}
+	} else {
+		return nil
+	}
+
+	// sample content at this point:
+	// name="name",index
+	// id
+
+	type state struct {
+		name          string
+		value         *gogenerator.Annotation
+		valueQuoted   bool
+		valueFinished bool
+	}
+	var s state
+
+	var finishAnnotation = func() error {
+		if s.value == nil {
+			s.value = &gogenerator.Annotation{} // empty value
+		}
+		if (*annotations)[s.name] != nil {
+			return fmt.Errorf("duplicate annotation %s", s.name)
+		} else if !supportedAnnotations[s.name] {
+			return fmt.Errorf("unknown annotation %s", s.name)
+		} else {
+			(*annotations)[s.name] = s.value
+		}
+		s = state{}
+		return nil
+	}
+
+	for i, char := range comment {
+		if char == '=' && !s.valueQuoted { // start a value
+			if len(s.name) == 0 {
+				return fmt.Errorf("invalid annotation format: name must precede equal sign at position %d in `%s` ", i, comment)
+			}
+			s.value = &gogenerator.Annotation{}
+		} else if char == ',' && !s.valueQuoted { // finish an annotation
+			if err := finishAnnotation(); err != nil {
+				return err
+			}
+		} else if s.value != nil { // continue a value (set contents)
+			if char == '"' {
+				if len(s.value.Value) == 0 {
+					s.valueQuoted = true
+				} else {
+					s.valueQuoted = false
+					s.valueFinished = true
+				}
+			} else if s.valueFinished {
+				return fmt.Errorf("invalid annotation format: no more characters may follow after a quoted value at position %d in `%s`", i, comment)
+			} else {
+				s.value.Value += string(char)
+			}
+		} else { // continue a name
+			s.name += string(char)
+		}
+	}
+
+	if err := finishAnnotation(); err != nil {
+		return err
+	}
+
 	return nil
 }

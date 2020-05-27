@@ -17,26 +17,28 @@
 package cgenerator
 
 import (
+	"github.com/objectbox/objectbox-go/internal/generator/binding"
 	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
 type fbsProperty struct {
+	*binding.Field
 	mProp    *model.Property
 	fbsField *reflection.Field
 }
 
 // Merge implements model.PropertyMeta interface
 func (mp *fbsProperty) Merge(property *model.Property) model.PropertyMeta {
-	return &fbsProperty{property, mp.fbsField}
+	return &fbsProperty{mp.Field, property, mp.fbsField}
 }
 
 // CppType returns C++ variable name with reserved keywords suffixed by an underscore
 func (mp *fbsProperty) CppName() string {
-	if reservedKeywords[mp.mProp.Name] {
-		return mp.mProp.Name + "_"
+	if reservedKeywords[mp.Name] {
+		return mp.Name + "_"
 	}
-	return mp.mProp.Name
+	return mp.Name
 }
 
 // CppType returns C++ type name

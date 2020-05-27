@@ -26,3 +26,11 @@ table Typeful  {
 table Simple {
 	id:ulong;
 }
+
+table Annotated {
+	/// objectbox:id
+	id:ulong;
+	/// objectbox:name="name",index
+	fullName:string;
+}
+

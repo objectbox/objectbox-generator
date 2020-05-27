@@ -124,6 +124,19 @@ func (property *Property) RemoveIndex() error {
 	return nil
 }
 
+func (property *Property) AddFlag(flag PropertyFlags) {
+	property.Flags = property.Flags | flag
+}
+
+func (property *Property) SetIndex() error {
+	if property.IndexId != nil {
+		return fmt.Errorf("index is already defined")
+	}
+	var blank IdUid
+	property.IndexId = &blank
+	return nil
+}
+
 // containsUid recursively checks whether given Uid is present in the model
 func (property *Property) containsUid(searched Uid) bool {
 	if property.Id.getUidSafe() == searched {
