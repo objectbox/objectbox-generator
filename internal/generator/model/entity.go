@@ -30,6 +30,7 @@ type Entity struct {
 	Properties     []*Property           `json:"properties"`
 	Relations      []*StandaloneRelation `json:"relations,omitempty"`
 	UidRequest     bool                  `json:"-"`
+	Meta           EntityMeta            `json:"-"`
 
 	model *ModelInfo
 }

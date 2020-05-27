@@ -22,6 +22,25 @@ import (
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
+type fbsEntity struct {
+	*binding.Object
+	mEntity   *model.Entity
+	fbsObject *reflection.Object
+}
+
+// Merge implements model.PropertyMeta interface
+func (mp *fbsEntity) Merge(entity *model.Entity) model.EntityMeta {
+	return &fbsEntity{mp.Object, entity, mp.fbsObject}
+}
+
+// CppType returns C++ variable name with reserved keywords suffixed by an underscore
+func (mp *fbsEntity) CppName() string {
+	if reservedKeywords[mp.Name] {
+		return mp.Name + "_"
+	}
+	return mp.Name
+}
+
 type fbsProperty struct {
 	*binding.Field
 	mProp    *model.Property

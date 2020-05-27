@@ -27,10 +27,23 @@ table Simple {
 	id:ulong;
 }
 
+/// objectbox: name=AnnotatedEntity
 table Annotated {
 	/// objectbox:id
 	id:ulong;
+
 	/// objectbox:name="name",index
 	fullName:string;
+
+	/// objectbox:date
+	time:int64;
+
+	/// objectbox:-
+	skippedField:[uint64];
+}
+
+
+/// objectbox:-
+table SkippedEntity {
 }
 

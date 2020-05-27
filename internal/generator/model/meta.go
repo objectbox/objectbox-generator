@@ -16,6 +16,12 @@
 
 package model
 
+// EntityMeta provides a way for bindings to provide additional information to other users of Entity
+type EntityMeta interface {
+	// Merge produces new EntityMeta based on its internal state and given entity
+	Merge(entity *Entity) EntityMeta
+}
+
 // PropertyMeta provides a way for bindings to provide additional information to other users of Property
 type PropertyMeta interface {
 	// Merge produces new PropertyMeta based on its internal state and given property

@@ -31,7 +31,7 @@ var BindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Parse
 #include <vector>
 #include <string>
 {{range $entity := .Model.Entities}}
-struct {{$entity.Name}} {
+struct {{$entity.Meta.CppName}} {
 	{{- range $property := $entity.Properties}}
 	{{$property.Meta.CppType}} {{$property.Meta.CppName}};
 	{{- end}}
@@ -41,10 +41,10 @@ struct {{$entity.Name}} {
 {{/* TODO how to handle null values? TODO this is cpp only. TODO split header and implementation? */ -}}
 #include "flatbuffers/flatbuffers.h"
 {{range $entity := .Model.Entities}}
-class {{$entity.Name}}Serializer {
+class {{$entity.Meta.CppName}}Serializer {
 public:
 	/// Write given object to the FlatBufferBuilder
-	static void toFlatBuffer(flatbuffers::FlatBufferBuilder &fbb, const {{$entity.Name}}& object) {
+	static void toFlatBuffer(flatbuffers::FlatBufferBuilder &fbb, const {{$entity.Meta.CppName}}& object) {
 		fbb.Clear();
 		{{- range $property := $entity.Properties}}{{$factory := $property.Meta.FbOffsetFactory}}{{if $factory}}
 		auto offset{{$property.Meta.CppName}} = fbb.{{$factory}}(object.{{$property.Meta.CppName}});
@@ -62,21 +62,21 @@ public:
 	}
 	
 	/// Read an object from a valid FlatBuffer
-	static {{$entity.Name}} fromFlatBuffer(const void* data, size_t size) {
-		{{$entity.Name}} object;
+	static {{$entity.Meta.CppName}} fromFlatBuffer(const void* data, size_t size) {
+		{{$entity.Meta.CppName}} object;
 		fromFlatBuffer(data, size, object);
 		return object;
 	}
 
 	/// Read an object from a valid FlatBuffer
-	static std::unique_ptr<{{$entity.Name}}> newFromFlatBuffer(const void* data, size_t size) {
-		auto object = std::unique_ptr<{{$entity.Name}}>(new {{$entity.Name}}());
+	static std::unique_ptr<{{$entity.Meta.CppName}}> newFromFlatBuffer(const void* data, size_t size) {
+		auto object = std::unique_ptr<{{$entity.Meta.CppName}}>(new {{$entity.Meta.CppName}}());
 		fromFlatBuffer(data, size, *object);
 		return object;
 	}
 
 	/// Read an object from a valid FlatBuffer
-	static void fromFlatBuffer(const void* data, size_t size, {{$entity.Name}}& outObject) {
+	static void fromFlatBuffer(const void* data, size_t size, {{$entity.Meta.CppName}}& outObject) {
 		const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
 		assert(table);
 		{{range $property := $entity.Properties}}

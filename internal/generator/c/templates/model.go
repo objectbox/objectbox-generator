@@ -37,7 +37,7 @@ var ModelTemplate = template.Must(template.New("model").Funcs(funcMap).Parse(
 extern "C" {
 #endif
 {{range $entity := .Model.Entities}}
-struct {{$entity.Name}}_ {
+struct {{$entity.Meta.CppName}}_ {
 	static const obx_schema_id ENTITY_ID = {{$entity.Id.GetId}};
 {{- range $property := $entity.Properties}}
 	static const obx_schema_id {{$property.Meta.CppName}} = {{$property.Id.GetId}};
@@ -51,7 +51,7 @@ OBX_model* create_obx_model() {
 	bool successful = false;
 	do {
 		{{- range $entity := .Model.Entities}}
-		// {{$entity.Name}}
+		// {{$entity.Meta.CppName}}
 		if (obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}})) break;
 		{{range $property := $entity.Properties -}}
 		if (obx_model_property(model, "{{$property.Name}}", {{CorePropType $property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}})) break;

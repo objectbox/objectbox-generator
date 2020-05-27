@@ -85,6 +85,12 @@ func getModelEntity(currentEntity *model.Entity, storedModel *model.ModelInfo) (
 func mergeModelEntity(currentEntity *model.Entity, storedEntity *model.Entity, storedModel *model.ModelInfo) (err error) {
 	storedEntity.Name = currentEntity.Name
 
+	if currentEntity.Meta != nil {
+		storedEntity.Meta = currentEntity.Meta.Merge(storedEntity)
+	} else {
+		storedEntity.Meta = nil
+	}
+
 	// TODO not sure we need this check
 	if _, _, err := storedEntity.Id.Get(); err != nil {
 		return err

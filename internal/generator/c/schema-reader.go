@@ -28,6 +28,23 @@ import (
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
+var supportedEntityAnnotations = map[string]bool{
+	"-":    true,
+	"name": true,
+	"uid":  true,
+}
+
+var supportedPropertyAnnotations = map[string]bool{
+	"-":      true,
+	"date":   true,
+	"id":     true,
+	"index":  true,
+	"link":   false,
+	"name":   true,
+	"uid":    true,
+	"unique": true,
+}
+
 // fbSchemaReader reads FlatBuffers schema and populates a model
 type fbSchemaReader struct {
 	// model produced by reading the schema
@@ -53,7 +70,26 @@ func (r *fbSchemaReader) read(schema *reflection.Schema) error {
 
 func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	var entity = model.CreateEntity(r.model, 0, 0)
-	entity.Name = string(object.Name())
+	var metaEntity = &fbsEntity{binding.CreateObject(entity), entity, object}
+	entity.Meta = metaEntity
+	metaEntity.SetName(string(object.Name()))
+
+	// look for annotations: "/// objectbox:..."
+	var annotations = make(map[string]*gogenerator.Annotation)
+	for i := 0; i < object.DocumentationLength(); i++ {
+		var comment = strings.TrimSpace(string(object.Documentation(i)))
+		if err := parseAnnotations(comment, &annotations, supportedEntityAnnotations); err != nil {
+			return err
+		}
+	}
+
+	if err := metaEntity.ProcessAnnotations(annotations); err != nil {
+		return err
+	}
+
+	if metaEntity.IsSkipped {
+		return nil
+	}
 
 	for i := 0; i < object.FieldsLength(); i++ {
 		var field reflection.Field
@@ -77,23 +113,28 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	return nil
 }
 
-var supportedFieldAnnotations = map[string]bool{
-	"-":      true,
-	"date":   true,
-	"id":     true,
-	"index":  true,
-	"link":   false,
-	"name":   true,
-	"uid":    true,
-	"unique": true,
-}
-
 func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection.Field) error {
 	var property = model.CreateProperty(entity, 0, 0)
 	var metaProperty = &fbsProperty{binding.CreateField(property), property, field}
 	property.Meta = metaProperty
-
 	metaProperty.SetName(string(field.Name()))
+
+	// look for annotations: "/// objectbox:..."
+	var annotations = make(map[string]*gogenerator.Annotation)
+	for i := 0; i < field.DocumentationLength(); i++ {
+		var comment = strings.TrimSpace(string(field.Documentation(i)))
+		if err := parseAnnotations(comment, &annotations, supportedPropertyAnnotations); err != nil {
+			return err
+		}
+	}
+
+	if err := metaProperty.PreProcessAnnotations(annotations); err != nil {
+		return err
+	}
+
+	if metaProperty.IsSkipped {
+		return nil
+	}
 
 	if fbsType := field.Type(nil); fbsType == nil {
 		return errors.New("can't access Type() from the source schema")
@@ -123,21 +164,8 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 		property.AddFlag(fbsTypeToObxFlag[fbsBaseType])
 	}
 
-	// look for annotations: "/// objectbox:..."
-	var annotations = make(map[string]*gogenerator.Annotation)
-	for i := 0; i < field.DocumentationLength(); i++ {
-		var comment = strings.TrimSpace(string(field.Documentation(i)))
-		if err := parseAnnotations(comment, &annotations, supportedFieldAnnotations); err != nil {
-			return err
-		}
-	}
-
 	if err := metaProperty.ProcessAnnotations(annotations); err != nil {
 		return err
-	}
-
-	if metaProperty.IsSkipped {
-		return nil
 	}
 
 	entity.Properties = append(entity.Properties, property)
@@ -168,8 +196,11 @@ func parseAnnotations(comment string, annotations *map[string]*gogenerator.Annot
 	var s state
 
 	var finishAnnotation = func() error {
+		s.name = strings.TrimSpace(s.name)
 		if s.value == nil {
 			s.value = &gogenerator.Annotation{} // empty value
+		} else {
+			s.value.Value = strings.TrimSpace(s.value.Value)
 		}
 		if (*annotations)[s.name] != nil {
 			return fmt.Errorf("duplicate annotation %s", s.name)

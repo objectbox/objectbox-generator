@@ -45,15 +45,26 @@ func (field *Field) SetName(name string) {
 		field.property.Name = strings.ToLower(name)
 	}
 }
-
-// ProcessAnnotations checks all set annotations for any inconsistencies and sets local/property fields (flags, name, ...)
-// TODO move generator.Annotation to this package
-func (field *Field) ProcessAnnotations(a map[string]*gogenerator.Annotation) error {
+func (field *Field) PreProcessAnnotations(a map[string]*gogenerator.Annotation) error {
+	field.IsSkipped = false
 	if a["-"] != nil {
 		if len(a) != 1 || a["-"].Value != "" {
 			return errors.New("to ignore the property, use only `objectbox:\"-\"` as an annotation")
 		}
 		field.IsSkipped = true
+		return nil
+	}
+	return nil
+}
+
+// ProcessAnnotations checks all set annotations for any inconsistencies and sets local/property fields (flags, name, ...)
+// TODO move generator.Annotation to this package
+func (field *Field) ProcessAnnotations(a map[string]*gogenerator.Annotation) error {
+	if err := field.PreProcessAnnotations(a); err != nil {
+		return err
+	}
+
+	if field.IsSkipped {
 		return nil
 	}
 
