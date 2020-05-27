@@ -30,17 +30,25 @@ var BindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Parse
 #include <cstdint>
 #include <vector>
 #include <string>
-{{range $entity := .Model.Entities}}
+#include "objectbox.h"
+{{range $entity := .Model.EntitiesWithMeta}}
 struct {{$entity.Meta.CppName}} {
 	{{- range $property := $entity.Properties}}
 	{{$property.Meta.CppType}} {{$property.Meta.CppName}};
 	{{- end}}
 };
+
+struct {{$entity.Meta.CppName}}_ {
+	static const obx_schema_id ENTITY_ID = {{$entity.Id.GetId}};
+{{- range $property := $entity.Properties}}
+	static const obx_schema_id {{$property.Meta.CppName}} = {{$property.Id.GetId}};
+{{- end}}
+};
 {{end}}
 
 {{/* TODO how to handle null values? TODO this is cpp only. TODO split header and implementation? */ -}}
 #include "flatbuffers/flatbuffers.h"
-{{range $entity := .Model.Entities}}
+{{range $entity := .Model.EntitiesWithMeta}}
 class {{$entity.Meta.CppName}}Serializer {
 public:
 	/// Write given object to the FlatBufferBuilder

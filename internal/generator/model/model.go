@@ -291,6 +291,18 @@ func (model *ModelInfo) GenerateUid() (result Uid, err error) {
 	return result, err
 }
 
+// EntitiesWithMeta returns all entities with .Meta != nil - which usually means they're the ones processed in
+// the current generator run, as opposed to all the entities available in the stored JSON model.
+func (model *ModelInfo) EntitiesWithMeta() []*Entity {
+	var result []*Entity
+	for _, entity := range model.Entities {
+		if entity.Meta != nil {
+			result = append(result, entity)
+		}
+	}
+	return result
+}
+
 func (model *ModelInfo) createIndexId() (IdUid, error) {
 	var id Id = 1
 	if len(model.LastIndexId) > 0 {

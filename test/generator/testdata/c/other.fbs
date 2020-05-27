@@ -1,0 +1,5 @@
+table Other {
+	id:uint64;
+	value:int;
+}
+
