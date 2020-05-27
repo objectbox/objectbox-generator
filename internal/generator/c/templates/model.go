@@ -28,8 +28,8 @@ var ModelTemplate = template.Must(template.New("model").Funcs(funcMap).Parse(
 #ifndef OBJECTBOX_MODEL_H
 #define OBJECTBOX_MODEL_H
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstdbool>
+#include <cstdint>
 
 #include "objectbox.h"
 

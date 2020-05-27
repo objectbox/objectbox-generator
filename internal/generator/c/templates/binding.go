@@ -30,6 +30,7 @@ var BindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Parse
 #include <cstdint>
 #include <vector>
 #include <string>
+
 #include "objectbox.h"
 {{range $entity := .Model.EntitiesWithMeta}}
 struct {{$entity.Meta.CppName}} {
