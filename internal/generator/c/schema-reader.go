@@ -35,14 +35,15 @@ var supportedEntityAnnotations = map[string]bool{
 }
 
 var supportedPropertyAnnotations = map[string]bool{
-	"-":      true,
-	"date":   true,
-	"id":     true,
-	"index":  true,
-	"link":   false,
-	"name":   true,
-	"uid":    true,
-	"unique": true,
+	"-":            true,
+	"date":         true,
+	"id":           true,
+	"index":        true,
+	"link":         false,
+	"name":         true,
+	"uid":          true,
+	"unique":       true,
+	"id-companion": true,
 }
 
 // fbSchemaReader reads FlatBuffers schema and populates a model

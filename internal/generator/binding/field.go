@@ -81,9 +81,16 @@ func (field *Field) ProcessAnnotations(a map[string]*gogenerator.Annotation) err
 
 	if a["date"] != nil {
 		if field.property.Type != model.PropertyTypeLong {
-			return fmt.Errorf("invalid underlying type (PropertyType %v) for date field; expecting long", field.property.Type)
+			return fmt.Errorf("invalid underlying type (PropertyType %v) for date field; expecting long", model.PropertyTypeNames[field.property.Type])
 		}
 		field.property.Type = model.PropertyTypeDate
+	}
+
+	if a["id-companion"] != nil {
+		if field.property.Type != model.PropertyTypeDate {
+			return fmt.Errorf("invalid underlying type (PropertyType %v) for ID companion field; expecting date", model.PropertyTypeNames[field.property.Type])
+		}
+		field.property.AddFlag(model.PropertyFlagIdCompanion)
 	}
 
 	if a["index"] != nil {

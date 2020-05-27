@@ -34,6 +34,7 @@ const (
 	PropertyFlagIndexHash            PropertyFlags = 2048
 	PropertyFlagIndexHash64          PropertyFlags = 4096
 	PropertyFlagUnsigned             PropertyFlags = 8192
+	PropertyFlagIdCompanion          PropertyFlags = 16384
 )
 
 // PropertyFlagNames assigns a name to each PropertyFlag
@@ -52,6 +53,7 @@ var PropertyFlagNames = map[PropertyFlags]string{
 	PropertyFlagIndexHash:            "IndexHash",
 	PropertyFlagIndexHash64:          "IndexHash64",
 	PropertyFlagUnsigned:             "Unsigned",
+	PropertyFlagIdCompanion:          "IdCompanion",
 }
 
 // PropertyType is an identifier of a property type corresponding with objectbox-c
