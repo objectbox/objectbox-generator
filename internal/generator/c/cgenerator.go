@@ -30,24 +30,30 @@ import (
 )
 
 type CGenerator struct {
+	OutPath string
 }
 
-// BindingFile returns a name of the binding file for the given entity file.
-func BindingFile(sourceFile string) string {
-	var extension = filepath.Ext(sourceFile)
-	return sourceFile[0:len(sourceFile)-len(extension)] + ".obx.h"
+// BindingFile returns a name of the binding file for the given entity source file.
+func (gen *CGenerator) BindingFile(forFile string) string {
+	if len(gen.OutPath) > 0 {
+		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
+	}
+	var extension = filepath.Ext(forFile)
+	return forFile[0:len(forFile)-len(extension)] + ".obx.h"
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
-func ModelFile(modelInfoFile string) string {
-	var extension = filepath.Ext(modelInfoFile)
-	return modelInfoFile[0:len(modelInfoFile)-len(extension)] + ".h"
+func (gen *CGenerator) ModelFile(forFile string) string {
+	if len(gen.OutPath) > 0 {
+		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
+	}
+	var extension = filepath.Ext(forFile)
+	return forFile[0:len(forFile)-len(extension)] + ".h"
 }
 
 func (CGenerator) IsGeneratedFile(file string) bool {
 	var name = filepath.Base(file)
-	return name == "objectbox-model.h" || name == "objectbox-model.c" ||
-		strings.HasSuffix(name, ".obx.c") || strings.HasSuffix(name, ".obx.h")
+	return name == "objectbox-model.h" || strings.HasSuffix(name, ".obx.h")
 }
 
 func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) {
@@ -64,10 +70,10 @@ func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) 
 	return reader.model, nil
 }
 
-func (gen *CGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
+func (gen *CGenerator) WriteBindingFiles(sourceFile string, _ generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
-	var bindingFile = BindingFile(sourceFile)
+	var bindingFile = gen.BindingFile(sourceFile)
 
 	var bindingSource []byte
 	if bindingSource, err = gen.generateBindingFile(bindingFile, mergedModel); err != nil {
@@ -119,7 +125,7 @@ func (gen *CGenerator) generateBindingFile(bindingFile string, m *model.ModelInf
 func (gen *CGenerator) WriteModelBindingFile(options generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
-	var modelFile = ModelFile(options.ModelInfoFile)
+	var modelFile = gen.ModelFile(options.ModelInfoFile)
 	var modelSource []byte
 
 	if modelSource, err = generateModelFile(mergedModel); err != nil {

@@ -70,10 +70,14 @@ func showUsageAndExit() {
 }
 
 func getArgs() (path string, clean bool, options generator.Options) {
+	var gen = &cgenerator.CGenerator{}
+	options.CodeGenerator = gen
+
 	var printVersion bool
 	var printHelp bool
 	flag.Usage = showUsage
-	flag.StringVar(&options.ModelInfoFile, "persist", "", "path to the model information persistence file")
+	flag.StringVar(&gen.OutPath, "out", "", "output path for generated source files")
+	flag.StringVar(&options.ModelInfoFile, "persist", "", "path to the model information persistence file (JSON)")
 	flag.BoolVar(&printVersion, "version", false, "print the generator version info")
 	flag.BoolVar(&printHelp, "help", false, "print this help")
 	flag.Parse()
@@ -106,8 +110,6 @@ func getArgs() (path string, clean bool, options generator.Options) {
 	if len(path) == 0 {
 		showUsageAndExit()
 	}
-
-	options.CodeGenerator = &cgenerator.CGenerator{}
 
 	return
 }
