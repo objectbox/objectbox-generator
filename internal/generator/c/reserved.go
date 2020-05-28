@@ -99,3 +99,10 @@ var reservedKeywords = map[string]bool{
 	"xor":              true,
 	"xor_eq":           true,
 }
+
+func cppName(name string) string {
+	if reservedKeywords[name] {
+		return name + "_"
+	}
+	return name
+}

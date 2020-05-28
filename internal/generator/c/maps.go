@@ -64,7 +64,7 @@ var fbsTypeToCppType = map[reflection.BaseType]string{
 	reflection.BaseTypeFloat:  "float",
 	reflection.BaseTypeDouble: "double",
 	reflection.BaseTypeString: "std::string",
-	reflection.BaseTypeVector: "std::vector", // handled in fbsProperty
+	reflection.BaseTypeVector: "std::vector", // handled in fbsField
 	reflection.BaseTypeObj:    "",            // TODO
 	reflection.BaseTypeUnion:  "",            // TODO
 	reflection.BaseTypeArray:  "",            // TODO

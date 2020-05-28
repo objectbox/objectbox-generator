@@ -17,51 +17,74 @@
 package cgenerator
 
 import (
+	"strings"
+
 	"github.com/objectbox/objectbox-go/internal/generator/binding"
 	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
-type fbsEntity struct {
+type fbsObject struct {
 	*binding.Object
 	mEntity   *model.Entity
 	fbsObject *reflection.Object
 }
 
 // Merge implements model.PropertyMeta interface
-func (mp *fbsEntity) Merge(entity *model.Entity) model.EntityMeta {
-	return &fbsEntity{mp.Object, entity, mp.fbsObject}
+func (mo *fbsObject) Merge(entity *model.Entity) model.EntityMeta {
+	return &fbsObject{mo.Object, entity, mo.fbsObject}
 }
 
-// CppType returns C++ variable name with reserved keywords suffixed by an underscore
-func (mp *fbsEntity) CppName() string {
-	if reservedKeywords[mp.Name] {
-		return mp.Name + "_"
+// CppName returns C++ variable name with reserved keywords suffixed by an underscore
+func (mo *fbsObject) CppName() string {
+	return cppName(mo.Name)
+}
+
+// CppNamespaceStart returns c++ namespace opening declaration
+func (mo *fbsObject) CppNamespaceStart() string {
+	if len(mo.Namespace) == 0 {
+		return ""
 	}
-	return mp.Name
+
+	var nss = strings.Split(mo.Namespace, ".")
+	for i, ns := range nss {
+		nss[i] = "namespace " + ns + " {"
+	}
+	return strings.Join(nss, "\n")
 }
 
-type fbsProperty struct {
+// CppNamespaceEnd returns c++ namespace closing declaration
+func (mo *fbsObject) CppNamespaceEnd() string {
+	if len(mo.Namespace) == 0 {
+		return ""
+	}
+	var result = ""
+	var nss = strings.Split(mo.Namespace, ".")
+	for _, ns := range nss {
+		// print in reversed order
+		result = "}  // namespace " + ns + "\n" + result
+	}
+	return result
+}
+
+type fbsField struct {
 	*binding.Field
 	mProp    *model.Property
 	fbsField *reflection.Field
 }
 
 // Merge implements model.PropertyMeta interface
-func (mp *fbsProperty) Merge(property *model.Property) model.PropertyMeta {
-	return &fbsProperty{mp.Field, property, mp.fbsField}
+func (mp *fbsField) Merge(property *model.Property) model.PropertyMeta {
+	return &fbsField{mp.Field, property, mp.fbsField}
 }
 
-// CppType returns C++ variable name with reserved keywords suffixed by an underscore
-func (mp *fbsProperty) CppName() string {
-	if reservedKeywords[mp.Name] {
-		return mp.Name + "_"
-	}
-	return mp.Name
+// CppName returns C++ variable name with reserved keywords suffixed by an underscore
+func (mp *fbsField) CppName() string {
+	return cppName(mp.Name)
 }
 
 // CppType returns C++ type name
-func (mp *fbsProperty) CppType() string {
+func (mp *fbsField) CppType() string {
 	var fbsType = mp.fbsField.Type(nil)
 	var baseType = fbsType.BaseType()
 	var cppType = fbsTypeToCppType[baseType]
@@ -73,7 +96,7 @@ func (mp *fbsProperty) CppType() string {
 
 // FbOffsetFactory returns an offset factory used to build flatbuffers if this property is a complex type.
 // See also FbOffsetType().
-func (mp *fbsProperty) FbOffsetFactory() string {
+func (mp *fbsField) FbOffsetFactory() string {
 	switch mp.mProp.Type {
 	case model.PropertyTypeString:
 		return "CreateString"
@@ -87,7 +110,7 @@ func (mp *fbsProperty) FbOffsetFactory() string {
 
 // FbOffsetType returns a type used to read flatbuffers if this property is a complex type.
 // See also FbOffsetFactory().
-func (mp *fbsProperty) FbOffsetType() string {
+func (mp *fbsField) FbOffsetType() string {
 	switch mp.mProp.Type {
 	case model.PropertyTypeString:
 		return "flatbuffers::Vector<char>"
@@ -100,7 +123,7 @@ func (mp *fbsProperty) FbOffsetType() string {
 }
 
 // FbDefaultValue returns a default value for scalars
-func (mp *fbsProperty) FbDefaultValue() string {
+func (mp *fbsField) FbDefaultValue() string {
 	if mp.mProp.Type == model.PropertyTypeFloat || mp.mProp.Type == model.PropertyTypeDouble {
 		return "0.0"
 	}

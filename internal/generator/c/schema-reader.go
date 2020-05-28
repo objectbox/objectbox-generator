@@ -71,7 +71,7 @@ func (r *fbSchemaReader) read(schema *reflection.Schema) error {
 
 func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	var entity = model.CreateEntity(r.model, 0, 0)
-	var metaEntity = &fbsEntity{binding.CreateObject(entity), entity, object}
+	var metaEntity = &fbsObject{binding.CreateObject(entity), entity, object}
 	entity.Meta = metaEntity
 	metaEntity.SetName(string(object.Name()))
 
@@ -107,7 +107,7 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	// file. While that's not available on reflection.Field, there's an alternative: FlatBufferSchema ID, which is,
 	// unless explicitly overridden using an id attribute in the schema, the order in the input file.
 	sort.Slice(entity.Properties, func(i, j int) bool {
-		return entity.Properties[i].Meta.(*fbsProperty).fbsField.Id() < entity.Properties[j].Meta.(*fbsProperty).fbsField.Id()
+		return entity.Properties[i].Meta.(*fbsField).fbsField.Id() < entity.Properties[j].Meta.(*fbsField).fbsField.Id()
 	})
 
 	r.model.Entities = append(r.model.Entities, entity)
@@ -116,7 +116,7 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 
 func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection.Field) error {
 	var property = model.CreateProperty(entity, 0, 0)
-	var metaProperty = &fbsProperty{binding.CreateField(property), property, field}
+	var metaProperty = &fbsField{binding.CreateField(property), property, field}
 	property.Meta = metaProperty
 	metaProperty.SetName(string(field.Name()))
 

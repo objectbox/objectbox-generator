@@ -30,6 +30,7 @@ import (
 // Additionally, it groups some shared logic, e.g. annotation processing
 type Object struct {
 	Name      string
+	Namespace string
 	IsSkipped bool
 
 	entity *model.Entity
@@ -39,21 +40,28 @@ func CreateObject(entity *model.Entity) *Object {
 	return &Object{entity: entity}
 }
 
-func (entity *Object) SetName(name string) {
-	entity.Name = name
-	if len(entity.entity.Name) == 0 {
-		entity.entity.Name = strings.ToLower(name)
+func (object *Object) SetName(name string) {
+	// look for namespace separators
+	var lastDot = strings.LastIndex(name, ".")
+	if lastDot > 0 {
+		object.Namespace = name[:lastDot]
+		name = name[lastDot+1:]
+	}
+
+	object.Name = name
+	if len(object.entity.Name) == 0 {
+		object.entity.Name = strings.ToLower(name)
 	}
 }
 
 // ProcessAnnotations checks all set annotations for any inconsistencies and sets local/entity properties (uid, name, ...)
 // TODO move generator.Annotation to this package
-func (entity *Object) ProcessAnnotations(a map[string]*gogenerator.Annotation) error {
+func (object *Object) ProcessAnnotations(a map[string]*gogenerator.Annotation) error {
 	if a["-"] != nil {
 		if len(a) != 1 || a["-"].Value != "" {
 			return errors.New("to ignore the entity, use only `objectbox:\"-\"` as an annotation")
 		}
-		entity.IsSkipped = true
+		object.IsSkipped = true
 		return nil
 	}
 
@@ -61,20 +69,20 @@ func (entity *Object) ProcessAnnotations(a map[string]*gogenerator.Annotation) e
 		if len(a["name"].Value) == 0 {
 			return fmt.Errorf("name annotation value must not be empty - it's the entity name in DB")
 		}
-		entity.entity.Name = strings.ToLower(a["name"].Value)
+		object.entity.Name = strings.ToLower(a["name"].Value)
 	}
 
 	if a["uid"] != nil {
 		if len(a["uid"].Value) == 0 {
 			// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID
 			// this flag is handled by the merge mechanism and prints the UID of the already existing entity
-			entity.entity.UidRequest = true
+			object.entity.UidRequest = true
 		} else if uid, err := strconv.ParseUint(a["uid"].Value, 10, 64); err != nil {
 			return fmt.Errorf("can't parse uid - %s", err)
-		} else if id, err := entity.entity.Id.GetIdAllowZero(); err != nil {
+		} else if id, err := object.entity.Id.GetIdAllowZero(); err != nil {
 			return fmt.Errorf("can't parse entity Id - %s", err)
 		} else {
-			entity.entity.Id = model.CreateIdUid(id, uid)
+			object.entity.Id = model.CreateIdUid(id, uid)
 		}
 	}
 
