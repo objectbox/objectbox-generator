@@ -16,8 +16,12 @@
 
 package fbsparser
 
+// Note the cgo library path: load libraries from "build-artifacts" in the root of this repository. This is where
+// the FlatBuffers C-API build script ./build/build-flatbuffersc.sh outputs the static libraries.
+
 /*
 #cgo LDFLAGS: -lstdc++ -lflatbuffersc -lflatbuffers -lm
+#cgo LDFLAGS: -L${SRCDIR}/../../../build-artifacts
 #include <stdlib.h>
 #include "flatbuffersc.h"
 */
@@ -25,8 +29,9 @@ import "C"
 import (
 	"errors"
 	"fmt"
-	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
 	"unsafe"
+
+	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
 )
 
 func ParseSchemaFile(filename string) (*reflection.Schema, error) {
