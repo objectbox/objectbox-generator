@@ -38,12 +38,12 @@ table Annotated {
 	/// objectbox:id-companion,date
 	time:int64;
 
-	/// objectbox:-
+	/// objectbox:transient
 	skippedField:[uint64];
 }
 
 
-/// objectbox:-
+/// objectbox: transient
 table SkippedEntity {
 }
 

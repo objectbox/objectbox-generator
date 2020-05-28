@@ -47,12 +47,14 @@ func (field *Field) SetName(name string) {
 }
 func (field *Field) PreProcessAnnotations(a map[string]*gogenerator.Annotation) error {
 	field.IsSkipped = false
-	if a["-"] != nil {
-		if len(a) != 1 || a["-"].Value != "" {
-			return errors.New("to ignore the property, use only `objectbox:\"-\"` as an annotation")
+	for _, alternative := range []string{"-", "transient"} {
+		if a[alternative] != nil {
+			if len(a) != 1 || a[alternative].Value != "" {
+				return errors.New("to ignore the property, use only `objectbox:\"" + alternative + "\"` as an annotation")
+			}
+			field.IsSkipped = true
+			return nil
 		}
-		field.IsSkipped = true
-		return nil
 	}
 	return nil
 }

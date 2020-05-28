@@ -57,12 +57,14 @@ func (object *Object) SetName(name string) {
 // ProcessAnnotations checks all set annotations for any inconsistencies and sets local/entity properties (uid, name, ...)
 // TODO move generator.Annotation to this package
 func (object *Object) ProcessAnnotations(a map[string]*gogenerator.Annotation) error {
-	if a["-"] != nil {
-		if len(a) != 1 || a["-"].Value != "" {
-			return errors.New("to ignore the entity, use only `objectbox:\"-\"` as an annotation")
+	for _, alternative := range []string{"-", "transient"} {
+		if a[alternative] != nil {
+			if len(a) != 1 || a[alternative].Value != "" {
+				return errors.New("to ignore the entity, use only `objectbox:\"" + alternative + "\"` as an annotation")
+			}
+			object.IsSkipped = true
+			return nil
 		}
-		object.IsSkipped = true
-		return nil
 	}
 
 	if a["name"] != nil {

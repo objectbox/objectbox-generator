@@ -29,13 +29,13 @@ import (
 )
 
 var supportedEntityAnnotations = map[string]bool{
-	"-":    true,
-	"name": true,
-	"uid":  true,
+	"transient": true,
+	"name":      true,
+	"uid":       true,
 }
 
 var supportedPropertyAnnotations = map[string]bool{
-	"-":            true,
+	"transient":    true,
 	"date":         true,
 	"id":           true,
 	"index":        true,
