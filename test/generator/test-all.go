@@ -292,7 +292,7 @@ func getOptions(t *testing.T, lang lang, sourceFile, modelInfoFile string) gener
 	}
 
 	if lang.generatedExt == "h" {
-		options.CodeGenerator = &cgenerator.CGenerator{}
+		options.CodeGenerator = &cgenerator.CGenerator{PlainC: true}
 	}
 
 	source, err := ioutil.ReadFile(sourceFile)

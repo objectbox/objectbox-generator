@@ -28,14 +28,15 @@ var ModelTemplate = template.Must(template.New("model").Funcs(funcMap).Parse(
 #ifndef OBJECTBOX_MODEL_H
 #define OBJECTBOX_MODEL_H
 
+#ifdef __cplusplus
 #include <cstdbool>
 #include <cstdint>
-
-#include "objectbox.h"
-
-#ifdef __cplusplus
 extern "C" {
+#else
+#include <stdbool.h>
+#include <stdint.h>
 #endif
+#include "objectbox.h"
 
 /// Initializes an ObjectBox model for all entities. 
 /// The returned pointer may be NULL if the allocation failed. If the returned model is not NULL, you should check if   
@@ -44,7 +45,7 @@ extern "C" {
 /// In case there was no error when setting the model up (i.e. obx_model_error_code() returned 0), you may configure 
 /// OBX_store_options with the model by calling obx_opt_model() and subsequently opening a store with obx_store_open().
 /// As soon as you call obx_store_open(), the model pointer is consumed and MUST NOT be freed manually.
-inline OBX_model* create_obx_model() {
+static inline OBX_model* create_obx_model() {
     OBX_model* model = obx_model();
     if (!model) return NULL;
 

@@ -31,6 +31,7 @@ import (
 
 type CGenerator struct {
 	OutPath string
+	PlainC  bool
 }
 
 // BindingFile returns a name of the binding file for the given entity source file.
@@ -111,7 +112,12 @@ func (gen *CGenerator) generateBindingFile(bindingFile string, m *model.ModelInf
 		IfdefGuard       string
 	}{m, generator.Version, ifdefGuard}
 
-	if err = templates.BindingTemplate.Execute(writer, tplArguments); err != nil {
+	var tpl = templates.CppBindingTemplate
+	if gen.PlainC {
+		tpl = templates.CBindingTemplate
+	}
+
+	if err = tpl.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)
 	}
 
