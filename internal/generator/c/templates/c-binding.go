@@ -51,7 +51,7 @@ enum {{$entity.Meta.CppName}}_ {
 }
 
 /// Write given object to the FlatBufferBuilder
-static bool {{$entity.Meta.CppName}}_to_flatbuffer(flatcc_builder_t* B, const Simple *object, void **out_buffer, size_t *out_size) {
+static bool {{$entity.Meta.CppName}}_to_flatbuffer(flatcc_builder_t* B, const {{$entity.Meta.CppName}}* object, void** out_buffer, size_t* out_size) {
     assert(B);
     assert(object);
     assert(out_buffer);
@@ -59,37 +59,22 @@ static bool {{$entity.Meta.CppName}}_to_flatbuffer(flatcc_builder_t* B, const Si
 
     flatcc_builder_reset(B);
 
-    if (flatcc_builder_start_table(B, /* TODO len(properties) */ 2) != 0) return false;
+    if (flatcc_builder_start_table(B, {{len $entity.Properties}}) != 0) return false;
 
     void* p;
-    p = flatcc_builder_table_add(B, /* TODO prop ID */ 0, /* TODO size of c type used to store the property value */ sizeof(object->id), /* TODO align, seems to be the same as size */ sizeof(object->id));
+	{{range $property := $entity.Properties}}
+	p = flatcc_builder_table_add(B, {{$property.FbSlot}}, /* TODO size of c type used to store the property value */ sizeof(object->{{$property.Meta.CppName}}), /* TODO align, seems to be the same as size */ sizeof(object->{{$property.Meta.CppName}}));
     if (p == NULL) return false;
-
-    /* TODO actual property type instead of uint64 */
-    flatbuffers_uint64_write_to_pe(p, /* TODO actual property value */ object->id);
-
+	/* TODO actual property type instead of uint64 */
+    flatbuffers_uint64_write_to_pe(p, object->{{$property.Meta.CppName}});
+	{{end}}
+    
     flatcc_builder_ref_t ref = flatcc_builder_end_table(B);
     if (ref == 0) return false;
 
     *out_buffer = NULL;
     *out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size);
     return *out_buffer != NULL;
-}
-static inline void {{$entity.Meta.CppName}}_to_flatbuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppName}}& object) {
-	fbb.Clear();
-	{{- range $property := $entity.Properties}}{{$factory := $property.Meta.FbOffsetFactory}}{{if $factory}}
-	auto offset{{$property.Meta.CppName}} = fbb.{{$factory}}(object.{{$property.Meta.CppName}});
-	{{- end}}{{end}}
-	flatbuffers::uoffset_t fbStart = fbb.StartTable();
-	{{range $property := $entity.Properties}}
-	{{- if $property.Meta.FbOffsetFactory}}fbb.AddOffset({{$property.FbvTableOffset}}, offset{{$property.Meta.CppName}});
-	{{- else if eq "bool" $property.Meta.CppType}}fbb.TrackField({{$property.FbvTableOffset}}, fbb.PushElement<uint8_t>(object.{{$property.Meta.CppName}} ? 1 : 0));
-	{{- else}}fbb.TrackField({{$property.FbvTableOffset}}, fbb.PushElement<{{$property.Meta.CppType}}>(object.{{$property.Meta.CppName}}));
-	{{- end}}
-	{{end -}}
-	flatbuffers::Offset<flatbuffers::Table> offset;
-	offset.o = fbb.EndTable(fbStart);
-	fbb.Finish(offset);
 }
 
 /// Read an object from a valid FlatBuffer
