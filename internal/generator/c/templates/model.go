@@ -37,12 +37,18 @@ var ModelTemplate = template.Must(template.New("model").Funcs(funcMap).Parse(
 extern "C" {
 #endif
 
+/// Initializes an ObjectBox model for all entities. 
+/// The returned pointer may be NULL if the allocation failed. If the returned model is not NULL, you should check if   
+/// any error occurred by calling obx_model_error_code() and/or obx_model_error_message(). If an error occurred, you're
+/// responsible for freeing the resources by calling obx_model_free().
+/// In case there was no error when setting the model up (i.e. obx_model_error_code() returned 0), you may configure 
+/// OBX_store_options with the model by calling obx_opt_model() and subsequently opening a store with obx_store_open().
+/// As soon as you call obx_store_open(), the model pointer is consumed and MUST NOT be freed manually.
 inline OBX_model* create_obx_model() {
     OBX_model* model = obx_model();
     if (!model) return NULL;
 
-	bool successful = false;
-	do {
+	do { // break on first error
 		{{- range $entity := .Model.Entities}}
 		if (obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}})) break;
 		{{range $property := $entity.Properties -}}
@@ -56,18 +62,9 @@ inline OBX_model* create_obx_model() {
 		obx_model_last_entity_id(model, {{.Model.LastEntityId.GetId}}, {{.Model.LastEntityId.GetUid}});
 		{{if .Model.LastIndexId}}obx_model_last_index_id(model, {{.Model.LastIndexId.GetId}}, {{.Model.LastIndexId.GetUid}});{{end -}}
 		{{if .Model.LastRelationId}}obx_model_last_relation_id(model, {{.Model.LastRelationId.GetId}}, {{.Model.LastRelationId.GetUid}});{{end -}}
-
-		successful = true;
 	} while (false);
 
-	if (!successful) {
-		// TODO error handling 
-		// obx_model_error_message(model);
-		obx_model_free(model);
-        return NULL;
-	}
-
-	return model;
+	return model; // NOTE: the returned model will contain error information if an error occurred.
 }
 
 #ifdef __cplusplus

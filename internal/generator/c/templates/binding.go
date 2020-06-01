@@ -44,14 +44,16 @@ struct {{$entity.Meta.CppName}} {
 };
 
 struct {{$entity.Meta.CppName}}_ {
-	static const obx_schema_id ENTITY_ID = {{$entity.Id.GetId}};
 {{- range $property := $entity.Properties}}
 	static const obx_schema_id {{$property.Meta.CppName}} = {{$property.Id.GetId}};
 {{- end}}
-};
 
-class {{$entity.Meta.CppName}}Serializer {
-public:
+    static constexpr obx_schema_id entityId() { return {{$entity.Id.GetId}}; }
+
+	static {{$entity.Meta.CppName}} entityType();
+
+    static void setObjectId({{$entity.Meta.CppName}}& object, obx_id newId) { object.{{$entity.IdProperty.Meta.CppName}} = newId; }
+
 	/// Write given object to the FlatBufferBuilder
 	static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppName}}& object) {
 		fbb.Clear();

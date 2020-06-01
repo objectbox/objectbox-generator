@@ -148,6 +148,7 @@ func (entity *Entity) getIdProperty() *Property {
 	return nil
 }
 
+// AutosetIdProperty updates finds a property that's defined as an ID and if none is, tries to set one based on its name and type
 func (entity *Entity) AutosetIdProperty() error {
 	if entity.getIdProperty() == nil {
 		// try to find an ID property automatically based on its name and type
@@ -172,6 +173,15 @@ func (entity *Entity) AutosetIdProperty() error {
 	}
 
 	return nil
+}
+
+// IdProperty updates finds a property that's defined as an ID and if none is, tries to set one based on its name and type
+func (entity *Entity) IdProperty() (*Property, error) {
+	prop := entity.getIdProperty()
+	if prop == nil {
+		return nil, errors.New("ID property not defined")
+	}
+	return prop, nil
 }
 
 // FindPropertyByUid finds a property by Uid
