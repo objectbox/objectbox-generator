@@ -38,8 +38,8 @@ func cccToUc(str string) string {
 }
 
 var funcMap = template.FuncMap{
-	"CorePropType": func(val model.PropertyType) string {
-		return "OBXPropertyType_" + model.PropertyTypeNames[val]
+	"PropTypeName": func(val model.PropertyType) string {
+		return model.PropertyTypeNames[val]
 	},
 	"CorePropFlags": func(val model.PropertyFlags) string {
 		var result string

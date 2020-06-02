@@ -38,9 +38,14 @@ var CBindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Pars
 {{range $entity := .Model.EntitiesWithMeta}}{{with $entity.Meta.CppNamespaceStart}}
 {{.}}{{end}}
 typedef struct {{$entity.Meta.CppName}} {
-	{{- range $property := $entity.Properties}}
-	{{$property.Meta.CppType}} {{$property.Meta.CppName}};
-	{{- end}}
+	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type -}}
+	{{if eq $propType "String"}}char* {{$property.Meta.CppName}};
+	{{else if eq $propType "ByteVector"}}{{$property.Meta.CppElementType}}* {{$property.Meta.CppName}};
+	size_t {{$property.Meta.CppName}}_len;
+	{{- else if eq $propType "StringVector"}}char** {{$property.Meta.CppName}};
+	size_t {{$property.Meta.CppName}}_len;
+	{{else}}{{$property.Meta.CppType}} {{$property.Meta.CppName}};
+	{{end}}{{end}}
 } {{$entity.Meta.CppName}};
 
 enum {{$entity.Meta.CppName}}_ {
@@ -48,9 +53,10 @@ enum {{$entity.Meta.CppName}}_ {
 {{- range $property := $entity.Properties}}
 	{{$entity.Meta.CppName}}_PROP_ID_{{$property.Meta.CppName}} = {{$property.Id.GetId}},
 {{- end}}
-}
+};
 
 /// Write given object to the FlatBufferBuilder
+/// TODO test on a big-endian platform... especially vector creation
 static bool {{$entity.Meta.CppName}}_to_flatbuffer(flatcc_builder_t* B, const {{$entity.Meta.CppName}}* object, void** out_buffer, size_t* out_size) {
     assert(B);
     assert(object);
@@ -58,17 +64,38 @@ static bool {{$entity.Meta.CppName}}_to_flatbuffer(flatcc_builder_t* B, const {{
     assert(out_size);
 
     flatcc_builder_reset(B);
+	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type}}
+	{{- if eq $propType "String"}}
+	flatcc_builder_ref_t offset_{{$property.Meta.CppName}} = !object->{{$property.Meta.CppName}} ? 0 : flatcc_builder_create_string_str(B, object->{{$property.Meta.CppName}});
+	{{- else if eq $propType "ByteVector"}}
+	flatcc_builder_ref_t offset_{{$property.Meta.CppName}} = !object->{{$property.Meta.CppName}} ? 0 : flatcc_builder_create_vector(B, object->{{$property.Meta.CppName}}, object->{{$property.Meta.CppName}}_len, sizeof({{$property.Meta.CppElementType}}), sizeof({{$property.Meta.CppElementType}}), FLATBUFFERS_COUNT_MAX(sizeof({{$property.Meta.CppElementType}})));
+	{{- else if eq $propType "StringVector"}}
+	flatcc_builder_ref_t offset_{{$property.Meta.CppName}} = 0;
+	if (object->{{$property.Meta.CppName}}) {
+		flatcc_builder_start_offset_vector(B);
+		for (size_t i = 0; i < object->{{$property.Meta.CppName}}_len; i++) {
+			flatcc_builder_ref_t ref = !object->{{$property.Meta.CppName}}[i] ? 0 : flatcc_builder_create_string_str(B, object->{{$property.Meta.CppName}}[i]);
+			if (ref) flatcc_builder_offset_vector_push(B, ref);
+		}
+		offset_{{$property.Meta.CppName}} = flatcc_builder_end_offset_vector(B);
+	}
+	{{- end}}{{end}}
 
     if (flatcc_builder_start_table(B, {{len $entity.Properties}}) != 0) return false;
 
     void* p;
+	flatcc_builder_ref_t* _p;
 	{{range $property := $entity.Properties}}
-	p = flatcc_builder_table_add(B, {{$property.FbSlot}}, /* TODO size of c type used to store the property value */ sizeof(object->{{$property.Meta.CppName}}), /* TODO align, seems to be the same as size */ sizeof(object->{{$property.Meta.CppName}}));
-    if (p == NULL) return false;
-	/* TODO actual property type instead of uint64 */
-    flatbuffers_uint64_write_to_pe(p, object->{{$property.Meta.CppName}});
+	{{- if $property.Meta.FbOffsetFactory}}
+	if (offset_{{$property.Meta.CppName}}) {
+        if (!(_p = flatcc_builder_table_add_offset(B, {{$property.FbSlot}}))) return false;
+        *_p = offset_{{$property.Meta.CppName}};
+    }
+	{{- else}}
+	if (!(p = flatcc_builder_table_add(B, {{$property.FbSlot}}, {{$property.Meta.FbTypeSize}}, {{$property.Meta.FbTypeSize}}))) return false;
+    flatbuffers_{{$property.Meta.FlatccType}}_write_to_pe(p, object->{{$property.Meta.CppName}});
+	{{- end}}
 	{{end}}
-    
     flatcc_builder_ref_t ref = flatcc_builder_end_table(B);
     if (ref == 0) return false;
 
@@ -76,43 +103,43 @@ static bool {{$entity.Meta.CppName}}_to_flatbuffer(flatcc_builder_t* B, const {{
     *out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size);
     return *out_buffer != NULL;
 }
-
-/// Read an object from a valid FlatBuffer
-static {{$entity.Meta.CppName}} fromFlatBuffer(const void* data, size_t size) {
-	{{$entity.Meta.CppName}} object;
-	fromFlatBuffer(data, size, object);
-	return object;
-}
-
-/// Read an object from a valid FlatBuffer
-static std::unique_ptr<{{$entity.Meta.CppName}}> newFromFlatBuffer(const void* data, size_t size) {
-	auto object = std::unique_ptr<{{$entity.Meta.CppName}}>(new {{$entity.Meta.CppName}}());
-	fromFlatBuffer(data, size, *object);
-	return object;
-}
-
-/// Read an object from a valid FlatBuffer
-static void fromFlatBuffer(const void* data, size_t size, {{$entity.Meta.CppName}}& outObject) {
-	const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
-	assert(table);
-	{{range $property := $entity.Properties}}
-	{{- if eq "std::vector<std::string>" $property.Meta.CppType}}{
-		auto* ptr = table->GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*>({{$property.FbvTableOffset}});
-		if (ptr) {
-			outObject.{{$property.Meta.CppName}}.reserve(ptr->size());
-			for (size_t i = 0; i < ptr->size(); i++) {
-				auto* itemPtr = ptr->Get(i);
-				if (itemPtr) outObject.{{$property.Meta.CppName}}.emplace_back(itemPtr->c_str());
-			}
-		}
-	}{{else if $property.Meta.FbOffsetType}}{
-		auto* ptr = table->GetPointer<const {{$property.Meta.FbOffsetType}}*>({{$property.FbvTableOffset}});
-		if (ptr) outObject.{{$property.Meta.CppName}}.assign(ptr->begin(), ptr->end());
-	}{{- else if eq "bool" $property.Meta.CppType}}outObject.{{$property.Meta.CppName}} = table->GetField<uint8_t>({{$property.FbvTableOffset}}, 0) != 0;
-	{{- else}}outObject.{{$property.Meta.CppName}} = table->GetField<{{$property.Meta.CppType}}>({{$property.FbvTableOffset}}, {{$property.Meta.FbDefaultValue}});
-	{{- end}}
-	{{end}}
-}
+// 
+// /// Read an object from a valid FlatBuffer
+// static {{$entity.Meta.CppName}} fromFlatBuffer(const void* data, size_t size) {
+// 	{{$entity.Meta.CppName}} object;
+// 	fromFlatBuffer(data, size, object);
+// 	return object;
+// }
+// 
+// /// Read an object from a valid FlatBuffer
+// static std::unique_ptr<{{$entity.Meta.CppName}}> newFromFlatBuffer(const void* data, size_t size) {
+// 	auto object = std::unique_ptr<{{$entity.Meta.CppName}}>(new {{$entity.Meta.CppName}}());
+// 	fromFlatBuffer(data, size, *object);
+// 	return object;
+// }
+// 
+// /// Read an object from a valid FlatBuffer
+// static void fromFlatBuffer(const void* data, size_t size, {{$entity.Meta.CppName}}& outObject) {
+// 	const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
+// 	assert(table);
+// 	{{range $property := $entity.Properties}}
+// 	{{- if eq "std::vector<std::string>" $property.Meta.CppType}}{
+// 		auto* ptr = table->GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*>({{$property.FbvTableOffset}});
+// 		if (ptr) {
+// 			outObject.{{$property.Meta.CppName}}.reserve(ptr->size());
+// 			for (size_t i = 0; i < ptr->size(); i++) {
+// 				auto* itemPtr = ptr->Get(i);
+// 				if (itemPtr) outObject.{{$property.Meta.CppName}}.emplace_back(itemPtr->c_str());
+// 			}
+// 		}
+// 	}{{else if $property.Meta.FbOffsetType}}{
+// 		auto* ptr = table->GetPointer<const {{$property.Meta.FbOffsetType}}*>({{$property.FbvTableOffset}});
+// 		if (ptr) outObject.{{$property.Meta.CppName}}.assign(ptr->begin(), ptr->end());
+// 	}{{- else if eq "bool" $property.Meta.CppType}}outObject.{{$property.Meta.CppName}} = table->GetField<uint8_t>({{$property.FbvTableOffset}}, 0) != 0;
+// 	{{- else}}outObject.{{$property.Meta.CppName}} = table->GetField<{{$property.Meta.CppType}}>({{$property.FbvTableOffset}}, {{$property.Meta.FbDefaultValue}});
+// 	{{- end}}
+// 	{{end}}
+// }
 {{with $entity.Meta.CppNamespaceEnd}}{{.}}{{end -}}
 {{end}}
 #endif  // {{.IfdefGuard}}

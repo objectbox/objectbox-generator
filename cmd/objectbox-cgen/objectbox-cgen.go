@@ -79,6 +79,7 @@ func getArgs() (path string, clean bool, options generator.Options) {
 	flag.StringVar(&gen.OutPath, "out", "", "output path for generated source files")
 	flag.StringVar(&options.ModelInfoFile, "persist", "", "path to the model information persistence file (JSON)")
 	flag.BoolVar(&printVersion, "version", false, "print the generator version info")
+	flag.BoolVar(&gen.PlainC, "c", false, "generate plain C code instead of default C++")
 	flag.BoolVar(&printHelp, "help", false, "print this help")
 	flag.Parse()
 

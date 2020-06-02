@@ -17,6 +17,8 @@
 package cgenerator
 
 import (
+	"github.com/google/flatbuffers/go"
+
 	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
@@ -37,9 +39,9 @@ var fbsTypeToObxType = map[reflection.BaseType]model.PropertyType{
 	reflection.BaseTypeDouble: model.PropertyTypeDouble,
 	reflection.BaseTypeString: model.PropertyTypeString,
 	reflection.BaseTypeVector: 0, // handled in schema-reader
-	reflection.BaseTypeObj:    0, // TODO
-	reflection.BaseTypeUnion:  0, // TODO
-	reflection.BaseTypeArray:  0, // TODO
+	reflection.BaseTypeObj:    0, // TODO, also in other maps
+	reflection.BaseTypeUnion:  0, // TODO, also in other maps
+	reflection.BaseTypeArray:  0, // TODO, also in other maps
 }
 
 var fbsTypeToObxFlag = map[reflection.BaseType]model.PropertyFlags{
@@ -64,8 +66,50 @@ var fbsTypeToCppType = map[reflection.BaseType]string{
 	reflection.BaseTypeFloat:  "float",
 	reflection.BaseTypeDouble: "double",
 	reflection.BaseTypeString: "std::string",
-	reflection.BaseTypeVector: "std::vector", // handled in fbsField
-	reflection.BaseTypeObj:    "",            // TODO
-	reflection.BaseTypeUnion:  "",            // TODO
-	reflection.BaseTypeArray:  "",            // TODO
+	reflection.BaseTypeVector: "std::vector", // Note: additional handling in fbsField
+	reflection.BaseTypeObj:    "",
+	reflection.BaseTypeUnion:  "",
+	reflection.BaseTypeArray:  "",
+}
+
+var fbsTypeSize = map[reflection.BaseType]uint8{
+	reflection.BaseTypeNone:   0,
+	reflection.BaseTypeUType:  0,
+	reflection.BaseTypeBool:   flatbuffers.SizeBool,
+	reflection.BaseTypeByte:   flatbuffers.SizeByte,
+	reflection.BaseTypeUByte:  flatbuffers.SizeByte,
+	reflection.BaseTypeShort:  flatbuffers.SizeInt16,
+	reflection.BaseTypeUShort: flatbuffers.SizeUint16,
+	reflection.BaseTypeInt:    flatbuffers.SizeInt32,
+	reflection.BaseTypeUInt:   flatbuffers.SizeUint32,
+	reflection.BaseTypeLong:   flatbuffers.SizeInt64,
+	reflection.BaseTypeULong:  flatbuffers.SizeUint64,
+	reflection.BaseTypeFloat:  flatbuffers.SizeFloat32,
+	reflection.BaseTypeDouble: flatbuffers.SizeFloat64,
+	reflection.BaseTypeString: flatbuffers.SizeUOffsetT,
+	reflection.BaseTypeVector: flatbuffers.SizeUOffsetT,
+	reflection.BaseTypeObj:    0,
+	reflection.BaseTypeUnion:  0,
+	reflection.BaseTypeArray:  0,
+}
+
+var fbsTypeToFlatccType = map[reflection.BaseType]string{
+	reflection.BaseTypeNone:   "",
+	reflection.BaseTypeUType:  "",
+	reflection.BaseTypeBool:   "bool",
+	reflection.BaseTypeByte:   "int8",
+	reflection.BaseTypeUByte:  "uint8",
+	reflection.BaseTypeShort:  "int16",
+	reflection.BaseTypeUShort: "uint16",
+	reflection.BaseTypeInt:    "int32",
+	reflection.BaseTypeUInt:   "uint32",
+	reflection.BaseTypeLong:   "int64",
+	reflection.BaseTypeULong:  "uint64",
+	reflection.BaseTypeFloat:  "float",
+	reflection.BaseTypeDouble: "double",
+	reflection.BaseTypeString: "", // TODO
+	reflection.BaseTypeVector: "", // TODO
+	reflection.BaseTypeObj:    "",
+	reflection.BaseTypeUnion:  "",
+	reflection.BaseTypeArray:  "",
 }

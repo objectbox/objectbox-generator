@@ -94,6 +94,29 @@ func (mp *fbsField) CppType() string {
 	return cppType
 }
 
+// CppElementType returns C++ vector element type name
+func (mp *fbsField) CppElementType() string {
+	switch mp.mProp.Type {
+	case model.PropertyTypeByteVector:
+		return fbsTypeToCppType[mp.fbsField.Type(nil).Element()]
+	case model.PropertyTypeString:
+		return "" // NOTE unused
+	case model.PropertyTypeStringVector:
+		return "" // NOTE unused
+	}
+	return ""
+}
+
+// FlatccType returns the field's type as used in Flatcc.
+func (mp *fbsField) FlatccType() string {
+	return fbsTypeToFlatccType[mp.fbsField.Type(nil).BaseType()]
+}
+
+// FbTypeSize returns the field's type flatbuffers size.
+func (mp *fbsField) FbTypeSize() uint8 {
+	return fbsTypeSize[mp.fbsField.Type(nil).BaseType()]
+}
+
 // FbOffsetFactory returns an offset factory used to build flatbuffers if this property is a complex type.
 // See also FbOffsetType().
 func (mp *fbsField) FbOffsetFactory() string {
