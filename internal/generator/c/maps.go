@@ -93,21 +93,21 @@ var fbsTypeSize = map[reflection.BaseType]uint8{
 	reflection.BaseTypeArray:  0,
 }
 
-var fbsTypeToFlatccType = map[reflection.BaseType]string{
+var fbsTypeToFlatccFnPrefix = map[reflection.BaseType]string{
 	reflection.BaseTypeNone:   "",
 	reflection.BaseTypeUType:  "",
-	reflection.BaseTypeBool:   "bool",
-	reflection.BaseTypeByte:   "int8",
-	reflection.BaseTypeUByte:  "uint8",
-	reflection.BaseTypeShort:  "int16",
-	reflection.BaseTypeUShort: "uint16",
-	reflection.BaseTypeInt:    "int32",
-	reflection.BaseTypeUInt:   "uint32",
-	reflection.BaseTypeLong:   "int64",
-	reflection.BaseTypeULong:  "uint64",
-	reflection.BaseTypeFloat:  "float",
-	reflection.BaseTypeDouble: "double",
-	reflection.BaseTypeString: "", // TODO
+	reflection.BaseTypeBool:   "flatbuffers_bool",
+	reflection.BaseTypeByte:   "flatbuffers_int8",
+	reflection.BaseTypeUByte:  "flatbuffers_uint8",
+	reflection.BaseTypeShort:  "flatbuffers_int16",
+	reflection.BaseTypeUShort: "flatbuffers_uint16",
+	reflection.BaseTypeInt:    "flatbuffers_int32",
+	reflection.BaseTypeUInt:   "flatbuffers_uint32",
+	reflection.BaseTypeLong:   "flatbuffers_int64",
+	reflection.BaseTypeULong:  "flatbuffers_uint64",
+	reflection.BaseTypeFloat:  "flatbuffers_float",
+	reflection.BaseTypeDouble: "flatbuffers_double",
+	reflection.BaseTypeString: "__flatbuffers_soffset",
 	reflection.BaseTypeVector: "", // TODO
 	reflection.BaseTypeObj:    "",
 	reflection.BaseTypeUnion:  "",

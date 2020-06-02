@@ -107,9 +107,9 @@ func (mp *fbsField) CppElementType() string {
 	return ""
 }
 
-// FlatccType returns the field's type as used in Flatcc.
-func (mp *fbsField) FlatccType() string {
-	return fbsTypeToFlatccType[mp.fbsField.Type(nil).BaseType()]
+// FlatccFnPrefix returns the field's type as used in Flatcc.
+func (mp *fbsField) FlatccFnPrefix() string {
+	return fbsTypeToFlatccFnPrefix[mp.fbsField.Type(nil).BaseType()]
 }
 
 // FbTypeSize returns the field's type flatbuffers size.
@@ -147,7 +147,10 @@ func (mp *fbsField) FbOffsetType() string {
 
 // FbDefaultValue returns a default value for scalars
 func (mp *fbsField) FbDefaultValue() string {
-	if mp.mProp.Type == model.PropertyTypeFloat || mp.mProp.Type == model.PropertyTypeDouble {
+	switch mp.mProp.Type {
+	case model.PropertyTypeFloat:
+		return "0.0f"
+	case model.PropertyTypeDouble:
 		return "0.0"
 	}
 	return "0"
