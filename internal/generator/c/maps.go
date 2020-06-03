@@ -108,7 +108,7 @@ var fbsTypeToFlatccFnPrefix = map[reflection.BaseType]string{
 	reflection.BaseTypeFloat:  "flatbuffers_float",
 	reflection.BaseTypeDouble: "flatbuffers_double",
 	reflection.BaseTypeString: "__flatbuffers_soffset",
-	reflection.BaseTypeVector: "", // TODO
+	reflection.BaseTypeVector: "__flatbuffers_soffset",
 	reflection.BaseTypeObj:    "",
 	reflection.BaseTypeUnion:  "",
 	reflection.BaseTypeArray:  "",

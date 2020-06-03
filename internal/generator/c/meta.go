@@ -94,15 +94,28 @@ func (mp *fbsField) CppType() string {
 	return cppType
 }
 
-// CppElementType returns C++ vector element type name
-func (mp *fbsField) CppElementType() string {
+// FbIsVector returns true if the property is considered a vector type.
+func (mp *fbsField) FbIsVector() bool {
+	switch mp.mProp.Type {
+	case model.PropertyTypeString:
+		return true
+	case model.PropertyTypeByteVector:
+		return true
+	case model.PropertyTypeStringVector:
+		return true
+	}
+	return false
+}
+
+// CElementType returns C vector element type name
+func (mp *fbsField) CElementType() string {
 	switch mp.mProp.Type {
 	case model.PropertyTypeByteVector:
 		return fbsTypeToCppType[mp.fbsField.Type(nil).Element()]
 	case model.PropertyTypeString:
-		return "" // NOTE unused
+		return "char"
 	case model.PropertyTypeStringVector:
-		return "" // NOTE unused
+		return "char*"
 	}
 	return ""
 }
