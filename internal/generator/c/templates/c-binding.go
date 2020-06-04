@@ -102,23 +102,9 @@ static bool {{$entity.Meta.CppName}}_to_flatbuffer(flatcc_builder_t* B, const {{
     return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
 }
 
-// /// Read an object from a valid FlatBuffer
-// static {{$entity.Meta.CppName}} fromFlatBuffer(const void* data, size_t size) {
-// 	{{$entity.Meta.CppName}} object;
-// 	fromFlatBuffer(data, size, object);
-// 	return object;
-// }
-// 
-// /// Read an object from a valid FlatBuffer
-// static std::unique_ptr<{{$entity.Meta.CppName}}> newFromFlatBuffer(const void* data, size_t size) {
-// 	auto object = std::unique_ptr<{{$entity.Meta.CppName}}>(new {{$entity.Meta.CppName}}());
-// 	fromFlatBuffer(data, size, *object);
-// 	return object;
-// }
-// 
-
-/// Read an object from a valid FlatBuffer
-/// TODO allocates strings & vectors so there should also be a function to free those
+/// Read an object from a valid FlatBuffer.
+/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling {{$entity.Meta.CppName}}_free_pointers().
+/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function twice on the same object. 
 static void {{$entity.Meta.CppName}}_from_flatbuffer(const void* data, size_t size, {{$entity.Meta.CppName}}* out_object) {
 	assert(data);
 	assert(out_object);
@@ -139,19 +125,18 @@ static void {{$entity.Meta.CppName}}_from_flatbuffer(const void* data, size_t si
 		val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
 		len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
 		out_object->{{$property.Meta.CppName}} = malloc(len * sizeof({{$property.Meta.CElementType}}));
+		{{- if not (eq $propType "String")}}
+		out_object->{{$property.Meta.CppName}}_len = len;
+		{{- end -}}
 		{{/*Note: direct copy for string and byte vectors*/ -}}
 		{{if eq $propType "String"}}memcpy(out_object->{{$property.Meta.CppName}}, (const void*)val, len+1);
 		{{else if eq $propType "ByteVector"}}memcpy(out_object->{{$property.Meta.CppName}}, (const void*)val, len);
 		{{else}}{{/* StringVector - FB vector contains offsets to strings, each must be read separately*/}}
 		for (size_t i = 0; i < len; i++, val++) {
-			const uint8_t* str = (const uint8_t*) val + (size_t)__flatbuffers_uoffset_read_from_pe(val);
+			const uint8_t* str = (const uint8_t*) val + (size_t)__flatbuffers_uoffset_read_from_pe(val) + sizeof(val[0]);
 			out_object->{{$property.Meta.CppName}}[i] = malloc((strlen((const char*)str) + 1) * sizeof(char));
 			strcpy(out_object->{{$property.Meta.CppName}}[i], (const char*)str);
-		}
-		{{end}}
-		{{- if not (eq $propType "String")}}
-		out_object->{{$property.Meta.CppName}}_len = len;
-		{{- end}}
+		}{{end}}
 	} else {
 		out_object->{{$property.Meta.CppName}} = NULL;
 		{{- if not (eq $propType "String")}}
@@ -161,6 +146,40 @@ static void {{$entity.Meta.CppName}}_from_flatbuffer(const void* data, size_t si
 	{{else}}out_object->{{$property.Meta.CppName}} = (vs < sizeof(vt[0]) * ({{$property.FbSlot}} + 3)) ? {{$property.Meta.FbDefaultValue}} : {{$property.Meta.FlatccFnPrefix}}_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + {{$property.FbSlot}} + 2));
 	{{- end}}
 	{{end}}
+}
+
+/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// The object must be freed after use by calling {{$entity.Meta.CppName}}_free();
+static {{$entity.Meta.CppName}}* {{$entity.Meta.CppName}}_new_from_flatbuffer(const void* data, size_t size) {
+	{{$entity.Meta.CppName}}* object = malloc(sizeof({{$entity.Meta.CppName}}));
+	{{$entity.Meta.CppName}}_from_flatbuffer(data, size, object);
+	return object;
+}
+
+static void {{$entity.Meta.CppName}}_free_pointers({{$entity.Meta.CppName}}* object) {
+	{{- range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type}}{{if $property.Meta.FbIsVector}}
+	if (object->{{$property.Meta.CppName}}) {
+		{{- if eq $propType "StringVector"}}
+		assert(object->{{$property.Meta.CppName}}_len > 0);
+		for (size_t i = 0; i < object->{{$property.Meta.CppName}}_len; i++) {
+			if (object->{{$property.Meta.CppName}}[i]) free(object->{{$property.Meta.CppName}}[i]);
+		}{{end}}
+		free(object->{{$property.Meta.CppName}});
+		object->{{$property.Meta.CppName}} = NULL;
+	{{- if not (eq $propType "String")}}
+		object->{{$property.Meta.CppName}}_len = 0;
+	} else {
+		assert(object->{{$property.Meta.CppName}}_len == 0);
+	{{- end}}
+	}
+	{{end}}
+	{{- end}}
+}
+
+static void {{$entity.Meta.CppName}}_free({{$entity.Meta.CppName}}** object) {
+	{{$entity.Meta.CppName}}_free_pointers(*object);
+	free(*object);
+	*object = NULL;
 }
 {{with $entity.Meta.CppNamespaceEnd}}{{.}}{{end -}}
 {{end}}
