@@ -35,9 +35,19 @@ func (mo *fbsObject) Merge(entity *model.Entity) model.EntityMeta {
 	return &fbsObject{mo.Object, entity, mo.fbsObject}
 }
 
-// CppName returns C++ variable name with reserved keywords suffixed by an underscore
+// CppName returns C++ symbol/variable name with reserved keywords suffixed by an underscore
 func (mo *fbsObject) CppName() string {
 	return cppName(mo.Name)
+}
+
+// CName returns CppName() prefixed by a namespace (with underscores)
+func (mo *fbsObject) CName() string {
+	var prefix string
+	if len(mo.Namespace) != 0 {
+		prefix = strings.Replace(mo.Namespace, ".", "_", -1) + "_"
+	}
+
+	return prefix + mo.CppName()
 }
 
 // CppNamespaceStart returns c++ namespace opening declaration
