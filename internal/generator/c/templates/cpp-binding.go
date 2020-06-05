@@ -98,7 +98,10 @@ struct {{$entity.Meta.CppName}}_ {
 					if (itemPtr) outObject.{{$property.Meta.CppName}}.emplace_back(itemPtr->c_str());
 				}
 			}
-		}{{else if $property.Meta.FbOffsetType}}{
+		}{{else if eq "std::string" $property.Meta.CppType}}{
+			auto* ptr = table->GetPointer<const flatbuffers::String*>({{$property.FbvTableOffset}});
+			if (ptr) outObject.{{$property.Meta.CppName}}.assign(ptr->c_str());
+		}{{else if $property.Meta.FbIsVector}}{
 			auto* ptr = table->GetPointer<const {{$property.Meta.FbOffsetType}}*>({{$property.FbvTableOffset}});
 			if (ptr) outObject.{{$property.Meta.CppName}}.assign(ptr->begin(), ptr->end());
 		}{{- else if eq "bool" $property.Meta.CppType}}outObject.{{$property.Meta.CppName}} = table->GetField<uint8_t>({{$property.FbvTableOffset}}, 0) != 0;

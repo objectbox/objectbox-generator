@@ -40,6 +40,9 @@ table Annotated {
 
 	/// objectbox:transient
 	skippedField:[uint64];
+
+	/// objectbox:link=Typeful
+	relId:ulong;
 }
 
 

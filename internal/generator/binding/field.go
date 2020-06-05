@@ -141,5 +141,25 @@ func (field *Field) ProcessAnnotations(a map[string]*gogenerator.Annotation) err
 		}
 	}
 
+	// TODO currently only to-one link is supported;
+	// TODO this would differ between C and Go generator so maybe the right place is rather in the respective generator?
+	//  Maybe extract "SetRelationToOne() method in this class and call it from the generator
+	if a["link"] != nil {
+		if field.property.Type != model.PropertyTypeLong {
+			return fmt.Errorf("invalid underlying type (PropertyType %v) for relation field; expecting long", model.PropertyTypeNames[field.property.Type])
+		}
+		if len(a["link"].Value) == 0 {
+			return errors.New("unknown link target entity, define by changing the `link` annotation to the `link=Entity` format")
+		}
+		field.property.Type = model.PropertyTypeRelation
+		field.property.RelationTarget = a["link"].Value
+		field.property.AddFlag(model.PropertyFlagIndexed)
+		field.property.AddFlag(model.PropertyFlagIndexPartialSkipZero)
+
+		if err := field.property.SetIndex(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

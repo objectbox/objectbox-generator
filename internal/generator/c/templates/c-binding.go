@@ -97,7 +97,7 @@ static bool {{$entity.Meta.CName}}_to_flatbuffer(flatcc_builder_t* B, const {{$e
 	{{end}}
     flatcc_builder_ref_t ref;
 	if (!(ref = flatcc_builder_end_table(B))) return false;
-	if (!(ref = flatcc_builder_end_buffer(B, ref))) return false;
+	if (!flatcc_builder_end_buffer(B, ref)) return false;
     return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
 }
 
@@ -112,9 +112,9 @@ static void {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size
 	assert(table);
 	flatbuffers_voffset_t *vt = (flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
 	flatbuffers_voffset_t vs = __flatbuffers_voffset_read_from_pe(vt);
-	flatbuffers_voffset_t offset;
 
 	// variables reused when reading strings and vectors
+	flatbuffers_voffset_t offset;
 	const flatbuffers_uoffset_t* val;
 	size_t len;
 
