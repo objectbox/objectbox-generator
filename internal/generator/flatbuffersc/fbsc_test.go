@@ -1,26 +1,16 @@
-package fbsparser
+package flatbuffersc
 
 import (
-	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
-	"github.com/objectbox/objectbox-go/test/assert"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc/reflection"
+	"github.com/objectbox/objectbox-go/test/assert"
 )
 
-func TestFbsSchemaParser(t *testing.T) {
-	schema, err := ParseSchemaFile("non-existent.fbs")
-	assert.True(t, schema == nil)
-	assert.Err(t, err)
-
-	file, err := ioutil.TempFile("", "fbs-test")
-	assert.NoErr(t, err)
-	defer func() {
-		assert.NoErr(t, os.Remove(file.Name()))
-	}()
-
-	_, err = file.WriteString(`
+const testSchema = `
 enum Planet:byte { Mercury = 0, Venus, Earth = 2 }
 
 /// A real or imaginary living creature or entity
@@ -41,7 +31,20 @@ table Item {
   weight:short;
 }
 
-root_type Being;`)
+root_type Being;`
+
+func TestFbsSchemaParser(t *testing.T) {
+	schema, err := ParseSchemaFile("non-existent.fbs")
+	assert.True(t, schema == nil)
+	assert.Err(t, err)
+
+	file, err := ioutil.TempFile("", "fbs-test")
+	assert.NoErr(t, err)
+	defer func() {
+		assert.NoErr(t, os.Remove(file.Name()))
+	}()
+
+	_, err = file.WriteString(testSchema)
 	assert.NoErr(t, err)
 
 	schema, err = ParseSchemaFile(file.Name())
@@ -79,4 +82,35 @@ root_type Being;`)
 
 	assert.Eq(t, 1, field.DocumentationLength())
 	assert.Eq(t, "All worldly belongings of this being", strings.TrimSpace(string(field.Documentation(0))))
+}
+
+func TestFbsFlatc(t *testing.T) {
+	code, err := ExecuteFlatc([]string{"invalid", "arguments"})
+	assert.True(t, code != 0)
+	assert.Err(t, err)
+
+	outDir, err := ioutil.TempDir("", "fbs-test-output")
+	assert.NoErr(t, err)
+	assert.True(t, len(outDir) > 0)
+	defer func() {
+		assert.NoErr(t, os.RemoveAll(outDir))
+	}()
+
+	file, err := ioutil.TempFile("", "fbs-test*.fbs")
+	assert.NoErr(t, err)
+	defer func() {
+		assert.NoErr(t, os.Remove(file.Name()))
+	}()
+
+	_, err = file.WriteString(testSchema)
+	assert.NoErr(t, err)
+
+	code, err = ExecuteFlatc([]string{"--go", "-o", outDir, file.Name()})
+	assert.NoErr(t, err)
+	assert.True(t, code == 0)
+
+	outFiles, err := ioutil.ReadDir(outDir)
+	assert.NoErr(t, err)
+	assert.True(t, len(outFiles) == 3)
+	assert.EqItems(t, []string{"Being.go", "Item.go", "Planet.go"}, []string{outFiles[0].Name(), outFiles[1].Name(), outFiles[2].Name()})
 }

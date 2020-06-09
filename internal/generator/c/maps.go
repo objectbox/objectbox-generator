@@ -19,7 +19,7 @@ package cgenerator
 import (
 	"github.com/google/flatbuffers/go"
 
-	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
+	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc/reflection"
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package fbsparser
+package flatbuffersc
 
 // Note the cgo library path: load libraries from "build-artifacts" in the root of this repository. This is where
 // the FlatBuffers C-API build script ./build/build-flatbuffersc.sh outputs the static libraries.
 
 /*
-#cgo LDFLAGS: -lstdc++ -lflatbuffersc -lflatbuffers -lm
+#cgo LDFLAGS: -lstdc++ -lflatbuffersc -lflatbuffersc-flatc -lflatbuffers -lm
 #cgo LDFLAGS: -L${SRCDIR}/../../../build-artifacts
 #include <stdlib.h>
 #include "flatbuffersc.h"
@@ -31,20 +31,22 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
+	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc/reflection"
 )
 
 func ParseSchemaFile(filename string) (*reflection.Schema, error) {
 	var cFilename = C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
 
-	var errText *C.char
-	var fbsBytes *C.FBS_bytes = C.fbs_schema_parse_file(&errText, cFilename)
+	var cErr *C.char = nil
+	defer C.fbs_error_free(cErr)
+
+	var fbsBytes *C.FBS_bytes = C.fbs_schema_parse_file(cFilename, &cErr)
 	if fbsBytes == nil {
-		if errText == nil {
+		if cErr == nil {
 			return nil, errors.New("unknown error")
 		}
-		return nil, fmt.Errorf(C.GoString(errText))
+		return nil, fmt.Errorf(C.GoString(cErr))
 	}
 	defer C.fbs_schema_free(fbsBytes)
 
@@ -52,4 +54,22 @@ func ParseSchemaFile(filename string) (*reflection.Schema, error) {
 	var bytes []byte = C.GoBytes(fbsBytes.data, C.int(fbsBytes.size))
 
 	return reflection.GetRootAsSchema(bytes, 0), nil
+}
+
+// ExecuteFlatc runs flatc with the given arguments and returns its exit code and error, if any
+func ExecuteFlatc(args []string) (int, error) {
+	var cErr *C.char = nil
+	defer C.fbs_error_free(cErr)
+
+	cArgs := goStringArrayToC(args)
+	defer cArgs.free()
+
+	var code = int(C.fbs_flatc(cArgs.cArray, C.size_t(cArgs.size), &cErr))
+	if cErr != nil {
+		return code, errors.New("flatc execution failed: " + C.GoString(cErr))
+	}
+	if code != 0 {
+		return code, errors.New("flatc execution failed with an unknown error")
+	}
+	return code, nil
 }

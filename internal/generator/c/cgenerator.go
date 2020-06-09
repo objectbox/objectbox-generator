@@ -25,7 +25,7 @@ import (
 
 	"github.com/objectbox/objectbox-go/internal/generator"
 	"github.com/objectbox/objectbox-go/internal/generator/c/templates"
-	"github.com/objectbox/objectbox-go/internal/generator/fbsparser"
+	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc"
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
@@ -58,7 +58,7 @@ func (CGenerator) IsGeneratedFile(file string) bool {
 }
 
 func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) {
-	schemaReflection, err := fbsparser.ParseSchemaFile(sourceFile)
+	schemaReflection, err := flatbuffersc.ParseSchemaFile(sourceFile)
 	if err != nil {
 		return nil, err // already includes file name so no more context should be necessary
 	}

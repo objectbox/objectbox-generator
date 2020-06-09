@@ -20,12 +20,20 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/objectbox/objectbox-go/internal/generator"
 	"github.com/objectbox/objectbox-go/internal/generator/c"
+	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc"
 )
 
+const defaultErrorCode = 2
+
 func main() {
+	if runFlatcIfRequested() {
+		return
+	}
+
 	path, clean, options := getArgs()
 
 	var err error
@@ -37,13 +45,16 @@ func main() {
 		err = generator.Process(path, options)
 	}
 
-	stopOnError(err)
+	stopOnError(0, err)
 }
 
-func stopOnError(err error) {
+func stopOnError(code int, err error) {
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(2)
+		if code == 0 {
+			code = defaultErrorCode
+		}
+		os.Exit(code)
 	}
 }
 
@@ -56,6 +67,11 @@ or
 
 	objectbox-cgen clean [path-pattern]
 		to remove the generated files instead of creating them - this removes *.obx.h and objectbox-model.h but keeps objectbox-model.json
+
+or
+
+	objectbox-cgen FLATC [flatc arguments]
+		to execute FlatBuffers flatc command line tool Any arguments after the FLATC keyword are passed through.
 
 path-pattern:
   * a path or a valid path pattern (e.g. ./...)
@@ -113,4 +129,14 @@ func getArgs() (path string, clean bool, options generator.Options) {
 	}
 
 	return
+}
+
+// runFlatcIfRequested checks command line arguments and if they start with FLATC, executes flatc compiler with the remainder of the arguments
+func runFlatcIfRequested() bool {
+	if len(os.Args) < 2 || strings.ToLower(os.Args[1]) != "flatc" {
+		return false
+	}
+
+	stopOnError(flatbuffersc.ExecuteFlatc(os.Args[2:]))
+	return true
 }

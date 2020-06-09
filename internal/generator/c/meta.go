@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"github.com/objectbox/objectbox-go/internal/generator/binding"
-	"github.com/objectbox/objectbox-go/internal/generator/fbsparser/reflection"
+	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc/reflection"
 	"github.com/objectbox/objectbox-go/internal/generator/model"
 )
 
