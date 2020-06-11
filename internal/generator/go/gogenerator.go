@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/objectbox/objectbox-go/internal/generator"
-	"github.com/objectbox/objectbox-go/internal/generator/go/templates"
-	"github.com/objectbox/objectbox-go/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/internal/generator"
+	"github.com/objectbox/objectbox-generator/internal/generator/go/templates"
+	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
 type GoGenerator struct {

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc/reflection"
-	"github.com/objectbox/objectbox-go/test/assert"
+	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc/reflection"
+	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
 const testSchema = `

@@ -27,7 +27,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/objectbox/objectbox-go/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
 type uid = uint64

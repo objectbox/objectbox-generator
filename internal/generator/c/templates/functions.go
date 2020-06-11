@@ -20,7 +20,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/objectbox/objectbox-go/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
 // cccToUc converts CapitalCamelCase to UPPER_CASE - only used converty Go PropertyFlags names to C/Core names.

@@ -22,8 +22,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/objectbox/objectbox-go/internal/generator/go"
-	"github.com/objectbox/objectbox-go/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/internal/generator/go"
+	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
 // Object holds common entity information used by specialized code parsers/generators.

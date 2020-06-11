@@ -1,4 +1,4 @@
-module github.com/objectbox/objectbox-go
+module github.com/objectbox/objectbox-generator
 
 go 1.11
 

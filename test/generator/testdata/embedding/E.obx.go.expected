@@ -8,7 +8,7 @@ import (
 	"github.com/google/flatbuffers/go"
 	"github.com/objectbox/objectbox-go/objectbox"
 	"github.com/objectbox/objectbox-go/objectbox/fbutils"
-	"github.com/objectbox/objectbox-go/test/generator/testdata/embedding/other"
+	"github.com/objectbox/objectbox-generator/test/generator/testdata/embedding/other"
 )
 
 type e_EntityInfo struct {

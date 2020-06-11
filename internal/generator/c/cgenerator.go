@@ -23,10 +23,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/objectbox/objectbox-go/internal/generator"
-	"github.com/objectbox/objectbox-go/internal/generator/c/templates"
-	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc"
-	"github.com/objectbox/objectbox-go/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/internal/generator"
+	"github.com/objectbox/objectbox-generator/internal/generator/c/templates"
+	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc"
+	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
 type CGenerator struct {

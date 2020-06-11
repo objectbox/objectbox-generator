@@ -29,13 +29,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-go/internal/generator"
-	cgenerator "github.com/objectbox/objectbox-go/internal/generator/c"
-	gogenerator "github.com/objectbox/objectbox-go/internal/generator/go"
-
-	// "github.com/objectbox/objectbox-go/internal/generator/go"
-	"github.com/objectbox/objectbox-go/test/assert"
-	"github.com/objectbox/objectbox-go/test/build"
+	"github.com/objectbox/objectbox-generator/internal/generator"
+	"github.com/objectbox/objectbox-generator/internal/generator/c"
+	"github.com/objectbox/objectbox-generator/internal/generator/go"
+	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/test/build"
 )
 
 // this containing module name - used for test case modules
@@ -107,7 +105,7 @@ func generateOneDir(t *testing.T, overwriteExpected bool, srcDir string) {
 		// it won't find this `objectbox-go`. Therefore, we create a go.mod file pointing it to the right path.
 		cwd, err := os.Getwd()
 		assert.NoErr(t, err)
-		var modulePath = "example.com/virtual/objectbox-go/test/generator/" + srcDir
+		var modulePath = "example.com/virtual/objectbox-generator/test/generator/" + srcDir
 		var goMod = "module " + modulePath + "\n" +
 			"replace " + moduleName + " => " + filepath.Join(cwd, "/../../") + "\n" +
 			"require " + moduleName + " v0.0.0"

@@ -22,9 +22,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/objectbox/objectbox-go/internal/generator"
-	"github.com/objectbox/objectbox-go/internal/generator/c"
-	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc"
+	"github.com/objectbox/objectbox-generator/internal/generator"
+	"github.com/objectbox/objectbox-generator/internal/generator/c"
+	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc"
 )
 
 const defaultErrorCode = 2

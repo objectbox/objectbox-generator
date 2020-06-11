@@ -22,10 +22,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/objectbox/objectbox-go/internal/generator/binding"
-	"github.com/objectbox/objectbox-go/internal/generator/flatbuffersc/reflection"
-	"github.com/objectbox/objectbox-go/internal/generator/go"
-	"github.com/objectbox/objectbox-go/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/internal/generator/binding"
+	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc/reflection"
+	"github.com/objectbox/objectbox-generator/internal/generator/go"
+	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
 var supportedEntityAnnotations = map[string]bool{
