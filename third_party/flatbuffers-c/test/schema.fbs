@@ -1,0 +1,30 @@
+// Example schema file
+// Note the comments - they test multiple different formats and some won't be included
+
+namespace FbsC;
+
+/** A celestial body
+ *  Distinguished from the fixed stars by having an apparent motion of its own
+ */
+enum Planet:byte { Mercury = 0, Venus, Earth = 2 }
+
+/// A real or imaginary living creature or entity
+/// Note: name may be nil
+table Being {
+  age:short = 150;
+  health:short = 100; //< Current health points
+  name:string; // Full being name
+  friendly:bool = false (deprecated);
+  location:Planet = Earth;
+
+  /// All worldly belongings of this being
+  belongings:[Item];
+}
+
+// An individual article
+table Item {
+  name:string;
+  weight:short;
+}
+
+root_type Being;

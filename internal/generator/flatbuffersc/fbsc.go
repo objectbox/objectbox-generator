@@ -16,12 +16,12 @@
 
 package flatbuffersc
 
-// Note the cgo library path: load libraries from "build-artifacts" in the root of this repository. This is where
-// the FlatBuffers C-API build script ./build/build-flatbuffersc.sh outputs the static libraries.
+// Note the cgo library path: loads compiled libraries from "flatbuffers-c/cmake-build". This is where the FlatBuffers
+// C-API build script ./third_party/flatbuffers-c/build.sh outputs the static libraries unless other path is specified.
 
 /*
 #cgo LDFLAGS: -lstdc++ -lflatbuffersc -lflatbuffersc-flatc -lflatbuffers -lm
-#cgo LDFLAGS: -L${SRCDIR}/../../../build-artifacts
+#cgo LDFLAGS: -L${SRCDIR}/../../../third_party/flatbuffers-c/cmake-build/
 #include <stdlib.h>
 #include "flatbuffersc.h"
 */

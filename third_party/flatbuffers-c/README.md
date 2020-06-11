@@ -1,0 +1,1 @@
+Limited C-API for FlatBuffers library and FlatBuffers compiler

@@ -1,0 +1,10 @@
+.DS_Store
+
+# IDE
+.idea/
+*.iml
+.vscode
+.vs/
+
+# build files
+/cmake-build*/
