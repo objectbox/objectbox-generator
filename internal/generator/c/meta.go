@@ -30,7 +30,7 @@ type fbsObject struct {
 	fbsObject *reflection.Object
 }
 
-// Merge implements model.PropertyMeta interface
+// Merge implements model.EntityMeta interface
 func (mo *fbsObject) Merge(entity *model.Entity) model.EntityMeta {
 	return &fbsObject{mo.Object, entity, mo.fbsObject}
 }

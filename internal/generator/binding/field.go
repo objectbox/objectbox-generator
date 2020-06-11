@@ -22,7 +22,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/go"
 	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
@@ -45,7 +44,7 @@ func (field *Field) SetName(name string) {
 		field.property.Name = strings.ToLower(name)
 	}
 }
-func (field *Field) PreProcessAnnotations(a map[string]*gogenerator.Annotation) error {
+func (field *Field) PreProcessAnnotations(a map[string]*Annotation) error {
 	field.IsSkipped = false
 	for _, alternative := range []string{"-", "transient"} {
 		if a[alternative] != nil {
@@ -61,7 +60,7 @@ func (field *Field) PreProcessAnnotations(a map[string]*gogenerator.Annotation) 
 
 // ProcessAnnotations checks all set annotations for any inconsistencies and sets local/property fields (flags, name, ...)
 // TODO move generator.Annotation to this package
-func (field *Field) ProcessAnnotations(a map[string]*gogenerator.Annotation) error {
+func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 	if err := field.PreProcessAnnotations(a); err != nil {
 		return err
 	}

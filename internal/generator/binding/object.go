@@ -22,7 +22,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/go"
 	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
@@ -56,7 +55,7 @@ func (object *Object) SetName(name string) {
 
 // ProcessAnnotations checks all set annotations for any inconsistencies and sets local/entity properties (uid, name, ...)
 // TODO move generator.Annotation to this package
-func (object *Object) ProcessAnnotations(a map[string]*gogenerator.Annotation) error {
+func (object *Object) ProcessAnnotations(a map[string]*Annotation) error {
 	for _, alternative := range []string{"-", "transient"} {
 		if a[alternative] != nil {
 			if len(a) != 1 || a[alternative].Value != "" {

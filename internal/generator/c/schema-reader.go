@@ -24,7 +24,6 @@ import (
 
 	"github.com/objectbox/objectbox-generator/internal/generator/binding"
 	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc/reflection"
-	"github.com/objectbox/objectbox-generator/internal/generator/go"
 	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
@@ -76,7 +75,7 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	metaEntity.SetName(string(object.Name()))
 
 	// look for annotations: "/// objectbox:..."
-	var annotations = make(map[string]*gogenerator.Annotation)
+	var annotations = make(map[string]*binding.Annotation)
 	for i := 0; i < object.DocumentationLength(); i++ {
 		var comment = strings.TrimSpace(string(object.Documentation(i)))
 		if err := parseAnnotations(comment, &annotations, supportedEntityAnnotations); err != nil {
@@ -121,7 +120,7 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 	metaProperty.SetName(string(field.Name()))
 
 	// look for annotations: "/// objectbox:..."
-	var annotations = make(map[string]*gogenerator.Annotation)
+	var annotations = make(map[string]*binding.Annotation)
 	for i := 0; i < field.DocumentationLength(); i++ {
 		var comment = strings.TrimSpace(string(field.Documentation(i)))
 		if err := parseAnnotations(comment, &annotations, supportedPropertyAnnotations); err != nil {
@@ -174,7 +173,7 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 }
 
 // NOTE this is a copy of gogenerator.parseAnnotations with changes to accommodate a different format (not
-func parseAnnotations(comment string, annotations *map[string]*gogenerator.Annotation, supportedAnnotations map[string]bool) error {
+func parseAnnotations(comment string, annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) error {
 	if strings.HasPrefix(comment, "objectbox:") || strings.HasPrefix(comment, "ObjectBox:") {
 		comment = strings.TrimSpace(comment[len("objectbox:"):])
 		if len(comment) == 0 {
@@ -190,7 +189,7 @@ func parseAnnotations(comment string, annotations *map[string]*gogenerator.Annot
 
 	type state struct {
 		name          string
-		value         *gogenerator.Annotation
+		value         *binding.Annotation
 		valueQuoted   bool
 		valueFinished bool
 	}
@@ -199,7 +198,7 @@ func parseAnnotations(comment string, annotations *map[string]*gogenerator.Annot
 	var finishAnnotation = func() error {
 		s.name = strings.TrimSpace(s.name)
 		if s.value == nil {
-			s.value = &gogenerator.Annotation{} // empty value
+			s.value = &binding.Annotation{} // empty value
 		} else {
 			s.value.Value = strings.TrimSpace(s.value.Value)
 		}
@@ -219,7 +218,7 @@ func parseAnnotations(comment string, annotations *map[string]*gogenerator.Annot
 			if len(s.name) == 0 {
 				return fmt.Errorf("invalid annotation format: name must precede equal sign at position %d in `%s` ", i, comment)
 			}
-			s.value = &gogenerator.Annotation{}
+			s.value = &binding.Annotation{}
 		} else if char == ',' && !s.valueQuoted { // finish an annotation
 			if err := finishAnnotation(); err != nil {
 				return err

@@ -27,6 +27,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/objectbox/objectbox-generator/internal/generator/binding"
 	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
@@ -50,9 +51,11 @@ var supportedAnnotations = map[string]bool{
 
 // astReader contains information about the processed set of Entities
 type astReader struct {
-	Package  *types.Package
-	Entities []*Entity
-	Imports  map[string]string
+	Package *types.Package
+	Imports map[string]string
+
+	// model produced by reading the schema
+	model *model.ModelInfo
 
 	err    error
 	source *file
@@ -60,18 +63,24 @@ type astReader struct {
 
 // Entity holds the model information necessary to generate the binding code
 type Entity struct {
+	*binding.Object
+	mEntity *model.Entity
+
+	// TODO remove these
 	Identifier
-	Name           string
-	Fields         []*Field // the tree of struct fields (necessary for embedded structs)
-	Properties     []*Property
-	IdProperty     *Property
-	LastPropertyId model.IdUid
-	Relations      map[string]*StandaloneRelation
-	Annotations    map[string]*Annotation
-	UidRequest     bool
+	Name       string
+	Fields     []*Field // the tree of struct fields (necessary for embedded structs)
+	Properties []*Property
+	IdProperty *Property
+	Relations  map[string]*StandaloneRelation
 
 	binding          *astReader // parent
 	propertiesByName map[string]bool
+}
+
+// Merge implements model.EntityMeta interface
+func (entity *Entity) Merge(mEntity *model.Entity) model.EntityMeta {
+	return &Entity{Object: entity.Object, mEntity: mEntity}
 }
 
 // Property represents a mapping between a struct field and a DB field
@@ -79,7 +88,7 @@ type Property struct {
 	Identifier
 	Name        string // prefixed name (unique)
 	ObName      string // name of the field in DB
-	Annotations map[string]*Annotation
+	Annotations map[string]*binding.Annotation
 	ObType      model.PropertyType
 	obFlags     map[model.PropertyFlags]bool
 	GoType      string
@@ -122,11 +131,6 @@ type Index struct {
 	Identifier
 }
 
-// Annotation is a tag on a struct-field
-type Annotation struct {
-	Value string
-}
-
 // Field is a field in an entity-struct. Not all fields become properties (e.g. to-many relations don't have a property)
 type Field struct {
 	Entity             *Entity // parent entity
@@ -153,29 +157,29 @@ func NewBinding() (*astReader, error) {
 	return &astReader{}, nil
 }
 
-func (binding *astReader) CreateFromAst(f *file) (err error) {
-	binding.source = f
-	binding.Package = types.NewPackage(f.dir, f.pkgName)
-	binding.Imports = make(map[string]string)
+func (r *astReader) CreateFromAst(f *file) (err error) {
+	r.source = f
+	r.Package = types.NewPackage(f.dir, f.pkgName)
+	r.Imports = make(map[string]string)
 
 	// this will hold the pointer to the latest GenDecl encountered (parent of the current struct)
 	var prevDecl *ast.GenDecl
 
 	// traverse the AST to process all structs
 	f.walk(func(node ast.Node) bool {
-		return binding.entityLoader(node, &prevDecl)
+		return r.entityLoader(node, &prevDecl)
 	})
 
-	if binding.err != nil {
-		return binding.err
+	if r.err != nil {
+		return r.err
 	}
 
 	return nil
 }
 
 // this function only processes structs and cuts-off on types that can't contain a struct
-func (binding *astReader) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bool {
-	if binding.err != nil {
+func (r *astReader) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bool {
+	if r.err != nil {
 		return false
 	}
 
@@ -186,7 +190,7 @@ func (binding *astReader) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bo
 
 			if name == "" {
 				// NOTE this should probably not happen
-				binding.err = fmt.Errorf("encountered a struct without a name")
+				r.err = fmt.Errorf("encountered a struct without a name")
 				return false
 			}
 
@@ -201,7 +205,7 @@ func (binding *astReader) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bo
 				comments = (**prevDecl).Doc.List
 			}
 
-			binding.err = binding.createEntityFromAst(strct, name, comments)
+			r.err = r.createEntityFromAst(strct, name, comments)
 
 			// no need to go any deeper in the AST
 			return false
@@ -220,13 +224,11 @@ func (binding *astReader) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bo
 	return false
 }
 
-func (binding *astReader) createEntityFromAst(strct *ast.StructType, name string, comments []*ast.Comment) error {
-	entity := &Entity{
-		binding:          binding,
-		Name:             name,
-		propertiesByName: make(map[string]bool),
-		Relations:        make(map[string]*StandaloneRelation),
-	}
+func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comments []*ast.Comment) error {
+	var modelEntity = model.CreateEntity(r.model, 0, 0)
+	var entity = &Entity{Object: binding.CreateObject(modelEntity), mEntity: modelEntity}
+	modelEntity.Meta = entity
+	entity.SetName(name)
 
 	if comments != nil {
 		if err := entity.setAnnotations(comments); err != nil {
@@ -234,20 +236,8 @@ func (binding *astReader) createEntityFromAst(strct *ast.StructType, name string
 		}
 	}
 
-	if entity.Annotations["uid"] != nil {
-		if len(entity.Annotations["uid"].Value) == 0 {
-			// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID
-			// this flag is handled by the merge mechanism and prints the UID of the already existing entity
-			entity.UidRequest = true
-		} else if uid, err := strconv.ParseUint(entity.Annotations["uid"].Value, 10, 64); err != nil {
-			return fmt.Errorf("can't parse uid - %s on entity %s", err, entity.Name)
-		} else {
-			entity.Uid = uid
-		}
-	}
-
 	{
-		var fieldList = astStructFieldList{strct, binding.source}
+		var fieldList = astStructFieldList{strct, r.source}
 		var recursionStack = map[string]bool{}
 		recursionStack[entity.Name] = true
 		var err error
@@ -257,33 +247,20 @@ func (binding *astReader) createEntityFromAst(strct *ast.StructType, name string
 		}
 	}
 
+	// TODO this is a new feature based on a transient/"-" annotation, previously not supported in Go
+	// if entity.IsSkipped {
+	// 	return nil
+	// }
+
 	if len(entity.Properties) == 0 {
 		return fmt.Errorf("there are no properties in the entity %s", entity.Name)
 	}
 
-	// TODO use the version in the model
-	if entity.IdProperty == nil {
-		// try to find an ID property automatically based on it's name and type
-		for _, property := range entity.Properties {
-			if strings.ToLower(property.Name) == "id" && property.hasValidTypeAsId() {
-				if entity.IdProperty == nil {
-					entity.IdProperty = property
-					property.addObFlag(model.PropertyFlagId)
-				} else {
-					// fail in case multiple fields match this condition
-					return fmt.Errorf(
-						"id field is missing or multiple fields match the automatic detection condition on "+
-							"entity %s - annotate a field with `objectbox:\"id\"` tag", entity.Name)
-				}
-			}
-		}
-
-		if entity.IdProperty == nil {
-			return fmt.Errorf("id field is missing on entity %s - either annotate a field with "+
-				"`objectbox:\"id\"` tag or use an (u)int64 field named 'Id/id/ID'", entity.Name)
-		}
+	if err := modelEntity.AutosetIdProperty(); err != nil {
+		return err
 	}
 
+	// TODO this is currently dettached from the "AutosetIdProperty"
 	// special handling for string IDs = they are transformed to uint64 in the binding
 	if entity.IdProperty.GoType == "string" {
 		if err := entity.IdProperty.setBasicType("uint64"); err != nil {
@@ -306,7 +283,7 @@ func (binding *astReader) createEntityFromAst(strct *ast.StructType, name string
 			entity.IdProperty.Name, entity.IdProperty.GoType, entity.Name)
 	}
 
-	binding.Entities = append(binding.Entities, entity)
+	r.model.Entities = append(r.model.Entities, modelEntity)
 
 	return nil
 }
@@ -328,7 +305,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 		var property = &Property{
 			Entity:      entity,
 			obFlags:     map[model.PropertyFlags]bool{},
-			Annotations: make(map[string]*Annotation),
+			Annotations: make(map[string]*binding.Annotation),
 		}
 
 		property.Name, err = f.Name()
@@ -404,7 +381,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 		} else if field.Type == "time.Time" {
 			// first, try to handle time.Time struct - automatically set a converter if it's declared a date by the user
 			if property.Annotations["date"] == nil {
-				property.Annotations["date"] = &Annotation{}
+				property.Annotations["date"] = &binding.Annotation{}
 				propertyLog("Notice: time.Time is stored and read using millisecond precision in UTC by default on", property)
 				log.Printf("To silence this notice either define your own converter using `converter` and " +
 					"`type` annotations or add a `date` annotation explicitly")
@@ -419,7 +396,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 			if property.Annotations["converter"] == nil {
 				var converter = "objectbox.TimeInt64Convert"
 				property.Converter = &converter
-				property.Annotations["type"] = &Annotation{"int64"}
+				property.Annotations["type"] = &binding.Annotation{Value: "int64"}
 			}
 
 		} else if innerStructFields != nil {
@@ -666,23 +643,18 @@ func (field *Field) fillInfo(f field, typ typeErrorful) {
 func (entity *Entity) setAnnotations(comments []*ast.Comment) error {
 	lines := parseCommentsLines(comments)
 
-	entity.Annotations = make(map[string]*Annotation)
+	var annotations = make(map[string]*binding.Annotation)
 
 	for _, tags := range lines {
 		// only handle comments in the form of:   // `tags`
 		if len(tags) > 1 && tags[0] == tags[len(tags)-1] && tags[0] == '`' {
-			if err := parseAnnotations(tags, &entity.Annotations); err != nil {
-				entity.Annotations = nil
+			if err := parseAnnotations(tags, &annotations); err != nil {
 				return err
 			}
 		}
 	}
 
-	if len(entity.Annotations) == 0 {
-		entity.Annotations = nil
-	}
-
-	return nil
+	return entity.ProcessAnnotations(annotations)
 }
 
 func parseCommentsLines(comments []*ast.Comment) []string {
@@ -736,11 +708,11 @@ func (property *Property) setAnnotations(tags string) error {
 // If the user has previously defined a relation manually, it must match the arguments (relation target)
 func (property *Property) setRelation(target string, manyToMany bool) error {
 	if property.Annotations == nil {
-		property.Annotations = make(map[string]*Annotation)
+		property.Annotations = make(map[string]*binding.Annotation)
 	}
 
 	if property.Annotations["link"] == nil {
-		property.Annotations["link"] = &Annotation{}
+		property.Annotations["link"] = &binding.Annotation{}
 	}
 
 	if len(property.Annotations["link"].Value) == 0 {
@@ -779,7 +751,7 @@ func (property *Property) handleUid() error {
 	return nil
 }
 
-func parseAnnotations(tags string, annotations *map[string]*Annotation) error {
+func parseAnnotations(tags string, annotations *map[string]*binding.Annotation) error {
 	if len(tags) > 1 && tags[0] == tags[len(tags)-1] && (tags[0] == '`' || tags[0] == '"') {
 		tags = tags[1 : len(tags)-1]
 	}
@@ -802,7 +774,7 @@ func parseAnnotations(tags string, annotations *map[string]*Annotation) error {
 	for _, tag := range strings.Split(tags, " ") {
 		if len(tag) > 0 {
 			var name string
-			var value = &Annotation{}
+			var value = &binding.Annotation{}
 
 			// if it contains a colon, it's a key:value pair
 			if i := strings.IndexRune(tag, ':'); i >= 0 {
