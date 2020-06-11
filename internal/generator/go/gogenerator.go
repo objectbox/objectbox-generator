@@ -14,7 +14,7 @@ import (
 )
 
 type GoGenerator struct {
-	binding *Binding
+	binding *astReader
 }
 
 // BindingFile returns a name of the binding file for the given entity file.
@@ -43,7 +43,7 @@ func (goGen *GoGenerator) ParseSource(sourceFile string) (*model.ModelInfo, erro
 	}
 
 	if goGen.binding, err = NewBinding(); err != nil {
-		return nil, fmt.Errorf("can't init Binding: %s", err)
+		return nil, fmt.Errorf("can't init Go AST reader: %s", err)
 	}
 
 	if err = goGen.binding.CreateFromAst(f); err != nil {
@@ -85,7 +85,7 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options) (data [
 	writer := bufio.NewWriter(&b)
 
 	var tplArguments = struct {
-		Binding          *Binding
+		Binding          *astReader
 		GeneratorVersion int
 		Options          generator.Options
 	}{goGen.binding, generator.Version, options}

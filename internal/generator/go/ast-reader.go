@@ -48,8 +48,8 @@ var supportedAnnotations = map[string]bool{
 	"unique":    true,
 }
 
-// Binding contains information about the processed set of Entities
-type Binding struct {
+// astReader contains information about the processed set of Entities
+type astReader struct {
 	Package  *types.Package
 	Entities []*Entity
 	Imports  map[string]string
@@ -70,7 +70,7 @@ type Entity struct {
 	Annotations    map[string]*Annotation
 	UidRequest     bool
 
-	binding          *Binding // parent
+	binding          *astReader // parent
 	propertiesByName map[string]bool
 }
 
@@ -149,11 +149,11 @@ type Identifier struct {
 	Uid uid
 }
 
-func NewBinding() (*Binding, error) {
-	return &Binding{}, nil
+func NewBinding() (*astReader, error) {
+	return &astReader{}, nil
 }
 
-func (binding *Binding) CreateFromAst(f *file) (err error) {
+func (binding *astReader) CreateFromAst(f *file) (err error) {
 	binding.source = f
 	binding.Package = types.NewPackage(f.dir, f.pkgName)
 	binding.Imports = make(map[string]string)
@@ -174,7 +174,7 @@ func (binding *Binding) CreateFromAst(f *file) (err error) {
 }
 
 // this function only processes structs and cuts-off on types that can't contain a struct
-func (binding *Binding) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bool {
+func (binding *astReader) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bool {
 	if binding.err != nil {
 		return false
 	}
@@ -220,7 +220,7 @@ func (binding *Binding) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bool
 	return false
 }
 
-func (binding *Binding) createEntityFromAst(strct *ast.StructType, name string, comments []*ast.Comment) error {
+func (binding *astReader) createEntityFromAst(strct *ast.StructType, name string, comments []*ast.Comment) error {
 	entity := &Entity{
 		binding:          binding,
 		Name:             name,
