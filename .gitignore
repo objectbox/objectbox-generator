@@ -1,0 +1,11 @@
+# Binary libs
+*.a
+*.so
+*.dylib
+*.dll
+
+# IDE (e.g. CLion)
+.idea/
+.vscode/
+
+build-artifacts
