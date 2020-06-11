@@ -65,14 +65,13 @@ type astReader struct {
 type Entity struct {
 	*binding.Object
 
+	Fields []*Field // the tree of struct fields (necessary for embedded structs)
+
 	// TODO remove these
-	Identifier
-	Fields     []*Field // the tree of struct fields (necessary for embedded structs)
 	IdProperty *Property
 	Relations  map[string]*StandaloneRelation
 
-	binding          *astReader // parent
-	propertiesByName map[string]bool
+	binding *astReader // parent
 }
 
 // Merge implements model.EntityMeta interface
@@ -85,19 +84,13 @@ func (entity *Entity) Merge(mEntity *model.Entity) model.EntityMeta {
 type Property struct {
 	*binding.Field
 
+	GoType string
+	FbType string
+
 	// TODO remove these
 	Identifier
-	Name        string // prefixed name (unique)
-	ObName      string // name of the field in DB
-	Annotations map[string]*binding.Annotation
-	ObType      model.PropertyType
-	obFlags     map[model.PropertyFlags]bool
-	GoType      string
-	FbType      string
-	IsPointer   bool
-	Relation    *Relation
-	Index       *Index
-	Converter   *string
+	IsPointer bool
+	Converter *string
 
 	// type casts for named types
 	CastOnRead  string
@@ -106,19 +99,14 @@ type Property struct {
 	GoField    *Field // actual code field this property represents
 	Entity     *Entity
 	UidRequest bool
+
+	annotations map[string]*binding.Annotation
 }
 
 // Merge implements model.PropertyMeta interface
 func (property *Property) Merge(mProperty *model.Property) model.PropertyMeta {
 	property.ModelProperty = mProperty
 	return property
-}
-
-// Relation contains information about a "to-one" relation
-type Relation struct {
-	Target struct {
-		Name string
-	}
 }
 
 // StandaloneRelation contains information about a "to-many" relation
@@ -146,9 +134,10 @@ type Field struct {
 	IsPointer          bool
 	Property           *Property // nil if it's an embedded struct
 	Fields             []*Field  // inner fields, nil if it's a property
-	SimpleRelation     *Relation
+	SimpleRelation     string
 	StandaloneRelation *StandaloneRelation // to-many relation stored as a standalone relation in the model
 	IsLazyLoaded       bool                // only standalone (to-many) relations currently support lazy loading
+	Meta               *Field              // self reference for recursive ".Meta.Fields" access in the template
 
 	path   string // relative addressing path for embedded structs
 	parent *Field // when included in parent.Fields[], nil for top-level fields (directly in the entity)
@@ -161,7 +150,7 @@ type Identifier struct {
 }
 
 func NewBinding() (*astReader, error) {
-	return &astReader{}, nil
+	return &astReader{model: &model.ModelInfo{}}, nil
 }
 
 func (r *astReader) CreateFromAst(f *file) (err error) {
@@ -233,7 +222,7 @@ func (r *astReader) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bool {
 
 func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comments []*ast.Comment) error {
 	var modelEntity = model.CreateEntity(r.model, 0, 0)
-	var entity = &Entity{Object: binding.CreateObject(modelEntity)}
+	var entity = &Entity{Object: binding.CreateObject(modelEntity), binding: r}
 	modelEntity.Meta = entity
 	entity.SetName(name)
 
@@ -270,7 +259,7 @@ func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comm
 			return fmt.Errorf("%s on property %s, entity %s", err, entity.IdProperty.Name, entity.Name)
 		}
 
-		if entity.IdProperty.Annotations["converter"] == nil {
+		if entity.IdProperty.annotations["converter"] == nil {
 			var converter = "objectbox.StringIdConvert"
 			entity.IdProperty.Converter = &converter
 		}
@@ -278,8 +267,9 @@ func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comm
 
 	// IDs must not be tagged unsigned for compatibility reasons
 	// initially set for uint types by setBasicType()
-	entity.IdProperty.removeObFlag(model.PropertyFlagUnsigned)
-	entity.IdProperty.FbType = "Uint64" // always stored as Uint64
+	// TODO migrate this code
+	// entity.IdProperty.removeObFlag(model.PropertyFlagUnsigned)
+	// entity.IdProperty.FbType = "Uint64" // always stored as Uint64
 
 	if !entity.IdProperty.hasValidTypeAsId() {
 		return fmt.Errorf("id field '%s' has unsupported type '%s' on entity %s - must be one of [int64, uint64, string]",
@@ -300,7 +290,6 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 	}
 
 	var children []*Field
-	var err error // not a function-wise error, just to avoid later redeclarations
 
 	for i := 0; i < fields.Length(); i++ {
 		f := fields.Field(i)
@@ -309,16 +298,15 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 		var property = &Property{
 			Field: binding.CreateField(modelProperty),
 
-			Entity:      entity, // TODO remove, there is Field.ModelProperty.Entity.Meta
-			obFlags:     map[model.PropertyFlags]bool{},
-			Annotations: make(map[string]*binding.Annotation),
+			Entity: entity, // TODO remove, there is Field.ModelProperty.Entity.Meta
 		}
 		modelProperty.Meta = property
 
-		property.Name, err = f.Name()
-		if err != nil {
+		if name, err := f.Name(); err != nil {
 			property.Name = strconv.FormatInt(int64(i), 10) // just for the error message
 			return nil, propertyError(err, property)
+		} else {
+			property.SetName(name)
 		}
 
 		// this is used to correctly render embedded-structs initialization template
@@ -329,6 +317,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 			path:     fieldPath,
 			parent:   parent,
 		}
+		field.Meta = field
 		property.GoField = field
 
 		if tag := f.Tag(); tag != "" {
@@ -337,11 +326,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 			}
 		}
 
-		// skip fields with `objectbox:"-"` tag
-		if property.Annotations["-"] != nil {
-			if len(property.Annotations) != 1 || property.Annotations["-"].Value != "" {
-				return nil, propertyError(errors.New("to ignore the property, use only `objectbox:\"-\"` as a tag"), property)
-			}
+		if property.IsSkipped {
 			continue
 		}
 
@@ -370,8 +355,8 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 
 		children = append(children, field)
 
-		if property.Annotations["type"] != nil {
-			var annotatedType = property.Annotations["type"].Value
+		if property.annotations["type"] != nil {
+			var annotatedType = property.annotations["type"].Value
 			if len(annotatedType) > 1 && annotatedType[0] == '*' {
 				field.IsPointer = true
 				field.Property.IsPointer = true
@@ -387,30 +372,30 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 
 		} else if field.Type == "time.Time" {
 			// first, try to handle time.Time struct - automatically set a converter if it's declared a date by the user
-			if property.Annotations["date"] == nil {
-				property.Annotations["date"] = &binding.Annotation{}
+			if property.annotations["date"] == nil {
+				property.annotations["date"] = &binding.Annotation{}
 				propertyLog("Notice: time.Time is stored and read using millisecond precision in UTC by default on", property)
 				log.Printf("To silence this notice either define your own converter using `converter` and " +
 					"`type` annotations or add a `date` annotation explicitly")
 			}
 
 			// store the field as an int64
-			// Note - property.Annotations["type"] is not set or this code branch wouldn't be executed
+			// Note - property.annotations["type"] is not set or this code branch wouldn't be executed
 			if err := property.setBasicType("int64"); err != nil {
 				return nil, propertyError(err, property)
 			}
 
-			if property.Annotations["converter"] == nil {
+			if property.annotations["converter"] == nil {
 				var converter = "objectbox.TimeInt64Convert"
 				property.Converter = &converter
-				property.Annotations["type"] = &binding.Annotation{Value: "int64"}
+				property.annotations["type"] = &binding.Annotation{Value: "int64"}
 			}
 
 		} else if innerStructFields != nil {
 			// if it was recognized as a struct that should be embedded, add all the fields
 
 			var innerPrefix = prefix
-			if property.Annotations["inline"] == nil {
+			if property.annotations["inline"] == nil {
 				// if NOT inline, use prefix based on the field name
 				if len(innerPrefix) == 0 {
 					innerPrefix = field.Name
@@ -445,26 +430,22 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 		}
 
 		// add import if necessary, i.e. we're explicitly using the type (but not for converters)
-		if property.Annotations["converter"] == nil && property.CastOnWrite != "" {
+		if property.annotations["converter"] == nil && property.CastOnWrite != "" {
 			addImportPath()
 		}
 
-		if err := property.setObFlags(); err != nil {
-			return nil, propertyError(err, property)
-		}
-
-		if property.Annotations["converter"] != nil {
-			if property.Annotations["type"] == nil {
+		if property.annotations["converter"] != nil {
+			if property.annotations["type"] == nil {
 				return nil, propertyError(errors.New("type annotation has to be specified when using converters"), property)
 			}
-			property.Converter = &property.Annotations["converter"].Value
+			property.Converter = &property.annotations["converter"].Value
 
 			// converters use errors.New in the template
 			entity.binding.Imports["errors"] = "errors"
 		}
 
 		// if this is an ID, set it as entity.IdProperty
-		if property.Annotations["id"] != nil {
+		if property.annotations["id"] != nil {
 			if entity.IdProperty != nil {
 				return nil, fmt.Errorf("struct %s has multiple ID properties - %s and %s",
 					entity.Name, entity.IdProperty.Name, property.Name)
@@ -472,30 +453,13 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 			entity.IdProperty = property
 		}
 
-		if property.Annotations["name"] != nil {
-			if len(property.Annotations["name"].Value) == 0 {
-				return nil, propertyError(fmt.Errorf("name annotation value must not be empty - it's the field name in DB"), property)
-			}
-			property.ObName = property.Annotations["name"].Value
-		} else {
-			property.ObName = property.Name
+		if err := property.ProcessAnnotations(property.annotations); err != nil {
+			return nil, propertyError(err, property)
 		}
 
 		if len(prefix) != 0 {
-			property.ObName = prefix + "_" + property.ObName
+			property.ModelProperty.Name = prefix + "_" + property.ModelProperty.Name
 			property.Name = prefix + "_" + property.Name
-		}
-
-		// ObjectBox core internally converts to lowercase so we should check it as this as well
-		var realObName = strings.ToLower(property.ObName)
-		if entity.propertiesByName[realObName] {
-			return nil, propertyError(fmt.Errorf(
-				"duplicate name (note that property names are case insensitive)"), property)
-		}
-		entity.propertiesByName[realObName] = true
-
-		if err := property.handleUid(); err != nil {
-			return nil, propertyError(err, property)
 		}
 
 		entity.ModelEntity.Properties = append(entity.ModelEntity.Properties, modelProperty)
@@ -554,12 +518,12 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 		field.fillInfo(f, typ)
 
 		// if it's a one-to-many relation
-		if property.Annotations["link"] != nil {
+		if property.annotations["link"] != nil {
 			if err := property.setRelation(typeBaseName(typ.String()), false); err != nil {
 				return nil, err
 			}
 
-			field.SimpleRelation = property.Relation
+			field.SimpleRelation = property.ModelProperty.RelationTarget
 			return nil, nil
 		}
 
@@ -587,7 +551,7 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 
 		rel := &StandaloneRelation{}
 		rel.Name = field.Name
-		rel.Target.Name = property.Annotations["link"].Value
+		rel.Target.Name = property.annotations["link"].Value
 		rel.UidRequest = property.UidRequest
 		rel.Uid = property.Uid
 
@@ -597,7 +561,7 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 
 		field.Entity.Relations[field.Name] = rel
 		field.StandaloneRelation = rel
-		if field.Property.Annotations["lazy"] != nil {
+		if field.Property.annotations["lazy"] != nil {
 			// relations only
 			field.IsLazyLoaded = true
 		}
@@ -699,35 +663,36 @@ func (property *Property) hasValidTypeAsId() bool {
 }
 
 func (property *Property) setAnnotations(tags string) error {
-	if err := parseAnnotations(tags, &property.Annotations); err != nil {
-		property.Annotations = nil
+	var annotations = make(map[string]*binding.Annotation)
+	if err := parseAnnotations(tags, &annotations); err != nil {
 		return err
 	}
 
-	if len(property.Annotations) == 0 {
-		property.Annotations = nil
+	if err := property.PreProcessAnnotations(annotations); err != nil {
+		return err
 	}
 
+	property.annotations = annotations
 	return nil
 }
 
 // setRelation sets a relation on the property.
 // If the user has previously defined a relation manually, it must match the arguments (relation target)
 func (property *Property) setRelation(target string, manyToMany bool) error {
-	if property.Annotations == nil {
-		property.Annotations = make(map[string]*binding.Annotation)
+	if property.annotations == nil {
+		property.annotations = make(map[string]*binding.Annotation)
 	}
 
-	if property.Annotations["link"] == nil {
-		property.Annotations["link"] = &binding.Annotation{}
+	if property.annotations["link"] == nil {
+		property.annotations["link"] = &binding.Annotation{}
 	}
 
-	if len(property.Annotations["link"].Value) == 0 {
+	if len(property.annotations["link"].Value) == 0 {
 		// set the relation target to the type of the target entity
 		// TODO this doesn't respect `objectbox:"name:entity"` on the entity (but we don't support that at the moment)
-		property.Annotations["link"].Value = target
-	} else if property.Annotations["link"].Value != target {
-		return fmt.Errorf("relation target mismatch, expected %s, got %s", target, property.Annotations["link"].Value)
+		property.annotations["link"].Value = target
+	} else if property.annotations["link"].Value != target {
+		return fmt.Errorf("relation target mismatch, expected %s, got %s", target, property.annotations["link"].Value)
 	}
 
 	if manyToMany {
@@ -743,13 +708,14 @@ func (property *Property) setRelation(target string, manyToMany bool) error {
 	return nil
 }
 
+// TODO we probably don't need this? done in ProcessAnnotations()
 func (property *Property) handleUid() error {
-	if property.Annotations["uid"] != nil {
-		if len(property.Annotations["uid"].Value) == 0 {
+	if property.annotations["uid"] != nil {
+		if len(property.annotations["uid"].Value) == 0 {
 			// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID
 			// this flag is handled by the merge mechanism and prints the UID of the already existing property
 			property.UidRequest = true
-		} else if uid, err := strconv.ParseUint(property.Annotations["uid"].Value, 10, 64); err != nil {
+		} else if uid, err := strconv.ParseUint(property.annotations["uid"].Value, 10, 64); err != nil {
 			return fmt.Errorf("can't parse uid - %s", err)
 		} else {
 			property.Uid = uid
@@ -813,133 +779,53 @@ func (property *Property) setBasicType(baseType string) error {
 
 	ts := property.GoType
 	if property.GoType == "string" {
-		property.ObType = model.PropertyTypeString
+		property.ModelProperty.Type = model.PropertyTypeString
 		property.FbType = "UOffsetT"
 	} else if ts == "int" || ts == "int64" {
-		property.ObType = model.PropertyTypeLong
+		property.ModelProperty.Type = model.PropertyTypeLong
 		property.FbType = "Int64"
 	} else if ts == "uint" || ts == "uint64" {
-		property.ObType = model.PropertyTypeLong
+		property.ModelProperty.Type = model.PropertyTypeLong
 		property.FbType = "Uint64"
-		property.addObFlag(model.PropertyFlagUnsigned)
+		property.ModelProperty.AddFlag(model.PropertyFlagUnsigned)
 	} else if ts == "int32" || ts == "rune" {
-		property.ObType = model.PropertyTypeInt
+		property.ModelProperty.Type = model.PropertyTypeInt
 		property.FbType = "Int32"
 	} else if ts == "uint32" {
-		property.ObType = model.PropertyTypeInt
+		property.ModelProperty.Type = model.PropertyTypeInt
 		property.FbType = "Uint32"
-		property.addObFlag(model.PropertyFlagUnsigned)
+		property.ModelProperty.AddFlag(model.PropertyFlagUnsigned)
 	} else if ts == "int16" {
-		property.ObType = model.PropertyTypeShort
+		property.ModelProperty.Type = model.PropertyTypeShort
 		property.FbType = "Int16"
 	} else if ts == "uint16" {
-		property.ObType = model.PropertyTypeShort
+		property.ModelProperty.Type = model.PropertyTypeShort
 		property.FbType = "Uint16"
-		property.addObFlag(model.PropertyFlagUnsigned)
+		property.ModelProperty.AddFlag(model.PropertyFlagUnsigned)
 	} else if ts == "int8" {
-		property.ObType = model.PropertyTypeByte
+		property.ModelProperty.Type = model.PropertyTypeByte
 		property.FbType = "Int8"
 	} else if ts == "uint8" || ts == "byte" {
-		property.ObType = model.PropertyTypeByte
+		property.ModelProperty.Type = model.PropertyTypeByte
 		property.FbType = "Uint8"
-		property.addObFlag(model.PropertyFlagUnsigned)
+		property.ModelProperty.AddFlag(model.PropertyFlagUnsigned)
 	} else if ts == "[]byte" {
-		property.ObType = model.PropertyTypeByteVector
+		property.ModelProperty.Type = model.PropertyTypeByteVector
 		property.FbType = "UOffsetT"
 	} else if ts == "[]string" {
-		property.ObType = model.PropertyTypeStringVector
+		property.ModelProperty.Type = model.PropertyTypeStringVector
 		property.FbType = "UOffsetT"
 	} else if ts == "float64" {
-		property.ObType = model.PropertyTypeDouble
+		property.ModelProperty.Type = model.PropertyTypeDouble
 		property.FbType = "Float64"
 	} else if ts == "float32" {
-		property.ObType = model.PropertyTypeFloat
+		property.ModelProperty.Type = model.PropertyTypeFloat
 		property.FbType = "Float32"
 	} else if ts == "bool" {
-		property.ObType = model.PropertyTypeBool
+		property.ModelProperty.Type = model.PropertyTypeBool
 		property.FbType = "Bool"
 	} else {
 		return fmt.Errorf("unknown type %s", ts)
-	}
-
-	if property.Annotations["date"] != nil {
-		if property.ObType != model.PropertyTypeLong {
-			return fmt.Errorf("invalid underlying type (PropertyType %v) for date field; expecting long", property.ObType)
-		}
-		property.ObType = model.PropertyTypeDate
-	}
-
-	if property.Annotations["link"] != nil {
-		if property.ObType != model.PropertyTypeLong {
-			return fmt.Errorf("invalid underlying type (PropertyType %v) for relation field; expecting long", property.ObType)
-		}
-		property.ObType = model.PropertyTypeRelation
-		property.Relation = &Relation{}
-		property.Relation.Target.Name = property.Annotations["link"].Value
-	}
-
-	return nil
-}
-
-func (property *Property) addObFlag(flag model.PropertyFlags) {
-	property.obFlags[flag] = true
-}
-
-func (property *Property) removeObFlag(flag model.PropertyFlags) {
-	property.obFlags[flag] = false
-}
-
-func (property *Property) setIndex() error {
-	if property.Index != nil {
-		return fmt.Errorf("index is already defined")
-	}
-	property.Index = &Index{}
-	return nil
-}
-
-func (property *Property) setObFlags() error {
-	if property.Annotations["id"] != nil {
-		property.addObFlag(model.PropertyFlagId)
-	}
-
-	if property.Annotations["index"] != nil {
-		switch strings.ToLower(property.Annotations["index"].Value) {
-		case "":
-			// if the user doesn't define index type use the default based on the data-type
-			if property.ObType == model.PropertyTypeString {
-				property.addObFlag(model.PropertyFlagIndexHash)
-			} else {
-				property.addObFlag(model.PropertyFlagIndexed)
-			}
-		case "value":
-			property.addObFlag(model.PropertyFlagIndexed)
-		case "hash":
-			property.addObFlag(model.PropertyFlagIndexHash)
-		case "hash64":
-			property.addObFlag(model.PropertyFlagIndexHash64)
-		default:
-			return fmt.Errorf("unknown index type %s", property.Annotations["index"].Value)
-		}
-
-		if err := property.setIndex(); err != nil {
-			return err
-		}
-	}
-
-	if property.Annotations["unique"] != nil {
-		property.addObFlag(model.PropertyFlagUnique)
-
-		if err := property.setIndex(); err != nil {
-			return err
-		}
-	}
-
-	if property.Relation != nil {
-		property.addObFlag(model.PropertyFlagIndexed)
-		property.addObFlag(model.PropertyFlagIndexPartialSkipZero)
-		if err := property.setIndex(); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -947,49 +833,7 @@ func (property *Property) setObFlags() error {
 
 // ObTypeString is called from the template
 func (property *Property) ObTypeString() string {
-	switch property.ObType {
-	case model.PropertyTypeBool:
-		return "Bool"
-	case model.PropertyTypeByte:
-		return "Byte"
-	case model.PropertyTypeShort:
-		return "Short"
-	case model.PropertyTypeChar:
-		return "Char"
-	case model.PropertyTypeInt:
-		return "Int"
-	case model.PropertyTypeLong:
-		return "Long"
-	case model.PropertyTypeFloat:
-		return "Float"
-	case model.PropertyTypeDouble:
-		return "Double"
-	case model.PropertyTypeString:
-		return "String"
-	case model.PropertyTypeDate:
-		return "Date"
-	case model.PropertyTypeRelation:
-		return "Relation"
-	case model.PropertyTypeByteVector:
-		return "ByteVector"
-	case model.PropertyTypeStringVector:
-		return "StringVector"
-	default:
-		panic(fmt.Errorf("unrecognized type %v", property.ObType))
-	}
-}
-
-// ObFlagsCombined called from the template
-func (property *Property) ObFlagsCombined() model.PropertyFlags {
-	var result model.PropertyFlags = 0
-
-	for flag, isSet := range property.obFlags {
-		if isSet {
-			result = result | flag
-		}
-	}
-
-	return result
+	return model.PropertyTypeNames[property.ModelProperty.Type]
 }
 
 // HasNonIdProperty called from the template. The goal is to void GO error "variable declared and not used"
@@ -1022,7 +866,7 @@ func (entity *Entity) HasLazyLoadedRelations() bool {
 
 // HasRelations called from the template.
 func (field *Field) HasRelations() bool {
-	if field.StandaloneRelation != nil || field.SimpleRelation != nil {
+	if field.StandaloneRelation != nil || len(field.SimpleRelation) > 0 {
 		return true
 	}
 
@@ -1115,7 +959,7 @@ func (property *Property) Path() string {
 
 // AnnotatedType returns "type" annotation value
 func (property *Property) AnnotatedType() string {
-	return property.Annotations["type"].Value
+	return property.annotations["type"].Value
 }
 
 // TplReadValue returns a code to read the property value on a given object.

@@ -50,15 +50,14 @@ func (goGen *GoGenerator) ParseSource(sourceFile string) (*model.ModelInfo, erro
 		return nil, fmt.Errorf("can't prepare bindings for %s: %s", sourceFile, err)
 	}
 
-	// TODO convert binding to model
-	return nil, nil
+	return goGen.binding.model, nil
 }
 
 func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
 	var bindingSource []byte
-	if bindingSource, err = goGen.generateBindingFile(options); err != nil {
+	if bindingSource, err = goGen.generateBindingFile(options, mergedModel); err != nil {
 		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
 	}
 
@@ -80,15 +79,16 @@ func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator
 	return nil
 }
 
-func (goGen *GoGenerator) generateBindingFile(options generator.Options) (data []byte, err error) {
+func (goGen *GoGenerator) generateBindingFile(options generator.Options, m *model.ModelInfo) (data []byte, err error) {
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 
 	var tplArguments = struct {
+		Model            *model.ModelInfo
 		Binding          *astReader
 		GeneratorVersion int
 		Options          generator.Options
-	}{goGen.binding, generator.Version, options}
+	}{m, goGen.binding, generator.Version, options}
 
 	if err = templates.BindingTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)

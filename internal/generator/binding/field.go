@@ -40,7 +40,7 @@ func CreateField(prop *model.Property) *Field {
 func (field *Field) SetName(name string) {
 	field.Name = name
 	if len(field.ModelProperty.Name) == 0 {
-		field.ModelProperty.Name = strings.ToLower(name)
+		field.ModelProperty.Name = name
 	}
 }
 func (field *Field) PreProcessAnnotations(a map[string]*Annotation) error {
@@ -76,19 +76,19 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		if len(a["name"].Value) == 0 {
 			return fmt.Errorf("name annotation value must not be empty - it's the field name in DB")
 		}
-		field.ModelProperty.Name = strings.ToLower(a["name"].Value)
+		field.ModelProperty.Name = a["name"].Value
 	}
 
 	if a["date"] != nil {
 		if field.ModelProperty.Type != model.PropertyTypeLong {
-			return fmt.Errorf("invalid underlying type (PropertyType %v) for date field; expecting long", model.PropertyTypeNames[field.ModelProperty.Type])
+			return fmt.Errorf("invalid underlying type '%v' for date field; expecting long", model.PropertyTypeNames[field.ModelProperty.Type])
 		}
 		field.ModelProperty.Type = model.PropertyTypeDate
 	}
 
 	if a["id-companion"] != nil {
 		if field.ModelProperty.Type != model.PropertyTypeDate {
-			return fmt.Errorf("invalid underlying type (PropertyType %v) for ID companion field; expecting date", model.PropertyTypeNames[field.ModelProperty.Type])
+			return fmt.Errorf("invalid underlying type '%v' for ID companion field; expecting date", model.PropertyTypeNames[field.ModelProperty.Type])
 		}
 		field.ModelProperty.AddFlag(model.PropertyFlagIdCompanion)
 	}
@@ -139,10 +139,8 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 	}
 
-	// TODO currently only to-one link is supported;
-	// TODO this would differ between C and Go generator so maybe the right place is rather in the respective generator?
-	//  Maybe extract "SetRelationToOne() method in this class and call it from the generator
-	if a["link"] != nil {
+	// To-one relation
+	if a["link"] != nil && field.ModelProperty.Type != model.PropertyTypeRelation {
 		if field.ModelProperty.Type != model.PropertyTypeLong {
 			return fmt.Errorf("invalid underlying type (PropertyType %v) for relation field; expecting long", model.PropertyTypeNames[field.ModelProperty.Type])
 		}

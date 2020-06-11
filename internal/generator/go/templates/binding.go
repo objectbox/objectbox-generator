@@ -40,7 +40,7 @@ var BindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Parse
 
 {{define "property-access"}}{{/* used in Flatten*/ -}}
 	{{- if .Converter}} {{if .IsPointer}}*{{end}}prop{{.Name}}
-	{{- else if .CastOnRead}}{{.CastOnRead}}({{if .IsPointer}}*{{end}}obj.{{.Path}})
+	{{- else if .CastOnRead}}{{.Meta.CastOnRead}}({{if .IsPointer}}*{{end}}obj.{{.Path}})
 	{{- else}}{{if .IsPointer}}*{{end}}obj.{{.Path}}{{end}}
 {{- end -}}
 
@@ -57,7 +57,7 @@ import (
 	{{end}}
 )
 
-{{range $entity := .Binding.Entities -}}
+{{range $entity := .Model.Entities -}}
 {{$entityNameCamel := $entity.Name | StringCamel -}}
 type {{$entityNameCamel}}_EntityInfo struct {
 	objectbox.Entity
@@ -66,15 +66,15 @@ type {{$entityNameCamel}}_EntityInfo struct {
 
 var {{$entity.Name}}Binding = {{$entityNameCamel}}_EntityInfo {
 	Entity: objectbox.Entity{
-		Id: {{$entity.Id}},
+		Id: {{$entity.Id.GetId}},
 	}, 
-	Uid: {{$entity.Uid}},
+	Uid: {{$entity.Id.GetUid}},
 }
 
 // {{$entity.Name}}_ contains type-based Property helpers to facilitate some common operations such as Queries. 
 var {{$entity.Name}}_ = struct {
 	{{range $property := $entity.Properties -}}
-    	{{$property.Name}} *objectbox.{{with $property.Relation}}RelationToOne{{else}}Property{{$property.GoType | TypeIdentifier}}{{end}}
+    	{{$property.Meta.Name}} *objectbox.{{with $property.RelationTarget}}RelationToOne{{else}}Property{{$property.Meta.GoType | TypeIdentifier}}{{end}}
     {{end -}}
 	{{range $relation := $entity.Relations -}}
     	{{$relation.Name}} *objectbox.RelationToMany
@@ -82,16 +82,16 @@ var {{$entity.Name}}_ = struct {
 }{
 	{{range $property := $entity.Properties -}}
     {{$property.Name}}: &objectbox.
-		{{- with $property.Relation}}RelationToOne{
+		{{- with $property.RelationTarget}}RelationToOne{
 			Property:
-		{{- else}}Property{{$property.GoType | TypeIdentifier}}{
+		{{- else}}Property{{$property.Meta.GoType | TypeIdentifier}}{
 			BaseProperty:
 		{{- end -}} 
 		&objectbox.BaseProperty{
-			Id: {{$property.Id}},
+			Id: {{$property.Id.GetId}},
 			Entity: &{{$entity.Name}}Binding.Entity,
-		},{{with $property.Relation}}
-		Target: &{{.Target.Name}}Binding.Entity,{{end}}
+		},{{with $property.RelationTarget}}
+		Target: &{{.}}Binding.Entity,{{end}}
 	},
     {{end -}}
 	{{range $relation := $entity.Relations -}}
@@ -110,14 +110,14 @@ func ({{$entityNameCamel}}_EntityInfo) GeneratorVersion() int {
 
 // AddToModel is called by ObjectBox during model build
 func ({{$entityNameCamel}}_EntityInfo) AddToModel(model *objectbox.Model) {
-    model.Entity("{{$entity.Name}}", {{$entity.Id}}, {{$entity.Uid}})
+    model.Entity("{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}})
     {{range $property := $entity.Properties -}}
-    model.Property("{{$property.ObName}}", {{$property.ObType}}, {{$property.Id}}, {{$property.Uid}})
-    {{with $property.ObFlagsCombined -}}
+    model.Property("{{$property.Name}}", {{$property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}})
+    {{with $property.Flags -}}
 		model.PropertyFlags({{.}})
 	{{end -}}
-	{{if $property.Relation}}model.PropertyRelation("{{$property.Relation.Target.Name}}", {{$property.Index.Id}}, {{$property.Index.Uid}})
-	{{else if $property.Index}}model.PropertyIndex({{$property.Index.Id}}, {{$property.Index.Uid}})
+	{{if $property.RelationTarget}}model.PropertyRelation("{{$property.RelationTarget}}", {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}})
+	{{else if $property.IndexId}}model.PropertyIndex({{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}})
     {{end -}}
     {{end -}}
     model.EntityLastPropertyId({{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}})
@@ -130,12 +130,12 @@ func ({{$entityNameCamel}}_EntityInfo) AddToModel(model *objectbox.Model) {
 func ({{$entityNameCamel}}_EntityInfo) GetId(object interface{}) (uint64, error) {
 	{{- if $.Options.ByValue}}
 		if obj, ok := object.(*{{$entity.Name}}); ok {
-			return {{$entity.IdProperty.TplReadValue "obj" ""}}
+			return {{$entity.IdProperty.Meta.TplReadValue "obj" ""}}
 		} else {
-			return {{$entity.IdProperty.TplReadValue "object" "val-cast"}}
+			return {{$entity.IdProperty.Meta.TplReadValue "object" "val-cast"}}
 		}
 	{{- else -}}
-		return {{$entity.IdProperty.TplReadValue "object" "ptr-cast"}}
+		return {{$entity.IdProperty.Meta.TplReadValue "object" "ptr-cast"}}
 	{{- end}}
 }
 
@@ -143,28 +143,28 @@ func ({{$entityNameCamel}}_EntityInfo) GetId(object interface{}) (uint64, error)
 func ({{$entityNameCamel}}_EntityInfo) SetId(object interface{}, id uint64) error {
 	{{- if $.Options.ByValue}}
 		if obj, ok := object.(*{{$entity.Name}}); ok {
-			{{$entity.IdProperty.TplSetAndReturn "obj" "" "id"}}
+			{{$entity.IdProperty.Meta.TplSetAndReturn "obj" "" "id"}}
 		} else {
 			// NOTE while this can't update, it will at least behave consistently (panic in case of a wrong type)
 			_ = object.({{$entity.Name}}).{{$entity.IdProperty.Path}}
 			return nil
 		}
 	{{- else -}}
-		{{$entity.IdProperty.TplSetAndReturn "object" "ptr-cast" "id"}}
+		{{$entity.IdProperty.Meta.TplSetAndReturn "object" "ptr-cast" "id"}}
 	{{- end}}
 }
 
 // PutRelated is called by ObjectBox to put related entities before the object itself is flattened and put
 func ({{$entityNameCamel}}_EntityInfo) PutRelated(ob *objectbox.ObjectBox, object interface{}, id uint64) error {
 	{{- block "put-relations" $entity}}
-	{{- range $field := .Fields}}
+	{{- range $field := .Meta.Fields}}
 		{{- if $field.SimpleRelation}}
 			if rel := {{if not $field.IsPointer}}&{{end}}object.(*{{$field.Entity.Name}}).{{$field.Path}}; rel != nil {
-				if rId, err := {{$field.SimpleRelation.Target.Name}}Binding.GetId(rel); err != nil {
+				if rId, err := {{$field.SimpleRelation}}Binding.GetId(rel); err != nil {
 					return err
 				} else if rId == 0 {
 					// NOTE Put/PutAsync() has a side-effect of setting the rel.ID
-					if _, err := BoxFor{{$field.SimpleRelation.Target.Name}}(ob).Put(rel); err != nil {
+					if _, err := BoxFor{{$field.SimpleRelation}}(ob).Put(rel); err != nil {
 						return err
 					}
 				}
@@ -183,7 +183,7 @@ func ({{$entityNameCamel}}_EntityInfo) PutRelated(ob *objectbox.ObjectBox, objec
 
 // Flatten is called by ObjectBox to transform an object to a FlatBuffer
 func ({{$entityNameCamel}}_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id uint64) error {
-    {{if $entity.HasNonIdProperty -}}
+    {{if $entity.Meta.HasNonIdProperty -}}
 		{{- if not $.Options.ByValue}}obj := object.(*{{$entity.Name}}) 
 		{{- else -}}
 		var obj *{{$entity.Name}}
@@ -196,38 +196,38 @@ func ({{$entityNameCamel}}_EntityInfo) Flatten(object interface{}, fbb *flatbuff
 		{{end}}
 	{{- end -}}
 	
-	{{- range $property := $entity.Properties}}{{if and $property.Converter (not (eq $property.Name $entity.IdProperty.Name))}}
+	{{- range $property := $entity.Properties}}{{if and $property.Meta.Converter (not (eq $property.Name $entity.IdProperty.Name))}}
 	var prop{{$property.Name}} {{$property.AnnotatedType}}
-	{{if $property.IsPointer}}if obj.{{$property.Path}} != nil {{end}} { 
+	{{if $property.Meta.IsPointer}}if obj.{{$property.Path}} != nil {{end}} { 
 		var err error
-		prop{{$property.Name}}, err = {{$property.Converter}}ToDatabaseValue(obj.{{$property.Path}})
+		prop{{$property.Name}}, err = {{$property.Meta.Converter}}ToDatabaseValue(obj.{{$property.Path}})
 		if err != nil {
-			return errors.New("converter {{$property.Converter}}ToDatabaseValue() failed on {{$entity.Name}}.{{$property.Path}}: " + err.Error())
+			return errors.New("converter {{$property.Meta.Converter}}ToDatabaseValue() failed on {{$entity.Name}}.{{$property.Path}}: " + err.Error())
 		}
 	}
 	{{end}}{{end}}
 
-    {{- range $property := $entity.Properties}}{{if eq $property.FbType "UOffsetT"}}
-	{{if $property.IsPointer}}
+    {{- range $property := $entity.Properties}}{{if eq $property.Meta.FbType "UOffsetT"}}
+	{{if $property.Meta.IsPointer}}
 	var offset{{$property.Name}} flatbuffers.UOffsetT
 	if obj.{{$property.Path}} != nil {
 	{{else}}var {{end -}}
-	offset{{$property.Name}} = fbutils.Create{{$property.ObTypeString}}Offset(fbb, {{template "property-access" $property}})
-	{{- if $property.IsPointer -}} } {{- end}}
+	offset{{$property.Name}} = fbutils.Create{{$property.Meta.ObTypeString}}Offset(fbb, {{template "property-access" $property.Meta}})
+	{{- if $property.Meta.IsPointer -}} } {{- end}}
 	{{- end}}{{end}}
 
 	{{- block "store-relations" $entity}}
-	{{- range $field := .Fields}}
+	{{- range $field := .Meta.Fields}}
 		{{if $field.SimpleRelation}}
 			var rId{{$field.Property.Name}} uint64
 			if rel := {{if not $field.IsPointer}}&{{end}}obj.{{$field.Path}}; rel != nil {
-				if rId, err := {{$field.SimpleRelation.Target.Name}}Binding.GetId(rel); err != nil {
+				if rId, err := {{$field.SimpleRelation}}Binding.GetId(rel); err != nil {
 					return err
 				} else {
 					rId{{$field.Property.Name}} = rId
 				}
 			}
-		{{- else if $field.Property}}{{if $field.Property.Relation}}{{/* manual relation links (just ID)*/}}
+		{{- else if $field.Property}}{{if $field.Property.ModelProperty.RelationTarget}}{{/* manual relation links (just ID) */}}
 			var rId{{$field.Property.Name}} = {{template "property-access" $field.Property}}{{- end}}
 		{{- else}}{{/* recursively visit fields in embedded structs */}}{{template "store-relations" $field}}
 		{{end}}
@@ -235,16 +235,16 @@ func ({{$entityNameCamel}}_EntityInfo) Flatten(object interface{}, fbb *flatbuff
 
     // build the FlatBuffers object
     fbb.StartObject({{$entity.LastPropertyId.GetId}})
-	{{- if $entity.IdProperty.Field.HasPointersInPath }}{{/* when Id property's path (embedded) contains pointers, make sure it's always set */}} 
-		fbutils.Set{{$entity.IdProperty.FbType}}Slot(fbb, {{$entity.IdProperty.FbSlot}}, id) 
+	{{- if $entity.Meta.IdProperty.GoField.HasPointersInPath }}{{/* when Id property's path (embedded) contains pointers, make sure it's always set */}} 
+		fbutils.Set{{$entity.IdProperty.Meta.FbType}}Slot(fbb, {{$entity.IdProperty.FbSlot}}, id) 
 	{{- end}}
 	{{- block "fields-setter" $entity -}}
-		{{- range $field := .Fields}}
+		{{- range $field := .Meta.Fields}}
 			{{- if $field.IsPointer}}
 			if obj.{{$field.Path}} != nil { {{- end -}}
-			{{with $field.Property}}{{if or (not .IsId) (not .Field.HasPointersInPath) }} 
+			{{with $field.Property}}{{if or (not .IsId) (not .GoField.HasPointersInPath) }} 
 				fbutils.Set{{.FbType}}Slot(fbb, {{.FbSlot}},
-				{{- if .Relation}}rId{{.Name}})
+				{{- if .ModelProperty.RelationTarget}}rId{{.Name}})
 				{{- else if eq .FbType "UOffsetT"}} offset{{.Name}})
 				{{- else if .IsId}} id)
 				{{- else -}}
@@ -270,23 +270,23 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 		Pos:   flatbuffers.GetUOffsetT(bytes),
 	}
 
-	{{if not $entity.IdProperty.Converter}}
-	var prop{{$entity.IdProperty.Name}} = table.Get{{$entity.IdProperty.GoType | StringTitle}}Slot({{$entity.IdProperty.FbvTableOffset}}, 0)
+	{{if not $entity.IdProperty.Meta.Converter}}
+	var prop{{$entity.IdProperty.Name}} = table.Get{{$entity.IdProperty.Meta.GoType | StringTitle}}Slot({{$entity.IdProperty.FbvTableOffset}}, 0)
 	{{end -}}
 
-	{{range $property := $entity.Properties}}{{if $property.Converter}}
-	prop{{$property.Name}}, err := {{$property.Converter}}ToEntityProperty({{template "property-getter" $property}})
+	{{range $property := $entity.Properties}}{{if $property.Meta.Converter}}
+	prop{{$property.Name}}, err := {{$property.Meta.Converter}}ToEntityProperty({{template "property-getter" $property.Meta}})
 	if err != nil {
-		return nil, errors.New("converter {{$property.Converter}}ToEntityProperty() failed on {{$entity.Name}}.{{$property.Path}}: " + err.Error())
+		return nil, errors.New("converter {{$property.Meta.Converter}}ToEntityProperty() failed on {{$entity.Name}}.{{$property.Path}}: " + err.Error())
 	}
 	{{end}}{{end}}
 	
 	{{- block "load-relations" $entity}}
-	{{- range $field := .Fields}}
+	{{- range $field := .Meta.Fields}}
 		{{if $field.SimpleRelation -}}
 			var rel{{$field.Name}} *{{$field.Type}}
-			if rId := {{template "property-getter-with-converter-val" $field.Property}}; {{if $field.Property.IsPointer}}rId != nil && *{{end}}rId > 0 {
-				if rObject, err := BoxFor{{$field.SimpleRelation.Target.Name}}(ob).Get({{if $field.Property.IsPointer}}*{{end}}rId); err != nil {
+			if rId := {{template "property-getter-with-converter-val" $field.Property}}; {{if $field.Property.Meta.IsPointer}}rId != nil && *{{end}}rId > 0 {
+				if rObject, err := BoxFor{{$field.SimpleRelation}}(ob).Get({{if $field.Property.Meta.IsPointer}}*{{end}}rId); err != nil {
 					return nil, err 
 				{{if not $field.IsPointer -}}
 				} else if rObject == nil {
@@ -317,7 +317,7 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 
 	return &{{$entity.Name}}{
 	{{- block "fields-initializer" $entity}}
-		{{- range $field := .Fields}}
+		{{- range $field := .Meta.Fields}}
 			{{$field.Name}}: 
 				{{- if $field.SimpleRelation}}{{if not $field.IsPointer}}*{{end}}rel{{$field.Name}}
 				{{- else if $field.StandaloneRelation}}
@@ -354,7 +354,7 @@ type {{$entity.Name}}Box struct {
 // BoxFor{{$entity.Name}} opens a box of {{$entity.Name}} objects 
 func BoxFor{{$entity.Name}}(ob *objectbox.ObjectBox) *{{$entity.Name}}Box {
 	return &{{$entity.Name}}Box{
-		Box: ob.InternalBox({{$entity.Id}}),
+		Box: ob.InternalBox({{$entity.Id.GetId}}),
 	}
 }
 
@@ -440,7 +440,7 @@ func (box *{{$entity.Name}}Box) GetAll() ([]{{if not $.Options.ByValue}}*{{end}}
 }
 
 {{- block "fetch-related" $entity}}
-{{- range $field := .Fields}}
+{{- range $field := .Meta.Fields}}
 	{{/* NOTE, we keep the IF-ELSE branching this way to correctly process embedded structs in the last ELSE */}}
 	{{- if .SimpleRelation -}}
 	{{- else if .StandaloneRelation}}
@@ -454,13 +454,13 @@ func (box *{{$entity.Name}}Box) GetAll() ([]{{if not $.Options.ByValue}}*{{end}}
 					// collect slices before setting the source objects' fields
 					// this keeps all the sourceObjects untouched in case there's an error during any of the requests
 					for k, object := range sourceObjects {
-						{{if .Entity.IdProperty.Converter -}}
-						sourceId, err := {{.Entity.IdProperty.Converter}}ToDatabaseValue(object.{{.Entity.IdProperty.Path}})
+						{{if .Entity.IdProperty.Meta.Converter -}}
+						sourceId, err := {{.Entity.IdProperty.Meta.Converter}}ToDatabaseValue(object.{{.Entity.IdProperty.Path}})
 						if err != nil {
 							return err
 						}
 						{{end -}}
-						rIds, err := box.RelationIds({{.Entity.Name}}_.{{.Name}}, {{with .Entity.IdProperty}} {{if .Converter}}sourceId{{else}}object.{{.Path}}{{end}}{{end}})
+						rIds, err := box.RelationIds({{.Entity.Name}}_.{{.Name}}, {{with .Entity.IdProperty}} {{if .Meta.Converter}}sourceId{{else}}object.{{.Path}}{{end}}{{end}})
 						if err == nil {
 						    slices[k], err = BoxFor{{.StandaloneRelation.Target.Name}}(box.ObjectBox).GetManyExisting(rIds...)
 						}
@@ -495,19 +495,19 @@ func (box *{{$entity.Name}}Box) Remove(object *{{$entity.Name}}) error {
 // you can execute multiple box.Contains() and box.Remove() inside a single write transaction.
 func (box *{{$entity.Name}}Box) RemoveMany(objects ...*{{$entity.Name}}) (uint64, error) {
 	var ids = make([]uint64, len(objects))
-	{{- if $entity.IdProperty.Converter}}
+	{{- if $entity.IdProperty.Meta.Converter}}
 	var err error{{end}}
 	for k, object := range objects {
-		{{if $entity.IdProperty.Converter -}}
-			ids[k], err = {{$entity.IdProperty.TplReadValue "object" ""}}
+		{{if $entity.IdProperty.Meta.Converter -}}
+			ids[k], err = {{$entity.IdProperty.Meta.TplReadValue "object" ""}}
 			if err != nil {
-				return 0, errors.New("converter {{$entity.IdProperty.Converter}}ToDatabaseValue() failed on {{$entity.Name}}.{{$entity.IdProperty.Path}}: " + err.Error())
+				return 0, errors.New("converter {{$entity.IdProperty.Meta.Converter}}ToDatabaseValue() failed on {{$entity.Name}}.{{$entity.IdProperty.Path}}: " + err.Error())
 			}
 		{{else -}}
 			ids[k] = {{with $entity.IdProperty -}}
-				{{- if not (eq .GoType "uint64")}} uint64( {{end -}}
+				{{- if not (eq .Meta.GoType "uint64")}} uint64( {{end -}}
 				object.{{.Path}}
-				{{- if not (eq .GoType "uint64")}} ) {{end -}}
+				{{- if not (eq .Meta.GoType "uint64")}} ) {{end -}}
 			{{- end}}
 		{{end -}}
 	}
@@ -563,9 +563,9 @@ type {{$entity.Name}}AsyncBox struct {
 // The returned struct must be freed explicitly using the Close() method.
 // It's usually preferable to use {{$entity.Name}}Box::Async() which takes care of resource management and doesn't require closing.
 func AsyncBoxFor{{$entity.Name}}(ob *objectbox.ObjectBox, timeoutMs uint64) *{{$entity.Name}}AsyncBox {
-	var async, err = objectbox.NewAsyncBox(ob, {{$entity.Id}}, timeoutMs)
+	var async, err = objectbox.NewAsyncBox(ob, {{$entity.Id.GetId}}, timeoutMs)
 	if err != nil {
-		panic("Could not create async box for entity ID {{$entity.Id}}: %s" + err.Error())
+		panic("Could not create async box for entity ID {{$entity.Id.GetId}}: %s" + err.Error())
 	}
 	return &{{$entity.Name}}AsyncBox{AsyncBox: async}
 }

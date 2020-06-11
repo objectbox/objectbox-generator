@@ -66,8 +66,17 @@ func (entity *Entity) Validate() (err error) {
 		var lastId = entity.LastPropertyId.getIdSafe()
 		var lastUid = entity.LastPropertyId.getUidSafe()
 
+		var propertiesByName = make(map[string]bool)
+
 		var found = false
 		for _, property := range entity.Properties {
+			// ObjectBox core internally converts to lowercase so we should check it as this as well
+			var realName = strings.ToLower(property.Name)
+			if propertiesByName[realName] {
+				return fmt.Errorf("duplicate property name '%s' (note that property names are case insensitive)", property.Name)
+			}
+			propertiesByName[realName] = true
+
 			if property.Entity == nil {
 				property.Entity = entity
 			} else if property.Entity != entity {

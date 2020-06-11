@@ -48,7 +48,7 @@ func (object *Object) SetName(name string) {
 
 	object.Name = name
 	if len(object.ModelEntity.Name) == 0 {
-		object.ModelEntity.Name = strings.ToLower(name)
+		object.ModelEntity.Name = name
 	}
 }
 
@@ -69,7 +69,7 @@ func (object *Object) ProcessAnnotations(a map[string]*Annotation) error {
 		if len(a["name"].Value) == 0 {
 			return fmt.Errorf("name annotation value must not be empty - it's the entity name in DB")
 		}
-		object.ModelEntity.Name = strings.ToLower(a["name"].Value)
+		object.ModelEntity.Name = a["name"].Value
 	}
 
 	if a["uid"] != nil {
