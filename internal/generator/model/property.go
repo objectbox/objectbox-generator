@@ -27,8 +27,7 @@ type Property struct {
 	Flags          PropertyFlags `json:"flags,omitempty"`
 	RelationTarget string        `json:"relationTarget,omitempty"`
 	Entity         *Entity       `json:"-"`
-	UidRequest     bool          `json:"-"` // TODO
-	Path           string        `json:"-"` // TODO
+	UidRequest     bool          `json:"-"`
 	Meta           PropertyMeta  `json:"-"`
 }
 
@@ -67,8 +66,8 @@ func (property *Property) Validate() error {
 	// }
 
 	// IDs must not be tagged unsigned for compatibility reasons
-	if property.isIdProperty() {
-		if !property.hasValidTypeAsId() {
+	if property.IsIdProperty() {
+		if !property.hasValidTypeAsId(nil) {
 			return fmt.Errorf("invalid type on property marked as ID: %d", property.Type)
 		}
 	}
@@ -77,7 +76,7 @@ func (property *Property) Validate() error {
 }
 
 func (property *Property) finalize() error {
-	if property.isIdProperty() {
+	if property.IsIdProperty() {
 		// IDs must not be tagged unsigned for compatibility reasons
 		property.Flags = property.Flags & ^PropertyFlagUnsigned
 
@@ -88,12 +87,21 @@ func (property *Property) finalize() error {
 	return property.Validate()
 }
 
-func (property *Property) isIdProperty() bool {
+func (property *Property) IsIdProperty() bool {
 	return property.Flags&PropertyFlagId != 0
 }
 
-func (property *Property) hasValidTypeAsId() bool {
-	return property.Type == PropertyTypeLong
+func (property *Property) hasValidTypeAsId(acceptedTypes []PropertyType) bool {
+	if acceptedTypes == nil {
+		return property.Type == PropertyTypeLong
+	} else {
+		for _, t := range acceptedTypes {
+			if property.Type == t {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 // CreateIndex creates an index

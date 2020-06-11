@@ -107,7 +107,7 @@ func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, model
 	var modelFile = ModelFile(options.ModelInfoFile)
 	var modelSource []byte
 
-	if modelSource, err = generateModelFile(modelInfo); err != nil {
+	if modelSource, err = goGen.generateModelFile(modelInfo); err != nil {
 		return fmt.Errorf("can't generate model file %s: %s", modelFile, err)
 	}
 
@@ -128,14 +128,15 @@ func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, model
 	return nil
 }
 
-func generateModelFile(m *model.ModelInfo) (data []byte, err error) {
+func (goGen *GoGenerator) generateModelFile(m *model.ModelInfo) (data []byte, err error) {
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 
 	var tplArguments = struct {
+		Package          string
 		Model            *model.ModelInfo
 		GeneratorVersion int
-	}{m, generator.Version}
+	}{goGen.binding.Package.Name(), m, generator.Version}
 
 	if err = templates.ModelTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)

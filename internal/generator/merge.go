@@ -44,9 +44,6 @@ func mergeBindingWithModelInfo(currentModel *model.ModelInfo, storedModel *model
 	currentModel.LastIndexId = storedModel.LastIndexId
 	currentModel.LastRelationId = storedModel.LastRelationId
 
-	// NOTE this is not ideal as there could be models across multiple packages
-	storedModel.Package = currentModel.Package
-
 	return nil
 }
 
@@ -170,7 +167,7 @@ func getModelProperty(currentProperty *model.Property, storedEntity *model.Entit
 			return nil, fmt.Errorf("%v; %v", err, err2)
 		}
 
-		log.Printf("Notice - new UID was specified for the same property name '%s' - resetting value (recreating the property)", currentProperty.Path)
+		log.Printf("Notice - new UID was specified for the same property name '%s' - resetting value (recreating the property)", currentProperty.Name)
 		return property, nil
 	}
 

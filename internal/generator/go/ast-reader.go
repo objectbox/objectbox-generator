@@ -68,8 +68,7 @@ type Entity struct {
 	Fields []*Field // the tree of struct fields (necessary for embedded structs)
 
 	// TODO remove these
-	IdProperty *Property
-	Relations  map[string]*StandaloneRelation
+	Relations map[string]*StandaloneRelation
 
 	binding *astReader // parent
 }
@@ -248,20 +247,21 @@ func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comm
 	// 	return nil
 	// }
 
-	if err := modelEntity.AutosetIdProperty(); err != nil {
-		return err
+	if err := modelEntity.AutosetIdProperty([]model.PropertyType{model.PropertyTypeLong, model.PropertyTypeString}); err != nil {
+		return fmt.Errorf("%s on entity %s", err, entity.Name)
 	}
 
-	// TODO this is currently dettached from the "AutosetIdProperty"
 	// special handling for string IDs = they are transformed to uint64 in the binding
-	if entity.IdProperty.GoType == "string" {
-		if err := entity.IdProperty.setBasicType("uint64"); err != nil {
-			return fmt.Errorf("%s on property %s, entity %s", err, entity.IdProperty.Name, entity.Name)
-		}
+	if idProp, err := modelEntity.IdProperty(); err != nil {
+		return fmt.Errorf("%s on entity %s", err, entity.Name)
+	} else if idProp.Type == model.PropertyTypeString {
+		var idPropMeta = idProp.Meta.(*Property)
+		idProp.Type = model.PropertyTypeLong
+		idPropMeta.FbType = "Int64"
 
-		if entity.IdProperty.annotations["converter"] == nil {
+		if idPropMeta.annotations["converter"] == nil {
 			var converter = "objectbox.StringIdConvert"
-			entity.IdProperty.Converter = &converter
+			idPropMeta.Converter = &converter
 		}
 	}
 
@@ -270,11 +270,6 @@ func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comm
 	// TODO migrate this code
 	// entity.IdProperty.removeObFlag(model.PropertyFlagUnsigned)
 	// entity.IdProperty.FbType = "Uint64" // always stored as Uint64
-
-	if !entity.IdProperty.hasValidTypeAsId() {
-		return fmt.Errorf("id field '%s' has unsupported type '%s' on entity %s - must be one of [int64, uint64, string]",
-			entity.IdProperty.Name, entity.IdProperty.GoType, entity.Name)
-	}
 
 	r.model.Entities = append(r.model.Entities, modelEntity)
 
@@ -442,15 +437,6 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 
 			// converters use errors.New in the template
 			entity.binding.Imports["errors"] = "errors"
-		}
-
-		// if this is an ID, set it as entity.IdProperty
-		if property.annotations["id"] != nil {
-			if entity.IdProperty != nil {
-				return nil, fmt.Errorf("struct %s has multiple ID properties - %s and %s",
-					entity.Name, entity.IdProperty.Name, property.Name)
-			}
-			entity.IdProperty = property
 		}
 
 		if err := property.ProcessAnnotations(property.annotations); err != nil {
@@ -906,18 +892,6 @@ func (field *Field) Path() string {
 	return strings.Join(parts, ".")
 }
 
-// IsId returns true if the given field is an ID.
-// Called from the template.
-func (field *Field) IsId() bool {
-	return field.Property == field.Entity.IdProperty
-}
-
-// IsId returns true if the given field is an ID.
-// Called from the template.
-func (property *Property) IsId() bool {
-	return property == property.Entity.IdProperty
-}
-
 // HasPointersInPath checks whether there are any pointer-based fields in the path.
 // Called from the template.
 func (field *Field) HasPointersInPath() bool {
@@ -980,7 +954,7 @@ func (property *Property) TplReadValue(objVar, castType string) string {
 
 	// While not explicitly, this is currently only true if called from GetId() template part.
 	// NOTE: currently we don't handle this for converters - they should work on uint64 for IDs
-	if property.IsId() && property.GoType != "uint64" {
+	if property.ModelProperty.IsIdProperty() && property.GoType != "uint64" {
 		valueAccessor = "uint64(" + valueAccessor + ")"
 	}
 
@@ -1009,7 +983,7 @@ func (property *Property) TplSetAndReturn(objVar, castType, rhs string) string {
 	}
 
 	// While not explicitly, this is currently only true if called from SetId() template part.
-	if property.IsId() && property.GoType != "uint64" {
+	if property.ModelProperty.IsIdProperty() && property.GoType != "uint64" {
 		rhs = property.GoType + "(" + rhs + ")"
 	}
 

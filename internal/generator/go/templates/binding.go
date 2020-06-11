@@ -146,7 +146,7 @@ func ({{$entityNameCamel}}_EntityInfo) SetId(object interface{}, id uint64) erro
 			{{$entity.IdProperty.Meta.TplSetAndReturn "obj" "" "id"}}
 		} else {
 			// NOTE while this can't update, it will at least behave consistently (panic in case of a wrong type)
-			_ = object.({{$entity.Name}}).{{$entity.IdProperty.Path}}
+			_ = object.({{$entity.Name}}).{{$entity.IdProperty.Meta.Path}}
 			return nil
 		}
 	{{- else -}}
@@ -235,18 +235,18 @@ func ({{$entityNameCamel}}_EntityInfo) Flatten(object interface{}, fbb *flatbuff
 
     // build the FlatBuffers object
     fbb.StartObject({{$entity.LastPropertyId.GetId}})
-	{{- if $entity.Meta.IdProperty.GoField.HasPointersInPath }}{{/* when Id property's path (embedded) contains pointers, make sure it's always set */}} 
+	{{- if $entity.IdProperty.Meta.GoField.HasPointersInPath }}{{/* when Id property's path (embedded) contains pointers, make sure it's always set */}} 
 		fbutils.Set{{$entity.IdProperty.Meta.FbType}}Slot(fbb, {{$entity.IdProperty.FbSlot}}, id) 
 	{{- end}}
 	{{- block "fields-setter" $entity -}}
 		{{- range $field := .Meta.Fields}}
 			{{- if $field.IsPointer}}
 			if obj.{{$field.Path}} != nil { {{- end -}}
-			{{with $field.Property}}{{if or (not .IsId) (not .GoField.HasPointersInPath) }} 
+			{{with $field.Property}}{{if or (not .ModelProperty.IsIdProperty) (not .GoField.HasPointersInPath) }} 
 				fbutils.Set{{.FbType}}Slot(fbb, {{.FbSlot}},
 				{{- if .ModelProperty.RelationTarget}}rId{{.Name}})
 				{{- else if eq .FbType "UOffsetT"}} offset{{.Name}})
-				{{- else if .IsId}} id)
+				{{- else if .ModelProperty.IsIdProperty}} id)
 				{{- else -}}
 					{{- if or (eq .GoType "int") (eq .GoType "uint") }} {{.GoType}}64( {{end}} 
 					{{- template "property-access" . -}})
@@ -324,7 +324,7 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 					{{- if $field.IsLazyLoaded}}nil, // use {{$field.Entity.Name}}Box::Fetch{{$field.Name}}() to fetch this lazy-loaded relation
 					{{- else}}rel{{$field.Name}}
 					{{- end}}
-				{{- else if $field.IsId}} prop{{$field.Property.Name}}
+				{{- else if $field.Property.ModelProperty.IsIdProperty}} prop{{$field.Property.Name}}
         		{{- else if $field.Property}}{{template "property-getter-with-converter-val" $field.Property}}
 				{{- else}}{{if $field.IsPointer}}&{{end}}{{$field.Type}}{ {{template "fields-initializer" $field}} }
 				{{- end}},
@@ -359,15 +359,15 @@ func BoxFor{{$entity.Name}}(ob *objectbox.ObjectBox) *{{$entity.Name}}Box {
 }
 
 // Put synchronously inserts/updates a single object.
-// In case the {{$entity.IdProperty.Path}} is not specified, it would be assigned automatically (auto-increment).
-// When inserting, the {{$entity.Name}}.{{$entity.IdProperty.Path}} property on the passed object will be assigned the new ID as well.
+// In case the {{$entity.IdProperty.Meta.Path}} is not specified, it would be assigned automatically (auto-increment).
+// When inserting, the {{$entity.Name}}.{{$entity.IdProperty.Meta.Path}} property on the passed object will be assigned the new ID as well.
 func (box *{{$entity.Name}}Box) Put(object *{{$entity.Name}}) (uint64, error) {
 	return box.Box.Put(object)
 }
 
 // Insert synchronously inserts a single object. As opposed to Put, Insert will fail if given an ID that already exists.
-// In case the {{$entity.IdProperty.Path}} is not specified, it would be assigned automatically (auto-increment).
-// When inserting, the {{$entity.Name}}.{{$entity.IdProperty.Path}} property on the passed object will be assigned the new ID as well.
+// In case the {{$entity.IdProperty.Meta.Path}} is not specified, it would be assigned automatically (auto-increment).
+// When inserting, the {{$entity.Name}}.{{$entity.IdProperty.Meta.Path}} property on the passed object will be assigned the new ID as well.
 func (box *{{$entity.Name}}Box) Insert(object *{{$entity.Name}}) (uint64, error) {
 	return box.Box.Insert(object)
 }
@@ -385,12 +385,12 @@ func (box *{{$entity.Name}}Box) PutAsync(object *{{$entity.Name}}) (uint64, erro
 }
 
 // PutMany inserts multiple objects in single transaction.
-// In case {{$entity.IdProperty.Path}}s are not set on the objects, they would be assigned automatically (auto-increment).
+// In case {{$entity.IdProperty.Meta.Path}}s are not set on the objects, they would be assigned automatically (auto-increment).
 // 
 // Returns: IDs of the put objects (in the same order).
-// When inserting, the {{$entity.Name}}.{{$entity.IdProperty.Path}} property on the objects in the slice will be assigned the new IDs as well.
+// When inserting, the {{$entity.Name}}.{{$entity.IdProperty.Meta.Path}} property on the objects in the slice will be assigned the new IDs as well.
 //
-// Note: In case an error occurs during the transaction, some of the objects may already have the {{$entity.Name}}.{{$entity.IdProperty.Path}} assigned    
+// Note: In case an error occurs during the transaction, some of the objects may already have the {{$entity.Name}}.{{$entity.IdProperty.Meta.Path}} assigned    
 // even though the transaction has been rolled back and the objects are not stored under those IDs.
 //
 // Note: The slice may be empty or even nil; in both cases, an empty IDs slice and no error is returned.
@@ -455,12 +455,12 @@ func (box *{{$entity.Name}}Box) GetAll() ([]{{if not $.Options.ByValue}}*{{end}}
 					// this keeps all the sourceObjects untouched in case there's an error during any of the requests
 					for k, object := range sourceObjects {
 						{{if .Entity.IdProperty.Meta.Converter -}}
-						sourceId, err := {{.Entity.IdProperty.Meta.Converter}}ToDatabaseValue(object.{{.Entity.IdProperty.Path}})
+						sourceId, err := {{.Entity.IdProperty.Meta.Converter}}ToDatabaseValue(object.{{.Entity.IdProperty.Meta.Path}})
 						if err != nil {
 							return err
 						}
 						{{end -}}
-						rIds, err := box.RelationIds({{.Entity.Name}}_.{{.Name}}, {{with .Entity.IdProperty}} {{if .Meta.Converter}}sourceId{{else}}object.{{.Path}}{{end}}{{end}})
+						rIds, err := box.RelationIds({{.Entity.Name}}_.{{.Name}}, {{with .Entity.IdProperty}} {{if .Meta.Converter}}sourceId{{else}}object.{{.Meta.Path}}{{end}}{{end}})
 						if err == nil {
 						    slices[k], err = BoxFor{{.StandaloneRelation.Target.Name}}(box.ObjectBox).GetManyExisting(rIds...)
 						}
@@ -501,12 +501,12 @@ func (box *{{$entity.Name}}Box) RemoveMany(objects ...*{{$entity.Name}}) (uint64
 		{{if $entity.IdProperty.Meta.Converter -}}
 			ids[k], err = {{$entity.IdProperty.Meta.TplReadValue "object" ""}}
 			if err != nil {
-				return 0, errors.New("converter {{$entity.IdProperty.Meta.Converter}}ToDatabaseValue() failed on {{$entity.Name}}.{{$entity.IdProperty.Path}}: " + err.Error())
+				return 0, errors.New("converter {{$entity.IdProperty.Meta.Converter}}ToDatabaseValue() failed on {{$entity.Name}}.{{$entity.IdProperty.Meta.Path}}: " + err.Error())
 			}
 		{{else -}}
 			ids[k] = {{with $entity.IdProperty -}}
 				{{- if not (eq .Meta.GoType "uint64")}} uint64( {{end -}}
-				object.{{.Path}}
+				object.{{.Meta.Path}}
 				{{- if not (eq .Meta.GoType "uint64")}} ) {{end -}}
 			{{- end}}
 		{{end -}}
@@ -571,14 +571,14 @@ func AsyncBoxFor{{$entity.Name}}(ob *objectbox.ObjectBox, timeoutMs uint64) *{{$
 }
 
 // Put inserts/updates a single object asynchronously.
-// When inserting a new object, the {{$entity.IdProperty.Path}} property on the passed object will be assigned the new ID the entity would hold
+// When inserting a new object, the {{$entity.IdProperty.Meta.Path}} property on the passed object will be assigned the new ID the entity would hold
 // if the insert is ultimately successful. The newly assigned ID may not become valid if the insert fails.
 func (asyncBox *{{$entity.Name}}AsyncBox) Put(object *{{$entity.Name}}) (uint64, error) {
 	return asyncBox.AsyncBox.Put(object)
 }
 
 // Insert a single object asynchronously.
-// The {{$entity.IdProperty.Path}} property on the passed object will be assigned the new ID the entity would hold if the insert is ultimately
+// The {{$entity.IdProperty.Meta.Path}} property on the passed object will be assigned the new ID the entity would hold if the insert is ultimately
 // successful. The newly assigned ID may not become valid if the insert fails.
 // Fails silently if an object with the same ID already exists (this error is not returned).
 func (asyncBox *{{$entity.Name}}AsyncBox) Insert(object *{{$entity.Name}})  (id uint64, err error) {
