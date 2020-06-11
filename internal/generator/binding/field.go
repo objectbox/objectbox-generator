@@ -28,20 +28,19 @@ import (
 // Field holds common field/property information used by specialized code parsers/generators.
 // Additionally, it groups some shared logic, e.g. annotation processing
 type Field struct {
-	Name      string
-	IsSkipped bool
-
-	property *model.Property
+	ModelProperty *model.Property
+	Name          string
+	IsSkipped     bool
 }
 
 func CreateField(prop *model.Property) *Field {
-	return &Field{property: prop}
+	return &Field{ModelProperty: prop}
 }
 
 func (field *Field) SetName(name string) {
 	field.Name = name
-	if len(field.property.Name) == 0 {
-		field.property.Name = strings.ToLower(name)
+	if len(field.ModelProperty.Name) == 0 {
+		field.ModelProperty.Name = strings.ToLower(name)
 	}
 }
 func (field *Field) PreProcessAnnotations(a map[string]*Annotation) error {
@@ -70,58 +69,58 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 	}
 
 	if a["id"] != nil {
-		field.property.AddFlag(model.PropertyFlagId)
+		field.ModelProperty.AddFlag(model.PropertyFlagId)
 	}
 
 	if a["name"] != nil {
 		if len(a["name"].Value) == 0 {
 			return fmt.Errorf("name annotation value must not be empty - it's the field name in DB")
 		}
-		field.property.Name = strings.ToLower(a["name"].Value)
+		field.ModelProperty.Name = strings.ToLower(a["name"].Value)
 	}
 
 	if a["date"] != nil {
-		if field.property.Type != model.PropertyTypeLong {
-			return fmt.Errorf("invalid underlying type (PropertyType %v) for date field; expecting long", model.PropertyTypeNames[field.property.Type])
+		if field.ModelProperty.Type != model.PropertyTypeLong {
+			return fmt.Errorf("invalid underlying type (PropertyType %v) for date field; expecting long", model.PropertyTypeNames[field.ModelProperty.Type])
 		}
-		field.property.Type = model.PropertyTypeDate
+		field.ModelProperty.Type = model.PropertyTypeDate
 	}
 
 	if a["id-companion"] != nil {
-		if field.property.Type != model.PropertyTypeDate {
-			return fmt.Errorf("invalid underlying type (PropertyType %v) for ID companion field; expecting date", model.PropertyTypeNames[field.property.Type])
+		if field.ModelProperty.Type != model.PropertyTypeDate {
+			return fmt.Errorf("invalid underlying type (PropertyType %v) for ID companion field; expecting date", model.PropertyTypeNames[field.ModelProperty.Type])
 		}
-		field.property.AddFlag(model.PropertyFlagIdCompanion)
+		field.ModelProperty.AddFlag(model.PropertyFlagIdCompanion)
 	}
 
 	if a["index"] != nil {
 		switch strings.ToLower(a["index"].Value) {
 		case "":
 			// if the user doesn't define index type use the default based on the data-type
-			if field.property.Type == model.PropertyTypeString {
-				field.property.AddFlag(model.PropertyFlagIndexHash)
+			if field.ModelProperty.Type == model.PropertyTypeString {
+				field.ModelProperty.AddFlag(model.PropertyFlagIndexHash)
 			} else {
-				field.property.AddFlag(model.PropertyFlagIndexed)
+				field.ModelProperty.AddFlag(model.PropertyFlagIndexed)
 			}
 		case "value":
-			field.property.AddFlag(model.PropertyFlagIndexed)
+			field.ModelProperty.AddFlag(model.PropertyFlagIndexed)
 		case "hash":
-			field.property.AddFlag(model.PropertyFlagIndexHash)
+			field.ModelProperty.AddFlag(model.PropertyFlagIndexHash)
 		case "hash64":
-			field.property.AddFlag(model.PropertyFlagIndexHash64)
+			field.ModelProperty.AddFlag(model.PropertyFlagIndexHash64)
 		default:
 			return fmt.Errorf("unknown index type %s", a["index"].Value)
 		}
 
-		if err := field.property.SetIndex(); err != nil {
+		if err := field.ModelProperty.SetIndex(); err != nil {
 			return err
 		}
 	}
 
 	if a["unique"] != nil {
-		field.property.AddFlag(model.PropertyFlagUnique)
+		field.ModelProperty.AddFlag(model.PropertyFlagUnique)
 
-		if err := field.property.SetIndex(); err != nil {
+		if err := field.ModelProperty.SetIndex(); err != nil {
 			return err
 		}
 	}
@@ -130,13 +129,13 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		if len(a["uid"].Value) == 0 {
 			// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID
 			// this flag is handled by the merge mechanism and prints the UID of the already existing property
-			field.property.UidRequest = true
+			field.ModelProperty.UidRequest = true
 		} else if uid, err := strconv.ParseUint(a["uid"].Value, 10, 64); err != nil {
 			return fmt.Errorf("can't parse uid - %s", err)
-		} else if id, err := field.property.Id.GetIdAllowZero(); err != nil {
+		} else if id, err := field.ModelProperty.Id.GetIdAllowZero(); err != nil {
 			return fmt.Errorf("can't parse property Id - %s", err)
 		} else {
-			field.property.Id = model.CreateIdUid(id, uid)
+			field.ModelProperty.Id = model.CreateIdUid(id, uid)
 		}
 	}
 
@@ -144,18 +143,18 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 	// TODO this would differ between C and Go generator so maybe the right place is rather in the respective generator?
 	//  Maybe extract "SetRelationToOne() method in this class and call it from the generator
 	if a["link"] != nil {
-		if field.property.Type != model.PropertyTypeLong {
-			return fmt.Errorf("invalid underlying type (PropertyType %v) for relation field; expecting long", model.PropertyTypeNames[field.property.Type])
+		if field.ModelProperty.Type != model.PropertyTypeLong {
+			return fmt.Errorf("invalid underlying type (PropertyType %v) for relation field; expecting long", model.PropertyTypeNames[field.ModelProperty.Type])
 		}
 		if len(a["link"].Value) == 0 {
 			return errors.New("unknown link target entity, define by changing the `link` annotation to the `link=Entity` format")
 		}
-		field.property.Type = model.PropertyTypeRelation
-		field.property.RelationTarget = a["link"].Value
-		field.property.AddFlag(model.PropertyFlagIndexed)
-		field.property.AddFlag(model.PropertyFlagIndexPartialSkipZero)
+		field.ModelProperty.Type = model.PropertyTypeRelation
+		field.ModelProperty.RelationTarget = a["link"].Value
+		field.ModelProperty.AddFlag(model.PropertyFlagIndexed)
+		field.ModelProperty.AddFlag(model.PropertyFlagIndexPartialSkipZero)
 
-		if err := field.property.SetIndex(); err != nil {
+		if err := field.ModelProperty.SetIndex(); err != nil {
 			return err
 		}
 	}

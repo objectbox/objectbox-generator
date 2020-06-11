@@ -26,13 +26,13 @@ import (
 
 type fbsObject struct {
 	*binding.Object
-	mEntity   *model.Entity
 	fbsObject *reflection.Object
 }
 
 // Merge implements model.EntityMeta interface
 func (mo *fbsObject) Merge(entity *model.Entity) model.EntityMeta {
-	return &fbsObject{mo.Object, entity, mo.fbsObject}
+	mo.ModelEntity = entity
+	return mo
 }
 
 // CppName returns C++ symbol/variable name with reserved keywords suffixed by an underscore
@@ -79,13 +79,13 @@ func (mo *fbsObject) CppNamespaceEnd() string {
 
 type fbsField struct {
 	*binding.Field
-	mProp    *model.Property
 	fbsField *reflection.Field
 }
 
 // Merge implements model.PropertyMeta interface
 func (mp *fbsField) Merge(property *model.Property) model.PropertyMeta {
-	return &fbsField{mp.Field, property, mp.fbsField}
+	mp.ModelProperty = property
+	return mp
 }
 
 // CppName returns C++ variable name with reserved keywords suffixed by an underscore
@@ -106,7 +106,7 @@ func (mp *fbsField) CppType() string {
 
 // FbIsVector returns true if the property is considered a vector type.
 func (mp *fbsField) FbIsVector() bool {
-	switch mp.mProp.Type {
+	switch mp.ModelProperty.Type {
 	case model.PropertyTypeString:
 		return true
 	case model.PropertyTypeByteVector:
@@ -119,7 +119,7 @@ func (mp *fbsField) FbIsVector() bool {
 
 // CElementType returns C vector element type name
 func (mp *fbsField) CElementType() string {
-	switch mp.mProp.Type {
+	switch mp.ModelProperty.Type {
 	case model.PropertyTypeByteVector:
 		return fbsTypeToCppType[mp.fbsField.Type(nil).Element()]
 	case model.PropertyTypeString:
@@ -143,7 +143,7 @@ func (mp *fbsField) FbTypeSize() uint8 {
 // FbOffsetFactory returns an offset factory used to build flatbuffers if this property is a complex type.
 // See also FbOffsetType().
 func (mp *fbsField) FbOffsetFactory() string {
-	switch mp.mProp.Type {
+	switch mp.ModelProperty.Type {
 	case model.PropertyTypeString:
 		return "CreateString"
 	case model.PropertyTypeByteVector:
@@ -157,7 +157,7 @@ func (mp *fbsField) FbOffsetFactory() string {
 // FbOffsetType returns a type used to read flatbuffers if this property is a complex type.
 // See also FbOffsetFactory().
 func (mp *fbsField) FbOffsetType() string {
-	switch mp.mProp.Type {
+	switch mp.ModelProperty.Type {
 	case model.PropertyTypeString:
 		return "flatbuffers::Vector<char>"
 	case model.PropertyTypeByteVector:
@@ -170,7 +170,7 @@ func (mp *fbsField) FbOffsetType() string {
 
 // FbDefaultValue returns a default value for scalars
 func (mp *fbsField) FbDefaultValue() string {
-	switch mp.mProp.Type {
+	switch mp.ModelProperty.Type {
 	case model.PropertyTypeFloat:
 		return "0.0f"
 	case model.PropertyTypeDouble:

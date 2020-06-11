@@ -70,7 +70,7 @@ func (r *fbSchemaReader) read(schema *reflection.Schema) error {
 
 func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	var entity = model.CreateEntity(r.model, 0, 0)
-	var metaEntity = &fbsObject{binding.CreateObject(entity), entity, object}
+	var metaEntity = &fbsObject{binding.CreateObject(entity), object}
 	entity.Meta = metaEntity
 	metaEntity.SetName(string(object.Name()))
 
@@ -115,7 +115,7 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 
 func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection.Field) error {
 	var property = model.CreateProperty(entity, 0, 0)
-	var metaProperty = &fbsField{binding.CreateField(property), property, field}
+	var metaProperty = &fbsField{binding.CreateField(property), field}
 	property.Meta = metaProperty
 	metaProperty.SetName(string(field.Name()))
 

@@ -28,15 +28,14 @@ import (
 // Object holds common entity information used by specialized code parsers/generators.
 // Additionally, it groups some shared logic, e.g. annotation processing
 type Object struct {
-	Name      string
-	Namespace string
-	IsSkipped bool
-
-	entity *model.Entity
+	ModelEntity *model.Entity
+	Name        string
+	Namespace   string
+	IsSkipped   bool
 }
 
 func CreateObject(entity *model.Entity) *Object {
-	return &Object{entity: entity}
+	return &Object{ModelEntity: entity}
 }
 
 func (object *Object) SetName(name string) {
@@ -48,8 +47,8 @@ func (object *Object) SetName(name string) {
 	}
 
 	object.Name = name
-	if len(object.entity.Name) == 0 {
-		object.entity.Name = strings.ToLower(name)
+	if len(object.ModelEntity.Name) == 0 {
+		object.ModelEntity.Name = strings.ToLower(name)
 	}
 }
 
@@ -70,20 +69,20 @@ func (object *Object) ProcessAnnotations(a map[string]*Annotation) error {
 		if len(a["name"].Value) == 0 {
 			return fmt.Errorf("name annotation value must not be empty - it's the entity name in DB")
 		}
-		object.entity.Name = strings.ToLower(a["name"].Value)
+		object.ModelEntity.Name = strings.ToLower(a["name"].Value)
 	}
 
 	if a["uid"] != nil {
 		if len(a["uid"].Value) == 0 {
 			// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID
 			// this flag is handled by the merge mechanism and prints the UID of the already existing entity
-			object.entity.UidRequest = true
+			object.ModelEntity.UidRequest = true
 		} else if uid, err := strconv.ParseUint(a["uid"].Value, 10, 64); err != nil {
 			return fmt.Errorf("can't parse uid - %s", err)
-		} else if id, err := object.entity.Id.GetIdAllowZero(); err != nil {
+		} else if id, err := object.ModelEntity.Id.GetIdAllowZero(); err != nil {
 			return fmt.Errorf("can't parse entity Id - %s", err)
 		} else {
-			object.entity.Id = model.CreateIdUid(id, uid)
+			object.ModelEntity.Id = model.CreateIdUid(id, uid)
 		}
 	}
 

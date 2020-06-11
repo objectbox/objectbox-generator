@@ -64,13 +64,10 @@ type astReader struct {
 // Entity holds the model information necessary to generate the binding code
 type Entity struct {
 	*binding.Object
-	mEntity *model.Entity
 
 	// TODO remove these
 	Identifier
-	Name       string
 	Fields     []*Field // the tree of struct fields (necessary for embedded structs)
-	Properties []*Property
 	IdProperty *Property
 	Relations  map[string]*StandaloneRelation
 
@@ -80,11 +77,15 @@ type Entity struct {
 
 // Merge implements model.EntityMeta interface
 func (entity *Entity) Merge(mEntity *model.Entity) model.EntityMeta {
-	return &Entity{Object: entity.Object, mEntity: mEntity}
+	entity.ModelEntity = mEntity
+	return entity
 }
 
 // Property represents a mapping between a struct field and a DB field
 type Property struct {
+	*binding.Field
+
+	// TODO remove these
 	Identifier
 	Name        string // prefixed name (unique)
 	ObName      string // name of the field in DB
@@ -102,9 +103,15 @@ type Property struct {
 	CastOnRead  string
 	CastOnWrite string
 
-	Field      *Field // actual code field this property represents
+	GoField    *Field // actual code field this property represents
 	Entity     *Entity
 	UidRequest bool
+}
+
+// Merge implements model.PropertyMeta interface
+func (property *Property) Merge(mProperty *model.Property) model.PropertyMeta {
+	property.ModelProperty = mProperty
+	return property
 }
 
 // Relation contains information about a "to-one" relation
@@ -226,7 +233,7 @@ func (r *astReader) entityLoader(node ast.Node, prevDecl **ast.GenDecl) bool {
 
 func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comments []*ast.Comment) error {
 	var modelEntity = model.CreateEntity(r.model, 0, 0)
-	var entity = &Entity{Object: binding.CreateObject(modelEntity), mEntity: modelEntity}
+	var entity = &Entity{Object: binding.CreateObject(modelEntity)}
 	modelEntity.Meta = entity
 	entity.SetName(name)
 
@@ -251,10 +258,6 @@ func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comm
 	// if entity.IsSkipped {
 	// 	return nil
 	// }
-
-	if len(entity.Properties) == 0 {
-		return fmt.Errorf("there are no properties in the entity %s", entity.Name)
-	}
 
 	if err := modelEntity.AutosetIdProperty(); err != nil {
 		return err
@@ -302,11 +305,15 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 	for i := 0; i < fields.Length(); i++ {
 		f := fields.Field(i)
 
+		var modelProperty = model.CreateProperty(entity.ModelEntity, 0, 0)
 		var property = &Property{
-			Entity:      entity,
+			Field: binding.CreateField(modelProperty),
+
+			Entity:      entity, // TODO remove, there is Field.ModelProperty.Entity.Meta
 			obFlags:     map[model.PropertyFlags]bool{},
 			Annotations: make(map[string]*binding.Annotation),
 		}
+		modelProperty.Meta = property
 
 		property.Name, err = f.Name()
 		if err != nil {
@@ -322,7 +329,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 			path:     fieldPath,
 			parent:   parent,
 		}
-		property.Field = field
+		property.GoField = field
 
 		if tag := f.Tag(); tag != "" {
 			if err := property.setAnnotations(tag); err != nil {
@@ -491,7 +498,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 			return nil, propertyError(err, property)
 		}
 
-		entity.Properties = append(entity.Properties, property)
+		entity.ModelEntity.Properties = append(entity.ModelEntity.Properties, modelProperty)
 	}
 
 	return children, nil
@@ -987,13 +994,8 @@ func (property *Property) ObFlagsCombined() model.PropertyFlags {
 
 // HasNonIdProperty called from the template. The goal is to void GO error "variable declared and not used"
 func (entity *Entity) HasNonIdProperty() bool {
-	for _, prop := range entity.Properties {
-		if prop != entity.IdProperty {
-			return true
-		}
-	}
-
-	return false
+	// since every entity MUST have an ID property, just check whether there's more than one property...
+	return len(entity.ModelEntity.Properties) > 1
 }
 
 // HasRelations called from the template.
@@ -1108,7 +1110,7 @@ func (property *Property) FbSlot() int {
 
 // Path is called from the template. It returns full path to the property (in embedded struct).
 func (property *Property) Path() string {
-	return property.Field.Path()
+	return property.GoField.Path()
 }
 
 // AnnotatedType returns "type" annotation value
