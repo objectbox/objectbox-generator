@@ -78,8 +78,10 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	var annotations = make(map[string]*binding.Annotation)
 	for i := 0; i < object.DocumentationLength(); i++ {
 		var comment = strings.TrimSpace(string(object.Documentation(i)))
-		if err := parseAnnotations(comment, &annotations, supportedEntityAnnotations); err != nil {
+		if isAnnotation, err := parseAnnotations(comment, &annotations, supportedEntityAnnotations); err != nil {
 			return err
+		} else if !isAnnotation {
+			entity.Comments = append(entity.Comments, comment)
 		}
 	}
 
@@ -123,8 +125,10 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 	var annotations = make(map[string]*binding.Annotation)
 	for i := 0; i < field.DocumentationLength(); i++ {
 		var comment = strings.TrimSpace(string(field.Documentation(i)))
-		if err := parseAnnotations(comment, &annotations, supportedPropertyAnnotations); err != nil {
+		if isAnnotation, err := parseAnnotations(comment, &annotations, supportedPropertyAnnotations); err != nil {
 			return err
+		} else if !isAnnotation {
+			property.Comments = append(property.Comments, comment)
 		}
 	}
 
@@ -173,14 +177,14 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 }
 
 // NOTE this is a copy of gogenerator.parseAnnotations with changes to accommodate a different format (not
-func parseAnnotations(comment string, annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) error {
+func parseAnnotations(comment string, annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) (bool, error) {
 	if strings.HasPrefix(comment, "objectbox:") || strings.HasPrefix(comment, "ObjectBox:") {
 		comment = strings.TrimSpace(comment[len("objectbox:"):])
 		if len(comment) == 0 {
-			return nil
+			return true, nil
 		}
 	} else {
-		return nil
+		return false, nil
 	}
 
 	// sample content at this point:
@@ -216,12 +220,12 @@ func parseAnnotations(comment string, annotations *map[string]*binding.Annotatio
 	for i, char := range comment {
 		if char == '=' && !s.valueQuoted { // start a value
 			if len(s.name) == 0 {
-				return fmt.Errorf("invalid annotation format: name must precede equal sign at position %d in `%s` ", i, comment)
+				return true, fmt.Errorf("invalid annotation format: name must precede equal sign at position %d in `%s` ", i, comment)
 			}
 			s.value = &binding.Annotation{}
 		} else if char == ',' && !s.valueQuoted { // finish an annotation
 			if err := finishAnnotation(); err != nil {
-				return err
+				return true, err
 			}
 		} else if s.value != nil { // continue a value (set contents)
 			if char == '"' {
@@ -232,7 +236,7 @@ func parseAnnotations(comment string, annotations *map[string]*binding.Annotatio
 					s.valueFinished = true
 				}
 			} else if s.valueFinished {
-				return fmt.Errorf("invalid annotation format: no more characters may follow after a quoted value at position %d in `%s`", i, comment)
+				return true, fmt.Errorf("invalid annotation format: no more characters may follow after a quoted value at position %d in `%s`", i, comment)
 			} else {
 				s.value.Value += string(char)
 			}
@@ -242,8 +246,8 @@ func parseAnnotations(comment string, annotations *map[string]*binding.Annotatio
 	}
 
 	if err := finishAnnotation(); err != nil {
-		return err
+		return true, err
 	}
 
-	return nil
+	return true, nil
 }

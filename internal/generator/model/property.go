@@ -29,6 +29,7 @@ type Property struct {
 	Entity         *Entity       `json:"-"`
 	UidRequest     bool          `json:"-"`
 	Meta           PropertyMeta  `json:"-"`
+	Comments       []string      `json:"-"`
 }
 
 // CreateProperty creates a property

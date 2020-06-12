@@ -47,29 +47,25 @@ extern "C" {
 static inline OBX_model* create_obx_model() {
     OBX_model* model = obx_model();
     if (!model) return NULL;
-
-	do { // break on first error {{/**/ -}}
-		{{range $entity := .Model.Entities}}
-		if (obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}})) break;
-		{{range $property := $entity.Properties -}}
-		if (obx_model_property(model, "{{$property.Name}}", OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}})) break;
-		{{with $property.Flags}}if (obx_model_property_flags(model, {{CorePropFlags .}})) break;
-		{{end -}}
-		{{if $property.RelationTarget}}if (obx_model_property_relation(model, "{{$property.RelationTarget}}", {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}})) break;
-		{{else if $property.IndexId}}if (obx_model_property_index_id(model, {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}})
-		{{end -}}
-		{{end -}}
-		if (obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}})) break;
-		{{end}}
-		obx_model_last_entity_id(model, {{.Model.LastEntityId.GetId}}, {{.Model.LastEntityId.GetUid}});
-		{{- if .Model.LastIndexId}}
-		obx_model_last_index_id(model, {{.Model.LastIndexId.GetId}}, {{.Model.LastIndexId.GetUid}});
-		{{- end}}
-		{{- if .Model.LastRelationId}}
-		obx_model_last_relation_id(model, {{.Model.LastRelationId.GetId}}, {{.Model.LastRelationId.GetUid}});
-		{{- end}}
-	} while (false);
-
+	{{range $entity := .Model.Entities}}
+	obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}});
+	{{range $property := $entity.Properties -}}
+	obx_model_property(model, "{{$property.Name}}", OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}});
+	{{with $property.Flags}}obx_model_property_flags(model, {{CorePropFlags .}});
+	{{end -}}
+	{{if $property.RelationTarget}}obx_model_property_relation(model, "{{$property.RelationTarget}}", {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}});
+	{{else if $property.IndexId}}obx_model_property_index_id(model, {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}})
+	{{end -}}
+	{{end -}}
+	obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}});
+	{{end}}
+	obx_model_last_entity_id(model, {{.Model.LastEntityId.GetId}}, {{.Model.LastEntityId.GetUid}});
+	{{- if .Model.LastIndexId}}
+	obx_model_last_index_id(model, {{.Model.LastIndexId.GetId}}, {{.Model.LastIndexId.GetUid}});
+	{{- end}}
+	{{- if .Model.LastRelationId}}
+	obx_model_last_relation_id(model, {{.Model.LastRelationId.GetId}}, {{.Model.LastRelationId.GetUid}});
+	{{- end}}
 	return model; // NOTE: the returned model will contain error information if an error occurred.
 }
 

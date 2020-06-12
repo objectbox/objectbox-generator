@@ -1,3 +1,5 @@
+/// Entity documentation is copied
+/// into the generated output
 table Typeful  {
 	id           : uint64	;
 	int          : int		;
@@ -29,8 +31,10 @@ table Simple {
 
 /// objectbox: name=AnnotatedEntity
 table Annotated {
+	/// Objectbox requires an ID property.
+	/// It is recognized automatically if it has a right name ("id") or needs to be annotated otherwise.
 	/// objectbox:id
-	id:ulong;
+	identifier:ulong;
 
 	/// objectbox:name="name",index
 	fullName:string;

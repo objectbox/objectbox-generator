@@ -62,4 +62,11 @@ var funcMap = template.FuncMap{
 
 		return result
 	},
+	"PrintComments": func(tabs int, comments []string) string {
+		var result string
+		for _, comment := range comments {
+			result += "/// " + comment + "\n" + strings.Repeat("\t", tabs)
+		}
+		return result
+	},
 }

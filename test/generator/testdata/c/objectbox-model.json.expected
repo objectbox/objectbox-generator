@@ -6,7 +6,7 @@
     {
       "id": "1:8717895732742165505",
       "lastPropertyId": "2:501233450539197794",
-      "name": "other",
+      "name": "Other",
       "properties": [
         {
           "id": "1:6050128673802995827",
@@ -24,7 +24,7 @@
     {
       "id": "2:2259404117704393152",
       "lastPropertyId": "2:2669985732393126063",
-      "name": "another",
+      "name": "Another",
       "properties": [
         {
           "id": "1:3390393562759376202",
@@ -42,11 +42,11 @@
     {
       "id": "3:1774932891286980153",
       "lastPropertyId": "4:2518412263346885298",
-      "name": "annotatedentity",
+      "name": "AnnotatedEntity",
       "properties": [
         {
           "id": "1:1543572285742637646",
-          "name": "id",
+          "name": "identifier",
           "type": 6,
           "flags": 1
         },
@@ -65,7 +65,7 @@
         },
         {
           "id": "4:2518412263346885298",
-          "name": "relid",
+          "name": "relId",
           "indexId": "2:5617773211005988520",
           "type": 11,
           "flags": 8712,
@@ -76,7 +76,7 @@
     {
       "id": "4:6044372234677422456",
       "lastPropertyId": "1:2339563716805116249",
-      "name": "simple",
+      "name": "Simple",
       "properties": [
         {
           "id": "1:2339563716805116249",
@@ -89,7 +89,7 @@
     {
       "id": "5:8274930044578894929",
       "lastPropertyId": "22:3317123977833389635",
-      "name": "typeful",
+      "name": "Typeful",
       "properties": [
         {
           "id": "1:7144924247938981575",

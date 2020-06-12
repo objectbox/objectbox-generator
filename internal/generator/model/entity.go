@@ -31,6 +31,7 @@ type Entity struct {
 	Relations      []*StandaloneRelation `json:"relations,omitempty"`
 	UidRequest     bool                  `json:"-"`
 	Meta           EntityMeta            `json:"-"`
+	Comments       []string              `json:"-"`
 
 	model *ModelInfo
 }
@@ -111,7 +112,7 @@ func (entity *Entity) Validate() (err error) {
 		if err != nil {
 			return fmt.Errorf("property %s %s is invalid: %s", property.Name, string(property.Id), err)
 		}
-		if property.isIdProperty() {
+		if property.IsIdProperty() {
 			if idProp != nil {
 				return fmt.Errorf("multiple properties marked as ID: %s (%s) and %s (%s)",
 					idProp.Name, idProp.Id, property.Name, property.Id)
@@ -142,7 +143,7 @@ func (entity *Entity) finalize() error {
 			return err
 		}
 	}
-	if err := entity.AutosetIdProperty(); err != nil {
+	if err := entity.AutosetIdProperty(nil); err != nil {
 		return err
 	}
 	return entity.Validate()
@@ -150,7 +151,7 @@ func (entity *Entity) finalize() error {
 
 func (entity *Entity) getIdProperty() *Property {
 	for _, property := range entity.Properties {
-		if property.isIdProperty() {
+		if property.IsIdProperty() {
 			return property
 		}
 	}
@@ -158,12 +159,12 @@ func (entity *Entity) getIdProperty() *Property {
 }
 
 // AutosetIdProperty updates finds a property that's defined as an ID and if none is, tries to set one based on its name and type
-func (entity *Entity) AutosetIdProperty() error {
+func (entity *Entity) AutosetIdProperty(acceptedTypes []PropertyType) error {
 	if entity.getIdProperty() == nil {
 		// try to find an ID property automatically based on its name and type
 		var idProp *Property
 		for _, property := range entity.Properties {
-			if strings.ToLower(property.Name) == "id" && property.hasValidTypeAsId() {
+			if strings.ToLower(property.Name) == "id" && property.hasValidTypeAsId(acceptedTypes) {
 				if idProp != nil {
 					return fmt.Errorf("multiple properties recognized as an ID: %s (%s) and %s (%s)",
 						idProp.Name, idProp.Id, property.Name, property.Id)

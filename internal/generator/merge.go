@@ -81,6 +81,7 @@ func getModelEntity(currentEntity *model.Entity, storedModel *model.ModelInfo) (
 
 func mergeModelEntity(currentEntity *model.Entity, storedEntity *model.Entity, storedModel *model.ModelInfo) (err error) {
 	storedEntity.Name = currentEntity.Name
+	storedEntity.Comments = currentEntity.Comments
 
 	if currentEntity.Meta != nil {
 		storedEntity.Meta = currentEntity.Meta.Merge(storedEntity)
@@ -205,6 +206,7 @@ func getModelProperty(currentProperty *model.Property, storedEntity *model.Entit
 
 func mergeModelProperty(currentProperty *model.Property, storedProperty *model.Property) error {
 	storedProperty.Name = currentProperty.Name
+	storedProperty.Comments = currentProperty.Comments
 
 	if currentProperty.Meta != nil {
 		storedProperty.Meta = currentProperty.Meta.Merge(storedProperty)

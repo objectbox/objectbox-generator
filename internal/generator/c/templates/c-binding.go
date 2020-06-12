@@ -37,9 +37,9 @@ var CBindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Pars
 #include "flatcc/flatcc_builder.h"
 #include "objectbox.h"
 {{range $entity := .Model.EntitiesWithMeta}}
-typedef struct {{$entity.Meta.CName}} {
+{{PrintComments 0 $entity.Comments}}typedef struct {{$entity.Meta.CName}} {
 	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type -}}
-	{{if $property.Meta.FbIsVector}}{{$property.Meta.CElementType}}* {{$property.Meta.CppName}};
+	{{PrintComments 1 $property.Comments}}{{if $property.Meta.FbIsVector}}{{$property.Meta.CElementType}}* {{$property.Meta.CppName}};
 	{{- if or (eq $propType "StringVector") (eq $propType "ByteVector")}}
 	size_t {{$property.Meta.CppName}}_len;{{end}}
 	{{else}}{{$property.Meta.CppType}} {{$property.Meta.CppName}};
