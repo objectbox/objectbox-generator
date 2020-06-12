@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.3)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(third_party/flatbuffers.cmake)
 
-project(flatbuffersc C)
+project(flatbuffers-c-bridge C)
 add_library(${PROJECT_NAME} STATIC
         src/flatbuffersc.cpp
         )
@@ -14,7 +14,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffers)
 # Define flatbuffers-compiler library which we need to provide fbs_flatc() function
 # see FlatBuffers_Compiler_SRCS in flatbuffers CmakeLists.txt
 FetchContent_GetProperties(flatbuffers-${FLATBUFFERS_VERSION} SOURCE_DIR FLATBUFFERS_SRC_DIR)
-project(flatbuffersc-flatc)
+project(flatbuffers-c-bridge-flatc)
 add_library(${PROJECT_NAME} STATIC
         src/flatc_main.cpp
         ${FLATBUFFERS_SRC_DIR}/src/idl_gen_cpp.cpp

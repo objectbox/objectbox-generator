@@ -1,5 +1,5 @@
-project(flatbuffersc-test)
+project(flatbuffers-c-bridge-test)
 add_executable(${PROJECT_NAME} test/main.cpp test/test.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE third_party)
-target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffersc flatbuffersc-flatc)
+target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffers-c-bridge flatbuffers-c-bridge-flatc)
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DTEST_SRC_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/test/")
