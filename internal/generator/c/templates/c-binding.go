@@ -52,7 +52,8 @@ enum {{$entity.Meta.CName}}_ {
 	{{$entity.Meta.CName}}_PROP_ID_{{$property.Meta.CppName}} = {{$property.Id.GetId}},
 {{- end}}
 };
-
+{{end}}
+{{- range $entity := .Model.EntitiesWithMeta}}
 /// Write given object to the FlatBufferBuilder
 /// TODO test on a big-endian platform... especially vector creation
 static bool {{$entity.Meta.CName}}_to_flatbuffer(flatcc_builder_t* B, const {{$entity.Meta.CName}}* object, void** out_buffer, size_t* out_size) {

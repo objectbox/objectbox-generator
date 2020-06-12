@@ -50,6 +50,14 @@ func (mo *fbsObject) CName() string {
 	return prefix + mo.CppName()
 }
 
+// CppNamespacePrefix returns c++ namespace prefix for symbol definition
+func (mo *fbsObject) CppNamespacePrefix() string {
+	if len(mo.Namespace) == 0 {
+		return ""
+	}
+	return strings.Join(strings.Split(mo.Namespace, "."), "::") + "::"
+}
+
 // CppNamespaceStart returns c++ namespace opening declaration
 func (mo *fbsObject) CppNamespaceStart() string {
 	if len(mo.Namespace) == 0 {
