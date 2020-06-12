@@ -23,5 +23,7 @@ type Options struct {
 	ModelInfoFile string
 	ByValue       bool // TODO move to gogenerator
 	Rand          *rand.Rand
+
+	// NOTE - currently only supports one
 	CodeGenerator CodeGenerator
 }

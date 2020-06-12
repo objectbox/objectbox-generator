@@ -60,27 +60,30 @@ func stopOnError(code int, err error) {
 
 func showUsage() {
 	fmt.Fprint(flag.CommandLine.Output(), `Usage:
-	objectbox-cgen [flags] [path-pattern]
-		to generate the binding code
+  objectbox-generator [flags] [path-pattern]
+      to generate the binding code
 
 or
-
-	objectbox-cgen clean [path-pattern]
-		to remove the generated files instead of creating them - this removes *.obx.h and objectbox-model.h but keeps objectbox-model.json
+  objectbox-generator clean [path-pattern]
+      to remove the generated files instead of creating them - this removes *.obx.h and objectbox-model.h but keeps objectbox-model.json
 
 or
-
-	objectbox-cgen FLATC [flatc arguments]
-		to execute FlatBuffers flatc command line tool Any arguments after the FLATC keyword are passed through.
+  objectbox-generator FLATC [flatc arguments]
+      to execute FlatBuffers flatc command line tool Any arguments after the FLATC keyword are passed through.
 
 path-pattern:
   * a path or a valid path pattern (e.g. ./...)
   
-Available flags:`)
+Available flags:
+`)
 	flag.PrintDefaults()
 }
 
-func showUsageAndExit() {
+func showUsageAndExit(a ...interface{}) {
+	if len(a) > 0 {
+		a = append(a, "\n\n")
+		fmt.Fprint(flag.CommandLine.Output(), a...)
+	}
 	showUsage()
 	os.Exit(1)
 }
@@ -89,13 +92,16 @@ func getArgs() (path string, clean bool, options generator.Options) {
 	var gen = &cgenerator.CGenerator{}
 	options.CodeGenerator = gen
 
+	var outputs = make(map[string]*bool)
+
 	var printVersion bool
 	var printHelp bool
 	flag.Usage = showUsage
+	outputs["c"] = flag.Bool("c", false, "generate plain C code")
+	outputs["cpp"] = flag.Bool("cpp", false, "generate C++ code ")
 	flag.StringVar(&gen.OutPath, "out", "", "output path for generated source files")
 	flag.StringVar(&options.ModelInfoFile, "persist", "", "path to the model information persistence file (JSON)")
 	flag.BoolVar(&printVersion, "version", false, "print the generator version info")
-	flag.BoolVar(&gen.PlainC, "c", false, "generate plain C code instead of default C++")
 	flag.BoolVar(&printHelp, "help", false, "print this help")
 	flag.Parse()
 
@@ -105,15 +111,14 @@ func getArgs() (path string, clean bool, options generator.Options) {
 	}
 
 	if printVersion {
-		fmt.Println(fmt.Sprintf("ObjectBox C/C++ binding code generator version: %d", generator.Version))
+		fmt.Println(fmt.Sprintf("ObjectBox code generator version: %d", generator.Version))
 		os.Exit(0)
 	}
 
 	if flag.NArg() == 2 {
 		clean = true
 		if flag.Arg(0) != "clean" {
-			fmt.Printf("Unknown argument %s", flag.Arg(0))
-			showUsageAndExit()
+			showUsageAndExit("Unknown argument %s\n", flag.Arg(0))
 		}
 
 		path = flag.Arg(1)
@@ -126,6 +131,14 @@ func getArgs() (path string, clean bool, options generator.Options) {
 
 	if len(path) == 0 {
 		showUsageAndExit()
+	}
+
+	if *outputs["cpp"] && *outputs["c"] {
+		showUsageAndExit("Only one output language can be specified at the moment")
+	} else if *outputs["c"] {
+		gen.PlainC = true
+	} else if !*outputs["cpp"] {
+		showUsageAndExit("You must specify an output language")
 	}
 
 	return
