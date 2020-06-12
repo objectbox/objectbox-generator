@@ -40,7 +40,11 @@ func (gen *CGenerator) BindingFile(forFile string) string {
 		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
 	}
 	var extension = filepath.Ext(forFile)
-	return forFile[0:len(forFile)-len(extension)] + ".obx.h"
+	var suffix string
+	if !gen.PlainC {
+		suffix = "-cpp"
+	}
+	return forFile[0:len(forFile)-len(extension)] + suffix + ".obx.h"
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
