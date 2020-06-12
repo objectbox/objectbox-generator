@@ -17,6 +17,7 @@
 package templates
 
 import (
+	"sort"
 	"strings"
 	"text/template"
 
@@ -42,25 +43,23 @@ var funcMap = template.FuncMap{
 		return model.PropertyTypeNames[val]
 	},
 	"CorePropFlags": func(val model.PropertyFlags) string {
-		var result string
-		var count = 0
+		var result []string
 
+		// Get sorted flag names to avoid changes in the generated code. Go map iteration order is not guaranteed.
 		for flag, name := range model.PropertyFlagNames {
 			if val&flag != 0 { // if this flag is set
-				if count > 0 {
-					result += " | "
-				}
-				result += "OBXPropertyFlags_" + cccToUc(name)
-				count++
+				result = append(result, "OBXPropertyFlags_"+cccToUc(name))
 			}
 		}
 
-		if count > 1 {
+		if len(result) > 1 {
+			sort.Strings(result)
 			// if there's more than one, we need to cast the result of their combination back to the right type
-			result = "OBXPropertyFlags(" + result + ")"
+			return "OBXPropertyFlags(" + strings.Join(result, " | ") + ")"
+		} else if len(result) > 0 {
+			return result[0]
 		}
-
-		return result
+		return ""
 	},
 	"PrintComments": func(tabs int, comments []string) string {
 		var result string
