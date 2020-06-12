@@ -1,1 +1,1 @@
-../../../third_party/flatbuffers-c-bridge/include/flatbuffersc.h
+#include "../../../third_party/flatbuffers-c-bridge/include/flatbuffersc.h"
