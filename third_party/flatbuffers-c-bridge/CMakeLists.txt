@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
+
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(third_party/flatbuffers.cmake)
