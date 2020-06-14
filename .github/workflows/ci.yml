@@ -1,0 +1,83 @@
+# Note: can't use build matrix because our steps are not cross-platform...
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    container:
+      image: objectboxio/buildenv:20.3.3-centos7
+    steps:
+      - name: Install Go
+        env:
+          version: 1.14.4
+        run: |
+          curl -L https://dl.google.com/go/go${version}.linux-amd64.tar.gz | tar xz -C /usr/local
+          echo "::add-path::/usr/local/go/bin"
+
+      - name: Get sources
+        uses: actions/checkout@v2
+
+      - name: Cache FBS-C-Bridge build dir
+        id: fbs-bridge-cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-fbs-c-bridge-build
+        with:
+          path: ./third_party/flatbuffers-c-bridge/cmake-build/*.a
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('./third_party/flatbuffers-c-bridge/*') }}
+
+      - name: Build FBS-C-Bridge
+        if: steps.fbs-bridge-cache.outputs.cache-hit != 'true'
+        run: ./third_party/flatbuffers-c-bridge/build.sh
+        env:
+          CC: clang
+          CXX: clang++
+
+      - name: Build
+        run: |
+          cd cmd/objectbox-generator
+          go build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: objectbox-generator-${{ runner.os }}
+          path: cmd/objectbox-generator/objectbox-generator
+
+  build:
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+          - macos-10.15
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Get sources
+        uses: actions/checkout@v2
+
+      - name: Cache FBS-C-Bridge build dir
+        id: fbs-bridge-cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-fbs-c-bridge-build
+        with:
+          path: ./third_party/flatbuffers-c-bridge/cmake-build/*.a
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('./third_party/flatbuffers-c-bridge/*') }}
+
+      - name: Build FBS-C-Bridge
+        if: steps.fbs-bridge-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: ./third_party/flatbuffers-c-bridge/build.sh
+
+      - name: Build
+        run: |
+          cd cmd/objectbox-generator
+          go build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: objectbox-generator-${{ runner.os }}
+          path: cmd/objectbox-generator/objectbox-generator*
