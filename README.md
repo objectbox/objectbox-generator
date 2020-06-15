@@ -108,15 +108,13 @@ obx_id task_put(OBX_box* box, Task* task) {
     // Note: Task_to_flatbuffer() is provided by the generated code
     obx_id id = 0;
     if (Task_to_flatbuffer(&builder, task, &buffer, &size)) {
-        id = obx_box_put_object(box, buffer, size,
-                                OBXPutMode_PUT);  // returns 0 on error
+        id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // returns 0 on error
     }
 
     flatcc_builder_clear(&builder);
 
     if (id == 0) {
-        // TODO: won't be able to print the right error if it occured in
-        // Task_to_flatbuffer(), i.e. outside objectbox
+        // TODO: won't be able to print the right error if it occurred in Task_to_flatbuffer(), i.e. outside objectbox
         print_last_error();
     } else {
         task->id = id;  // Note: we're updating the ID on new objects for convenience
@@ -128,9 +126,8 @@ obx_id task_put(OBX_box* box, Task* task) {
 Task* task_read(OBX_store* store, OBX_box* box, obx_id id) {
     OBX_txn* txn = NULL;
 
-    // We need an explicit TX to read - read flatbuffers lifecycle is bound to the
-    // open transaction. The transaction can be closed safely after reading the
-    // object properties from flatbuffers.
+    // We need an explicit TX to read - read flatbuffers lifecycle is bound to the  open transaction.
+    // The transaction can be closed safely after reading the object properties from flatbuffers.
     txn = obx_txn_read(store);
     if (!txn) {
         print_last_error();
@@ -141,8 +138,7 @@ Task* task_read(OBX_store* store, OBX_box* box, obx_id id) {
     size_t size;
     int rc = obx_box_get(box, id, &data, &size);
     if (rc != OBX_SUCCESS) {
-        // if (rc == OBX_NOT_FOUND); // No special treatment at the moment if not
-        // found
+        // if (rc == OBX_NOT_FOUND); // No special treatment at the moment if not found
         obx_txn_close(txn);
         return NULL;
     }
@@ -173,8 +169,7 @@ int main(int argc, char* args[]) {
         store = obx_store_open(opt);
         if (!store) goto handle_error;
 
-        // obx_store_open() takes ownership of model and opt and frees them. We must
-        // not access them anymore.
+        // obx_store_open() takes ownership of model and opt and frees them. We must not access them anymore.
     }
 
     box = obx_box(store, Task_ENTITY_ID);  // Note the generated "Task_ENTITY_ID"
@@ -197,16 +192,14 @@ int main(int argc, char* args[]) {
     {  // Update
         const char* appendix = " & some bread";
 
-        // updating a string property is a little more involved but nothing we can't
-        // manage with a little elbow grease
+        // updating a string property is a little more involved but nothing we can't manage with a little elbow grease
         size_t old_text_len = task->text ? strlen(task->text) : 0;
         char* new_text = (char*) malloc((old_text_len + strlen(appendix) + 1) * sizeof(char));
 
         if (task->text) {
             memcpy(new_text, task->text, old_text_len);
 
-            // free the previously allocated memory, which would otherwise be lost
-            // when overwritten below
+            // free the previously allocated memory, which would otherwise be lost when overwritten below
             free(task->text);
         }
         memcpy(new_text + old_text_len, appendix, strlen(appendix) + 1);
@@ -217,14 +210,12 @@ int main(int argc, char* args[]) {
     // Delete
     if (obx_box_remove(box, id) != OBX_SUCCESS) goto handle_error;
 
-free_resources:
-    // free any remaining allocated resources
-    if (task) Task_free(&task);
+free_resources:  // free any remaining allocated resources
+    if (task) Task_free(&task); // Note: we must free the object allocated by Task_new_from_flatbuffer()
     if (store) obx_store_close(store);
     return rc;
 
-// print error and clean up
-handle_error:
+handle_error:  // print error and clean up
     rc = print_last_error();
     if (rc <= 0) rc = 1;
     goto free_resources;
@@ -232,3 +223,72 @@ handle_error:
 ```
 
 To compile, link to the objectbox-c library and flatcc-runtime library, e.g. something like this should work: `gcc main.c -I. -lobjectbox -lflatccrt`. Note: the command snippet assumes you have objectbox-c and flatccrt libraries installed in a path recognized by your OS (e.g. /usr/local/lib/) and all the referenced headers are in the same folder as `main.c`.
+
+## Annotations
+
+The source FlatBuffer schema can contain some ObjectBox-specific annotations, declared as specially formatted comments to `table` and `field` FlatBuffer schema elements. Have a look at the following schema example showing of a few of the annotations and the various formats you can use.
+
+```text
+/// This entity is not annotated and only serves as a relation target in this example
+table Simple {
+    id:ulong;
+}
+
+/// objectbox: name=AnnotatedEntity
+table Annotated {
+    /// Objectbox requires an ID property.
+    /// It is recognized automatically if it has a right name ("id"), otherwise it must be annotated.
+    /// objectbox:id
+    identifier:ulong;
+
+    /// objectbox:name="name",index=hash64
+    fullName:string;
+
+    /// objectbox:id-companion, date
+    time:int64;
+
+    /// objectbox:transient
+    skippedField:[uint64];
+
+    /// objectbox:link=Simple
+    relId:ulong;
+}
+```
+
+### Annotation comment format
+
+The simplified rules how annotation-specific comments are recognized:
+
+* Must be a comment immediately preceding an Entity or a Property (no empty lines between them).
+* The comment must start with three slashes so it's be picked up by FlatBuffer schema parser as  "documentation".
+* Spaces between words inside the comment are skipped so you can use them for better readability, if you like. See e.g. `Annotated`, `time`.
+* The comment must start with the text `objectbox:` and is followed by one or more annotations, separatedy by commas.
+* Each annotation has a name and some annotations also support specifying a value (some even require a value, e.g. `name`). See e.g. `Annotated`, `relId`.
+* Value, if present, is added to the annotation by adding an equal sign and the actual value.
+* A value may additionally be surrounded by double quotes but it's not necessary. See e.g. `fullName` showing both variants.
+
+### Supported annotations
+
+The following annotations are currently supported:
+
+#### Entity annotations
+
+* **name** - specifies the name to use in the database if it's desired to be different than what the FlatBuffer schema "table" is called.
+* **transient** - this entity is skipped, no code is generated for it. Useful if you have custom FlatBuffer handling but still want to generate ObjectBox binding code for some parts of the same file.
+* **uid** - used to explicitly specify UID used with this entity; used when renaming entities. See [Go documentation on schema changes](https://golang.objectbox.io/schema-changes) which applies here as well.
+
+#### Property annotations
+
+* **date** - tells ObjectBox the property is a timestamp, ObjectBox expects the value to be a timestamp since UNIX epoch, in milliseconds.
+* **id** - specifies this property is a unique identifier of the object - used for all CRUD operations.
+* **id-companion** - identifies a companion property, currently only supported on `date` properties in time-series databases.
+* **index** - creates a database index. This can improve performance when querying for that property. You can specify an index type as the annotation value:
+  * not specified - automatically choose the index type based on the property type (`hash` for string, `value` for others).
+  * `value` - uses property values to build the index. For string, this may require more storage than a hash-based index.
+  * `hash` - uses a 32-bit hash of property value to build the index. Occasional collisions may occur which should not have any performance impact in practice (with normal value distribution). Usually a better choice than `hash64`, as it requires less storage.
+  * `hash64` - uses long hash of property values to build the index. Requires more storage than `hash` and thus should not be the first choice in most cases.
+* **link** - declares the field as a relation ID, linking to another Entity which must be specified as a value of this annotation.
+* **name** - specifies the name to use in the database if it's desired to be different than what the FlatBuffer schema "field" is called.
+* **transient** - this property is skipped, no code is generated for it. Useful if you have custom FlatBuffer handling but still want to generate ObjectBox binding code for the entity.
+* **uid** - used to explicitly specify UID used with this property; used when renaming properties. See [Go documentation on schema changes](https://golang.objectbox.io/schema-changes) which applies here as well.
+* **unique** - set to enforce that values are unique before an entity is inserted/updated. A `put` operation will abort and return an error if the unique constraint is violated.
