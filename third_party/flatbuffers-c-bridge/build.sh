@@ -30,9 +30,17 @@ fi
 
 function build() {
     echo "******** Configuring & building ********"
+
+    srcDirAbsolute=$(realpath "$srcDir")
+    pwd=$(pwd)
+    mkdir -p "$buildDir"
+
     set -x
+
     # need to use eval because of quotes in configArgs... bash is just wonderful...
-    eval "cmake -S \"$srcDir\" -B \"$buildDir\" $configArgs"
+    cd "$buildDir"
+    eval "cmake \"$srcDirAbsolute\" $configArgs"
+    cd $pwd
 
     # Note: flatbuffers-c-bridge-test implies flatbuffers, flatbuffers-c-bridge and flatbuffers-c-bridge-flatc
     # We don't specify them explicitly to be compatible with MSVC which allows only one target per cmake call...
