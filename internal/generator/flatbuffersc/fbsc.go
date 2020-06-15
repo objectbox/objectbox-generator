@@ -22,6 +22,8 @@ package flatbuffersc
 /*
 #cgo LDFLAGS: -lstdc++ -lflatbuffers-c-bridge -lflatbuffers-c-bridge-flatc -lflatbuffers -lm
 #cgo LDFLAGS: -L${SRCDIR}/../../../third_party/flatbuffers-c-bridge/cmake-build/
+#cgo windows LDFLAGS: -static -static-libgcc -static-libstdc++ -lpthread
+
 #include <stdlib.h>
 #include "flatbuffersc.h"
 */

@@ -19,11 +19,13 @@ if [[ "$(uname)" == MINGW* ]] || [[ "$(uname)" == CYGWIN* ]]; then
     # MinGW build
     configArgs+=' -G "MinGW Makefiles"'
 
-    # MSVC build - CGO linking fails with "undefined reference to '__CxxFrameHandler4'"
-    #  libExt=.lib
-    #  configArgs="-A x64"
-    #  buildOutputDir=/${buildType}
-    #  # buildArgs="-- /m"    fails with "error MSB1008: Only one project can be specified."
+    # MSVC build
+    # configArgs+=' -G "Visual Studio 16 2019" -A x64'
+    # libPrefix=
+    # libExt=.lib
+    # buildOutputDir=/${buildType}
+    # buildArgs=
+    # buildArgs="-- /m"    fails with "error MSB1008: Only one project can be specified."
 fi
 
 function build() {
