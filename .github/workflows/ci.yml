@@ -7,8 +7,14 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container:
-      image: objectboxio/buildenv:20.3.3-centos7
+      image: centos/devtoolset-7-toolchain-centos7
+      options: --user 0
     steps:
+      - name: Install CMake
+        env:
+          version: 3.17.3
+        run: curl -L https://github.com/Kitware/CMake/releases/download/v${version}/cmake-${version}-Linux-x86_64.tar.gz | tar xz --strip 1 -C /usr/local
+
       - name: Install Go
         env:
           version: 1.14.4
@@ -31,9 +37,6 @@ jobs:
       - name: Build FBS-C-Bridge
         if: steps.fbs-bridge-cache.outputs.cache-hit != 'true'
         run: ./third_party/flatbuffers-c-bridge/build.sh
-        env:
-          CC: clang
-          CXX: clang++
 
       - name: Build
         run: |
