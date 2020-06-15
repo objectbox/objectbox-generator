@@ -8,5 +8,8 @@
 .idea/
 .vscode/
 
-build-artifacts
 scripts/tmp*
+
+# Command built using `make build`
+/objectbox-generator
+/objectbox-generator.exe
