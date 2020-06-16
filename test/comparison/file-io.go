@@ -17,7 +17,7 @@
  * along with ObjectBox Generator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package generator
+package comparison
 
 import (
 	"fmt"

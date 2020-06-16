@@ -1,6 +1,6 @@
 package object
 
-import "github.com/objectbox/objectbox-generator/test/generator/testdata/embedding/other"
+import "github.com/objectbox/objectbox-generator/test/comparison/testdata/embedding/other"
 
 type E struct {
 	other.Trackable `objectbox:"inline"`

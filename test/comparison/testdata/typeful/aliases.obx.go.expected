@@ -8,7 +8,7 @@ import (
 	"github.com/google/flatbuffers/go"
 	"github.com/objectbox/objectbox-go/objectbox"
 	"github.com/objectbox/objectbox-go/objectbox/fbutils"
-	ot "github.com/objectbox/objectbox-generator/test/generator/testdata/embedding/other"
+	ot "github.com/objectbox/objectbox-generator/test/comparison/testdata/embedding/other"
 )
 
 type aliases_EntityInfo struct {

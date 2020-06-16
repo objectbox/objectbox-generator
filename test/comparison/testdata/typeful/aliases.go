@@ -1,8 +1,8 @@
 package object
 
 import (
-	"github.com/objectbox/objectbox-generator/test/generator/testdata/embedding/other"
-	ot "github.com/objectbox/objectbox-generator/test/generator/testdata/embedding/other"
+	"github.com/objectbox/objectbox-generator/test/comparison/testdata/embedding/other"
+	ot "github.com/objectbox/objectbox-generator/test/comparison/testdata/embedding/other"
 )
 
 // Tests type aliases and definitions of named types

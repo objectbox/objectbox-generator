@@ -17,7 +17,7 @@
  * along with ObjectBox Generator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package generator
+package comparison
 
 import (
 	"flag"
@@ -32,7 +32,7 @@ var overwriteExpected = flag.Bool("update", false,
 // used during development of generator to test a single directory
 var target = flag.String("target", "", "Specify target subdirectory of testdata to generate")
 
-func TestGenerator(t *testing.T) {
+func TestGeneratorCompare(t *testing.T) {
 	if *target == "" {
 		generateAllDirs(t, *overwriteExpected)
 	} else {
