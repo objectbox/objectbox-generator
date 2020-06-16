@@ -16,7 +16,7 @@ build:			## Build all targets
 	CGO_ENABLED=1 go build ./cmd/objectbox-generator/
 
 test: build		## Test all targets
-	echo "NOTE tests are WIP, currently not executed"
+	# echo "NOTE tests are WIP, currently not executed"
 	# go test -v ./...
 
 clean:			## Clean previous builds
