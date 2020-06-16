@@ -37,15 +37,15 @@ type GoGenerator struct {
 }
 
 // BindingFile returns a name of the binding file for the given entity file.
-func BindingFile(sourceFile string) string {
-	var extension = filepath.Ext(sourceFile)
-	return sourceFile[0:len(sourceFile)-len(extension)] + ".obx" + extension
+func (GoGenerator) BindingFile(forFile string) string {
+	var extension = filepath.Ext(forFile)
+	return forFile[0:len(forFile)-len(extension)] + ".obx" + extension
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
-func ModelFile(modelInfoFile string) string {
-	var extension = filepath.Ext(modelInfoFile)
-	return modelInfoFile[0:len(modelInfoFile)-len(extension)] + ".go"
+func (GoGenerator) ModelFile(forFile string) string {
+	var extension = filepath.Ext(forFile)
+	return forFile[0:len(forFile)-len(extension)] + ".go"
 }
 
 func (GoGenerator) IsGeneratedFile(file string) bool {

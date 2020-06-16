@@ -34,7 +34,22 @@ import (
 	"github.com/objectbox/objectbox-generator/test/build"
 )
 
-type goTestHelper struct {
+// this containing module name - used for test case modules
+const goModuleName = "github.com/objectbox/objectbox-go"
+
+var goGeneratorArgsRegexp = regexp.MustCompile("//go:generate go run github.com/objectbox/objectbox-go/cmd/objectbox-gogen (.+)[\n|\r]")
+
+type goTestHelper struct{}
+
+func (goTestHelper) args(t *testing.T, sourceFile string) map[string]string {
+	source, err := ioutil.ReadFile(sourceFile)
+	assert.NoErr(t, err)
+
+	var match = goGeneratorArgsRegexp.FindSubmatch(source)
+	if len(match) > 1 {
+		return argsToMap(string(match[1]))
+	}
+	return nil
 }
 
 func (goTestHelper) prepareTempDir(t *testing.T, srcDir, tempDir, tempRoot string) func(err error) error {
@@ -44,8 +59,8 @@ func (goTestHelper) prepareTempDir(t *testing.T, srcDir, tempDir, tempRoot strin
 	assert.NoErr(t, err)
 	var modulePath = "example.com/virtual/objectbox-generator/test/comparison/" + srcDir
 	var goMod = "module " + modulePath + "\n" +
-		"replace " + moduleName + " => " + filepath.Join(cwd, "/../../") + "\n" +
-		"require " + moduleName + " v0.0.0"
+		"replace " + goModuleName + " => " + filepath.Join(cwd, "/../../") + "\n" +
+		"require " + goModuleName + " v0.0.0"
 	assert.NoErr(t, ioutil.WriteFile(path.Join(tempDir, "go.mod"), []byte(goMod), 0600))
 
 	// NOTE: we can't change directory using os.Chdir() because it applies to a process/thread, not a goroutine.
@@ -55,7 +70,7 @@ func (goTestHelper) prepareTempDir(t *testing.T, srcDir, tempDir, tempRoot strin
 			return nil
 		}
 		var str = strings.Replace(err.Error(), tempRoot+string(os.PathSeparator), "", -1)
-		str = strings.Replace(str, modulePath, moduleName+"/test/comparison/"+srcDir, -1)
+		str = strings.Replace(str, modulePath, goModuleName+"/test/comparison/"+srcDir, -1)
 		return errors.New(str)
 	}
 }
@@ -79,7 +94,7 @@ func (goTestHelper) build(t *testing.T, dir string, errorTransformer func(err er
 	}
 
 	// On Windows, we're getting a `go finding` message during the build - remove it to be consistent.
-	var reg = regexp.MustCompile("go: finding " + moduleName + " v0.0.0[ \r\n]+")
+	var reg = regexp.MustCompile("go: finding " + goModuleName + " v0.0.0[ \r\n]+")
 	stdErr = reg.ReplaceAll(stdErr, nil)
 
 	var receivedError = errorTransformer(fmt.Errorf("%s\n%s\n%s", stdOut, stdErr, err))

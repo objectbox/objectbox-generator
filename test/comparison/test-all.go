@@ -31,7 +31,6 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/internal/generator/go"
 	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
@@ -93,7 +92,7 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcDir 
 	modelInfoFile := generator.ModelInfoFile(dir)
 	modelInfoExpectedFile := modelInfoFile + ".expected"
 
-	modelFile := gogenerator.ModelFile(modelInfoFile)
+	modelFile := conf.generator.ModelFile(modelInfoFile)
 	modelExpectedFile := modelFile + ".expected"
 
 	// run the generation twice, first time with deleting old modelInfo
@@ -160,7 +159,7 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 }
 
 func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, dir string, modelInfoFile string, errorTransformer func(error) error) {
-	var modelFile = gogenerator.ModelFile(modelInfoFile)
+	var modelFile = conf.generator.ModelFile(modelInfoFile)
 
 	// remove generated files during development (they might be syntactically wrong)
 	if overwriteExpected {
@@ -204,13 +203,11 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, dir s
 
 		assert.NoErr(t, err)
 
-		var bindingFile = gogenerator.BindingFile(sourceFile)
+		var bindingFile = conf.generator.BindingFile(sourceFile)
 		var expectedFile = bindingFile + ".expected"
 		assertSameFile(t, bindingFile, expectedFile, overwriteExpected)
 	}
 }
-
-var generatorArgsRegexp = regexp.MustCompile("//go:generate go run github.com/objectbox/objectbox-go/cmd/objectbox-gogen (.+)[\n|\r]")
 
 func getOptions(t *testing.T, conf testSpec, sourceFile, modelInfoFile string) generator.Options {
 	var options = generator.Options{
@@ -220,14 +217,10 @@ func getOptions(t *testing.T, conf testSpec, sourceFile, modelInfoFile string) g
 		CodeGenerator: conf.generator,
 	}
 
-	source, err := ioutil.ReadFile(sourceFile)
-	assert.NoErr(t, err)
-
-	var match = generatorArgsRegexp.FindSubmatch(source)
-	if len(match) > 1 {
-		var args = argsToMap(string(match[1]))
-
-		setArgs(t, args, &options)
+	if conf.helper != nil {
+		if args := conf.helper.args(t, sourceFile); args != nil {
+			setArgs(t, args, &options)
+		}
 	}
 
 	return options

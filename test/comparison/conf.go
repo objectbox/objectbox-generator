@@ -29,10 +29,8 @@ import (
 type testHelper interface {
 	prepareTempDir(t *testing.T, srcDir, tempDir, tempRoot string) func(err error) error
 	build(t *testing.T, dir string, errorTransformer func(err error) error)
+	args(t *testing.T, sourceFile string) map[string]string
 }
-
-// this containing module name - used for test case modules
-const moduleName = "github.com/objectbox/objectbox-go"
 
 // Generator configurations for all supported languages. The map index is the top level directory.
 type testSpec struct {
