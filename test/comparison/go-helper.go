@@ -21,9 +21,9 @@ package comparison
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -31,7 +31,6 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/test/assert"
-	"github.com/objectbox/objectbox-generator/test/build"
 )
 
 // this containing module name - used for test case modules
@@ -52,7 +51,7 @@ func (goTestHelper) args(t *testing.T, sourceFile string) map[string]string {
 	return nil
 }
 
-func (goTestHelper) prepareTempDir(t *testing.T, srcDir, tempDir, tempRoot string) func(err error) error {
+func (goTestHelper) prepareTempDir(t *testing.T, conf testSpec, srcDir, tempDir, tempRoot string) func(err error) error {
 	// When outside of the project's directory, we need to set up the whole temp dir as its own module, otherwise
 	// it won't find this `objectbox-go`. Therefore, we create a go.mod file pointing it to the right path.
 	cwd, err := os.Getwd()
@@ -75,38 +74,26 @@ func (goTestHelper) prepareTempDir(t *testing.T, srcDir, tempDir, tempRoot strin
 	}
 }
 
-func (goTestHelper) build(t *testing.T, dir string, errorTransformer func(err error) error) {
-	var expectedError error
-	if fileExists(path.Join(dir, "compile-error.expected")) {
-		content, err := ioutil.ReadFile(path.Join(dir, "compile-error.expected"))
-		assert.NoErr(t, err)
-		expectedError = errors.New(string(content))
-	}
-
-	stdOut, stdErr, err := build.Package(dir)
+func (goTestHelper) build(t *testing.T, conf testSpec, dir string, expectedError error, errorTransformer func(err error) error) {
+	stdOut, stdErr, err := gobuild(dir)
 	if err == nil && expectedError == nil {
 		// successful
 		return
-	}
-
-	if err == nil && expectedError != nil {
-		assert.Failf(t, "Unexpected PASS during compilation")
 	}
 
 	// On Windows, we're getting a `go finding` message during the build - remove it to be consistent.
 	var reg = regexp.MustCompile("go: finding " + goModuleName + " v0.0.0[ \r\n]+")
 	stdErr = reg.ReplaceAll(stdErr, nil)
 
-	var receivedError = errorTransformer(fmt.Errorf("%s\n%s\n%s", stdOut, stdErr, err))
+	checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)
+}
 
-	// Fix paths in the error output on Windows so that it matches the expected error (which always uses '/').
-	if os.PathSeparator != '/' {
-		// Make sure the expected error doesn't contain the path separator already - to make it easier to debug.
-		if strings.Contains(expectedError.Error(), string(os.PathSeparator)) {
-			assert.Failf(t, "compile-error.expected contains this OS path separator '%v' so paths can't be normalized to '/'", string(os.PathSeparator))
-		}
-		receivedError = errors.New(strings.Replace(receivedError.Error(), string(os.PathSeparator), "/", -1))
+func gobuild(path string) (stdOut []byte, stdErr []byte, err error) {
+	var cmd = exec.Command("go", "build")
+	cmd.Dir = path
+	stdOut, err = cmd.Output()
+	if ee, ok := err.(*exec.ExitError); ok {
+		stdErr = ee.Stderr
 	}
-
-	assert.Eq(t, expectedError, receivedError)
+	return
 }

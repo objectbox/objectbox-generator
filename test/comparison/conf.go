@@ -27,8 +27,14 @@ import (
 )
 
 type testHelper interface {
-	prepareTempDir(t *testing.T, srcDir, tempDir, tempRoot string) func(err error) error
-	build(t *testing.T, dir string, errorTransformer func(err error) error)
+	// prepareTempDir prepares tempDir contents (already a copy of the srcDir) with any language specific setup.
+	// Returns an errorTransformer.
+	prepareTempDir(t *testing.T, conf testSpec, srcDir, tempDir, tempRoot string) func(err error) error
+
+	// build compiles the code in the given directory
+	build(t *testing.T, conf testSpec, dir string, expectedError error, errorTransformer func(err error) error)
+
+	// args returns additional configuration. TBD whether this shouldn't be replaced with a generator.Options-updating function
 	args(t *testing.T, sourceFile string) map[string]string
 }
 
@@ -41,7 +47,7 @@ type testSpec struct {
 }
 
 var confs = map[string]testSpec{
-	"c": {".fbs", ".obx.h", &cgenerator.CGenerator{PlainC: true}, nil},
-	// TODO "cpp": {".fbs", "-cpp.obx.h", &cgenerator.CGenerator{PlainC: false}, nil},
+	"c": {".fbs", ".obx.h", &cgenerator.CGenerator{PlainC: true}, cTestHelper{cpp: false}},
+	// TODO "cpp": {".fbs", "-cpp.obx.h", &cgenerator.CGenerator{cpp: false}, cTestHelper{cpp: true}},
 	// TODO "go":  {".go", ".obx.go", &gogenerator.GoGenerator{}, goTestHelper{}},
 }

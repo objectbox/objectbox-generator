@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -84,7 +85,9 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcDir 
 		t.Logf("Testing in a temporary directory %s", tempDir)
 
 		if conf.helper != nil {
-			errorTransformer = conf.helper.prepareTempDir(t, srcDir, tempDir, tempRoot)
+			if errTrans := conf.helper.prepareTempDir(t, conf, srcDir, tempDir, tempRoot); errTrans != nil {
+				errorTransformer = errTrans
+			}
 		}
 		dir = tempDir
 	}
@@ -128,7 +131,13 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcDir 
 		t.Run("compile", func(t *testing.T) {
 			defer cleanupAfterCompile()
 			t.Parallel()
-			conf.helper.build(t, dir, errorTransformer)
+			var expectedError error
+			if fileExists(path.Join(dir, "compile-error.expected")) {
+				content, err := ioutil.ReadFile(path.Join(dir, "compile-error.expected"))
+				assert.NoErr(t, err)
+				expectedError = errors.New(string(content))
+			}
+			conf.helper.build(t, conf, dir, expectedError, errorTransformer)
 		})
 	}
 }
