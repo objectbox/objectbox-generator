@@ -1,5 +1,5 @@
-## The [testdata](testdata) folder
-All directories under the [testdata](testdata) folder are considered separate test suites and are executed by the `TestAll`
+## The [go](go) folder
+All directories under the [go](go) folder are considered separate test suites and are executed by the `TestAll`
 The following rules apply:
 * each folder should define entities - a ".go" file(s) with struct(s)
 * each entity should have a special "-obx.go.expected" file with the expected content of the generated bindings

@@ -24,7 +24,8 @@ var ABinding = a_EntityInfo{
 
 // A_ contains type-based Property helpers to facilitate some common operations such as Queries.
 var A_ = struct {
-	Id *objectbox.PropertyUint64
+	Id   *objectbox.PropertyUint64
+	Name *objectbox.PropertyString
 }{
 	Id: &objectbox.PropertyUint64{
 		BaseProperty: &objectbox.BaseProperty{
@@ -32,11 +33,17 @@ var A_ = struct {
 			Entity: &ABinding.Entity,
 		},
 	},
+	Name: &objectbox.PropertyString{
+		BaseProperty: &objectbox.BaseProperty{
+			Id:     2,
+			Entity: &ABinding.Entity,
+		},
+	},
 }
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (a_EntityInfo) GeneratorVersion() int {
-	return 5
+	return 6
 }
 
 // AddToModel is called by ObjectBox during model build
@@ -44,7 +51,8 @@ func (a_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Entity("A", 1, 8717895732742165505)
 	model.Property("Id", 6, 1, 2259404117704393152)
 	model.PropertyFlags(1)
-	model.EntityLastPropertyId(1, 2259404117704393152)
+	model.Property("Name", 9, 2, 6050128673802995827)
+	model.EntityLastPropertyId(2, 6050128673802995827)
 }
 
 // GetId is called by ObjectBox during Put operations to check for existing ID on an object
@@ -65,10 +73,13 @@ func (a_EntityInfo) PutRelated(ob *objectbox.ObjectBox, object interface{}, id u
 
 // Flatten is called by ObjectBox to transform an object to a FlatBuffer
 func (a_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id uint64) error {
+	obj := object.(*A)
+	var offsetName = fbutils.CreateStringOffset(fbb, obj.Name)
 
 	// build the FlatBuffers object
-	fbb.StartObject(1)
-	fbutils.SetUint64Slot(fbb, 0, id)
+	fbb.StartObject(2)
+	fbutils.SetUint64Slot(fbb, 4294967295, id)
+	fbutils.SetUOffsetTSlot(fbb, 4294967295, offsetName)
 	return nil
 }
 
@@ -86,7 +97,8 @@ func (a_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byte) (interface{}, er
 	var propId = table.GetUint64Slot(4, 0)
 
 	return &A{
-		Id: propId,
+		Id:   propId,
+		Name: fbutils.GetStringSlot(table, 2),
 	}, nil
 }
 

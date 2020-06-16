@@ -22,45 +22,25 @@ package comparison
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/internal/generator/go"
 	"github.com/objectbox/objectbox-generator/test/assert"
-	"github.com/objectbox/objectbox-generator/test/build"
 )
 
-// this containing module name - used for test case modules
-const moduleName = "github.com/objectbox/objectbox-go"
-
-type lang struct {
-	generatedExt string
-	sourceExt    string
-}
-
-// codeLanguage returns a source code extension, currently everything is "go" except when it's in "testdata/c"
-func codeLanguage(dir string) lang {
-	if filepath.Base(dir) == "c" {
-		return lang{generatedExt: "h", sourceExt: "fbs"}
-	} else {
-		return lang{generatedExt: "go", sourceExt: "go"}
-	}
-}
-
-// generateAllDirs walks through the "data" and generates bindings for each subdirectory
+// generateAllDirs walks through the "data" and generates bindings for each subdirectory of langDir
 // set overwriteExpected to TRUE to update all ".expected" files with the generated content
-func generateAllDirs(t *testing.T, overwriteExpected bool) {
-	var datadir = "testdata"
-	folders, err := ioutil.ReadDir(datadir)
+func generateAllDirs(t *testing.T, overwriteExpected bool, langDir string) {
+	t.Logf("Testing %s code generator", langDir)
+
+	folders, err := ioutil.ReadDir(langDir)
 	assert.NoErr(t, err)
 
 	for _, folder := range folders {
@@ -68,17 +48,17 @@ func generateAllDirs(t *testing.T, overwriteExpected bool) {
 			continue
 		}
 
-		var dir = filepath.Join(datadir, folder.Name())
-		t.Run(folder.Name(), func(t *testing.T) {
+		var dir = filepath.Join(langDir, folder.Name())
+		t.Run(langDir+"/"+folder.Name(), func(t *testing.T) {
 			t.Parallel()
-			generateOneDir(t, overwriteExpected, dir)
+			generateOneDir(t, overwriteExpected, confs[langDir], dir)
 		})
 	}
 }
 
-func generateOneDir(t *testing.T, overwriteExpected bool, srcDir string) {
+func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcDir string) {
+	// NOTE: default configs, may be overridden below
 	var dir = srcDir
-
 	var errorTransformer = func(err error) error {
 		return err
 	}
@@ -104,27 +84,10 @@ func generateOneDir(t *testing.T, overwriteExpected bool, srcDir string) {
 		assert.NoErr(t, copyDirectory(srcDir, tempDir, 0700, 0600))
 		t.Logf("Testing in a temporary directory %s", tempDir)
 
-		// When outside of the project's directory, we need to set up the whole temp dir as its own module, otherwise
-		// it won't find this `objectbox-go`. Therefore, we create a go.mod file pointing it to the right path.
-		cwd, err := os.Getwd()
-		assert.NoErr(t, err)
-		var modulePath = "example.com/virtual/objectbox-generator/test/generator/" + srcDir
-		var goMod = "module " + modulePath + "\n" +
-			"replace " + moduleName + " => " + filepath.Join(cwd, "/../../") + "\n" +
-			"require " + moduleName + " v0.0.0"
-		assert.NoErr(t, ioutil.WriteFile(path.Join(tempDir, "go.mod"), []byte(goMod), 0600))
-
-		// NOTE: we can't change directory using os.Chdir() because it applies to a process/thread, not a goroutine.
-		// Therefore, we just map paths in received errors, so they match the expected ones.
-		dir = tempDir
-		errorTransformer = func(err error) error {
-			if err == nil {
-				return nil
-			}
-			var str = strings.Replace(err.Error(), tempRoot+string(os.PathSeparator), "", -1)
-			str = strings.Replace(str, modulePath, moduleName+"/test/generator/"+srcDir, -1)
-			return errors.New(str)
+		if conf.helper != nil {
+			errorTransformer = conf.helper.prepareTempDir(t, srcDir, tempDir, tempRoot)
 		}
+		dir = tempDir
 	}
 
 	modelInfoFile := generator.ModelInfoFile(dir)
@@ -151,14 +114,14 @@ func generateOneDir(t *testing.T, overwriteExpected bool, srcDir string) {
 			assert.NoErr(t, copyFile(initialFile, initialFile[0:len(initialFile)-len(".initial")], 0))
 		}
 
-		generateAllFiles(t, overwriteExpected, dir, modelInfoFile, errorTransformer)
+		generateAllFiles(t, overwriteExpected, conf, dir, modelInfoFile, errorTransformer)
 
 		assertSameFile(t, modelInfoFile, modelInfoExpectedFile, overwriteExpected)
 		assertSameFile(t, modelFile, modelExpectedFile, overwriteExpected)
 	}
 
 	// verify the result can be built
-	if !testing.Short() && codeLanguage(dir).generatedExt == "go" {
+	if !testing.Short() && conf.helper != nil {
 		// override the defer to prevent cleanup before compilation is actually run
 		var cleanupAfterCompile = cleanup
 		cleanup = func() {}
@@ -166,40 +129,7 @@ func generateOneDir(t *testing.T, overwriteExpected bool, srcDir string) {
 		t.Run("compile", func(t *testing.T) {
 			defer cleanupAfterCompile()
 			t.Parallel()
-
-			var expectedError error
-			if fileExists(path.Join(dir, "compile-error.expected")) {
-				content, err := ioutil.ReadFile(path.Join(dir, "compile-error.expected"))
-				assert.NoErr(t, err)
-				expectedError = errors.New(string(content))
-			}
-
-			stdOut, stdErr, err := build.Package(dir)
-			if err == nil && expectedError == nil {
-				// successful
-				return
-			}
-
-			if err == nil && expectedError != nil {
-				assert.Failf(t, "Unexpected PASS during compilation")
-			}
-
-			// On Windows, we're getting a `go finding` message during the build - remove it to be consistent.
-			var reg = regexp.MustCompile("go: finding " + moduleName + " v0.0.0[ \r\n]+")
-			stdErr = reg.ReplaceAll(stdErr, nil)
-
-			var receivedError = errorTransformer(fmt.Errorf("%s\n%s\n%s", stdOut, stdErr, err))
-
-			// Fix paths in the error output on Windows so that it matches the expected error (which always uses '/').
-			if os.PathSeparator != '/' {
-				// Make sure the expected error doesn't contain the path separator already - to make it easier to debug.
-				if strings.Contains(expectedError.Error(), string(os.PathSeparator)) {
-					assert.Failf(t, "compile-error.expected contains this OS path separator '%v' so paths can't be normalized to '/'", string(os.PathSeparator))
-				}
-				receivedError = errors.New(strings.Replace(receivedError.Error(), string(os.PathSeparator), "/", -1))
-			}
-
-			assert.Eq(t, expectedError, receivedError)
+			conf.helper.build(t, dir, errorTransformer)
 		})
 	}
 }
@@ -229,14 +159,12 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 	}
 }
 
-func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInfoFile string, errorTransformer func(error) error) {
+func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, dir string, modelInfoFile string, errorTransformer func(error) error) {
 	var modelFile = gogenerator.ModelFile(modelInfoFile)
-
-	var lang = codeLanguage(dir) // go|c
 
 	// remove generated files during development (they might be syntactically wrong)
 	if overwriteExpected {
-		files, err := filepath.Glob(filepath.Join(dir, "*.obx."+lang.generatedExt))
+		files, err := filepath.Glob(filepath.Join(dir, "*."+conf.generatedExt))
 		assert.NoErr(t, err)
 
 		for _, file := range files {
@@ -244,13 +172,13 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInf
 		}
 	}
 
-	// process all *.go files in the directory
-	inputFiles, err := filepath.Glob(filepath.Join(dir, "*."+lang.sourceExt))
+	// process all source files in the directory
+	inputFiles, err := filepath.Glob(filepath.Join(dir, "*"+conf.sourceExt))
 	assert.NoErr(t, err)
 	for _, sourceFile := range inputFiles {
 		// skip generated files & "expected results" files
-		if strings.HasSuffix(sourceFile, ".obx."+lang.generatedExt) ||
-			strings.HasSuffix(sourceFile, ".skip."+lang.sourceExt) ||
+		if strings.HasSuffix(sourceFile, conf.generatedExt) ||
+			strings.HasSuffix(sourceFile, ".skip"+conf.sourceExt) ||
 			strings.HasSuffix(sourceFile, "expected") ||
 			strings.HasSuffix(sourceFile, "initial") ||
 			sourceFile == modelFile {
@@ -259,11 +187,11 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInf
 
 		t.Logf("  %s", filepath.Base(sourceFile))
 
-		options := getOptions(t, lang, sourceFile, modelInfoFile)
+		options := getOptions(t, conf, sourceFile, modelInfoFile)
 		err = errorTransformer(generator.Process(sourceFile, options))
 
 		// handle negative test
-		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail."+lang.generatedExt)
+		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail"+conf.generatedExt)
 		if shouldFail {
 			if err == nil {
 				assert.Failf(t, "Unexpected PASS on a negative test %s", sourceFile)
@@ -284,16 +212,12 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, dir string, modelInf
 
 var generatorArgsRegexp = regexp.MustCompile("//go:generate go run github.com/objectbox/objectbox-go/cmd/objectbox-gogen (.+)[\n|\r]")
 
-func getOptions(t *testing.T, lang lang, sourceFile, modelInfoFile string) generator.Options {
+func getOptions(t *testing.T, conf testSpec, sourceFile, modelInfoFile string) generator.Options {
 	var options = generator.Options{
 		ModelInfoFile: modelInfoFile,
 		// NOTE zero seed for test-only - avoid changes caused by random numbers by fixing them to the same seed
 		Rand:          rand.New(rand.NewSource(0)),
-		CodeGenerator: &gogenerator.GoGenerator{},
-	}
-
-	if lang.generatedExt == "h" {
-		options.CodeGenerator = &cgenerator.CGenerator{PlainC: true}
+		CodeGenerator: conf.generator,
 	}
 
 	source, err := ioutil.ReadFile(sourceFile)
@@ -330,7 +254,7 @@ func getExpectedError(t *testing.T, sourceFile string) error {
 
 func setArgs(t *testing.T, args map[string]string, options *generator.Options) {
 	for name, value := range args {
-		_ = value // get rid of the compiler warning until we start using some options with values
+		_ = value // get rid of the testHelper warning until we start using some options with values
 
 		switch name {
 		case "byValue":

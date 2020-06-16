@@ -21,6 +21,7 @@ package comparison
 
 import (
 	"flag"
+	"strings"
 	"testing"
 )
 
@@ -30,12 +31,16 @@ var overwriteExpected = flag.Bool("update", false,
 		"It's up to the developer to actually check before committing whether the newly generated files are correct")
 
 // used during development of generator to test a single directory
-var target = flag.String("target", "", "Specify target subdirectory of testdata to generate")
+var target = flag.String("target", "", "Specify target subdirectory to generate")
 
-func TestGeneratorCompare(t *testing.T) {
+func TestCompare(t *testing.T) {
 	if *target == "" {
-		generateAllDirs(t, *overwriteExpected)
+		for langDir, _ := range confs {
+			generateAllDirs(t, *overwriteExpected, langDir)
+		}
+	} else if parts := strings.Split(*target, "/"); len(parts) == 1 {
+		generateAllDirs(t, *overwriteExpected, parts[0])
 	} else {
-		generateOneDir(t, *overwriteExpected, "testdata/"+*target)
+		generateOneDir(t, *overwriteExpected, confs[parts[0]], "testdata/"+*target)
 	}
 }

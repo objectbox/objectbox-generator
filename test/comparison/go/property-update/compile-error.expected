@@ -1,0 +1,5 @@
+
+# github.com/objectbox/objectbox-generator/test/comparison/go/property-update
+./objectbox-model.go:16:24: undefined: ABinding
+
+exit status 2
