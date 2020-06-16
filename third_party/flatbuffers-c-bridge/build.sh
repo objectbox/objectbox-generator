@@ -31,7 +31,7 @@ fi
 function build() {
     echo "******** Configuring & building ********"
 
-    srcDirAbsolute=$(realpath "$srcDir")
+    srcDirAbsolute="$(pwd)/$srcDir"
     pwd=$(pwd)
     mkdir -p "$buildDir"
 
