@@ -54,8 +54,8 @@ function install() {
         echo "Copying from ${buildDir}${buildOutputDir} to ${installDir}:"
         cp "${buildDir}${buildOutputDir}"/${libPrefix}flatbuffers-c-bridge${libExt} "$installDir"
         cp "${buildDir}${buildOutputDir}"/${libPrefix}flatbuffers-c-bridge-flatc${libExt} "$installDir"
+        cp "${buildDir}"/${buildOutputDir}/${libPrefix}flatbuffers${libExt} "$installDir"
     fi
-    cp "${buildDir}"/_deps/flatbuffers-*-build${buildOutputDir}/${libPrefix}flatbuffers${libExt} "$installDir"
     echo "The compiled libraries can be found here:"
     ls -alh "$installDir"/${libPrefix}flatbuffers*${libExt}
 }

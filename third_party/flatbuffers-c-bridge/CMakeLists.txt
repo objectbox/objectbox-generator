@@ -15,7 +15,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffers)
 
 # Define flatbuffers-compiler library which we need to provide fbs_flatc() function
 # see FlatBuffers_Compiler_SRCS in flatbuffers CmakeLists.txt
-FetchContent_GetProperties(flatbuffers-${FLATBUFFERS_VERSION} SOURCE_DIR FLATBUFFERS_SRC_DIR)
 project(flatbuffers-c-bridge-flatc)
 add_library(${PROJECT_NAME} STATIC
         src/flatc_main.cpp
