@@ -107,7 +107,7 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options, m *mode
 		Binding          *astReader
 		GeneratorVersion int
 		Options          generator.Options
-	}{m, goGen.binding, generator.Version, options}
+	}{m, goGen.binding, generator.VersionId, options}
 
 	if err = templates.BindingTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)
@@ -155,7 +155,7 @@ func (goGen *GoGenerator) generateModelFile(m *model.ModelInfo) (data []byte, er
 		Package          string
 		Model            *model.ModelInfo
 		GeneratorVersion int
-	}{goGen.binding.Package.Name(), m, generator.Version}
+	}{goGen.binding.Package.Name(), m, generator.VersionId}
 
 	if err = templates.ModelTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)

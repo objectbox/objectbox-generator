@@ -117,7 +117,7 @@ func (gen *CGenerator) generateBindingFile(bindingFile string, m *model.ModelInf
 		Model            *model.ModelInfo
 		GeneratorVersion int
 		IfdefGuard       string
-	}{m, generator.Version, ifdefGuard}
+	}{m, generator.VersionId, ifdefGuard}
 
 	var tpl = templates.CppBindingTemplate
 	if gen.PlainC {
@@ -169,7 +169,7 @@ func generateModelFile(m *model.ModelInfo) (data []byte, err error) {
 	var tplArguments = struct {
 		Model            *model.ModelInfo
 		GeneratorVersion int
-	}{m, generator.Version}
+	}{m, generator.VersionId}
 
 	if err = templates.ModelTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)

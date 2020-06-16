@@ -114,7 +114,7 @@ func getArgs() (path string, clean bool, options generator.Options) {
 	}
 
 	if printVersion {
-		fmt.Println(fmt.Sprintf("ObjectBox code generator version: %d", generator.Version))
+		fmt.Println(fmt.Sprintf("ObjectBox Generator v%s #%d", generator.Version, generator.VersionId))
 		os.Exit(0)
 	}
 
