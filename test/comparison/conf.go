@@ -27,19 +27,20 @@ import (
 )
 
 type testHelper interface {
+	// generatorFor constructs and configures a code generator for the given source file
+	generatorFor(t *testing.T, conf testSpec, sourceFile string, genDir string) generator.CodeGenerator
+
 	// prepareTempDir prepares tempDir contents (already a copy of the srcDir) with any language specific setup.
 	// Returns an errorTransformer.
 	prepareTempDir(t *testing.T, conf testSpec, srcDir, tempDir, tempRoot string) func(err error) error
 
 	// build compiles the code in the given directory
 	build(t *testing.T, conf testSpec, dir string, expectedError error, errorTransformer func(err error) error)
-
-	// args returns additional configuration. TBD whether this shouldn't be replaced with a generator.Options-updating function
-	args(t *testing.T, sourceFile string) map[string]string
 }
 
 // Generator configurations for all supported languages. The map index is the top level directory.
 type testSpec struct {
+	targetLang   string
 	sourceExt    string
 	generatedExt string
 	generator    generator.CodeGenerator
@@ -47,7 +48,7 @@ type testSpec struct {
 }
 
 var confs = map[string]testSpec{
-	"c": {".fbs", ".obx.h", &cgenerator.CGenerator{PlainC: true}, cTestHelper{cpp: false}},
-	// TODO "cpp": {".fbs", "-cpp.obx.h", &cgenerator.CGenerator{cpp: false}, cTestHelper{cpp: true}},
-	// TODO "go":  {".go", ".obx.go", &gogenerator.GoGenerator{}, goTestHelper{}},
+	"fbs-c":   {"c", ".fbs", ".obx.h", &cgenerator.CGenerator{PlainC: true}, cTestHelper{cpp: false}},
+	"fbs-cpp": {"cpp", ".fbs", "-cpp.obx.h", &cgenerator.CGenerator{PlainC: false}, cTestHelper{cpp: true}},
+	// TODO "go":  {"go", ".go", ".obx.go", &gogenerator.GoGenerator{}, goTestHelper{}},
 }

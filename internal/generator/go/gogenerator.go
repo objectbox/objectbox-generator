@@ -80,7 +80,7 @@ func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator
 		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
 	}
 
-	var bindingFile = BindingFile(sourceFile)
+	var bindingFile = goGen.BindingFile(sourceFile)
 	if formattedSource, err := format.Source(bindingSource); err != nil {
 		// we just store error but still write the file so that we can check it manually
 		err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
@@ -123,7 +123,7 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options, m *mode
 func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, modelInfo *model.ModelInfo) error {
 	var err, err2 error
 
-	var modelFile = ModelFile(options.ModelInfoFile)
+	var modelFile = goGen.ModelFile(options.ModelInfoFile)
 	var modelSource []byte
 
 	if modelSource, err = goGen.generateModelFile(modelInfo); err != nil {

@@ -30,6 +30,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/objectbox/objectbox-generator/internal/generator"
+	gogenerator "github.com/objectbox/objectbox-generator/internal/generator/go"
 	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
@@ -40,18 +42,54 @@ var goGeneratorArgsRegexp = regexp.MustCompile("//go:generate go run github.com/
 
 type goTestHelper struct{}
 
-func (goTestHelper) args(t *testing.T, sourceFile string) map[string]string {
+func (h goTestHelper) generatorFor(t *testing.T, conf testSpec, sourceFile string, genDir string) generator.CodeGenerator {
 	source, err := ioutil.ReadFile(sourceFile)
 	assert.NoErr(t, err)
 
-	var match = goGeneratorArgsRegexp.FindSubmatch(source)
-	if len(match) > 1 {
-		return argsToMap(string(match[1]))
+	// make a copy of the default generator
+	var gen = *conf.generator.(*gogenerator.GoGenerator)
+
+	if match := goGeneratorArgsRegexp.FindSubmatch(source); len(match) > 1 {
+		var args = argsToMap(string(match[1]))
+		for name, value := range args {
+			_ = value // get rid of the testHelper warning until we start using some options with values
+
+			switch name {
+			case "byValue":
+				// TODO gen.ByValue = true
+			default:
+				t.Fatalf("unknown option '%s'", name)
+			}
+		}
 	}
-	return nil
+	return &gen
+}
+
+func argsToMap(args string) map[string]string {
+	var result = map[string]string{}
+
+	for _, arg := range strings.Split(strings.TrimSpace(args), "-") {
+		arg = strings.TrimSpace(arg)
+
+		if len(arg) == 0 {
+			continue
+		}
+
+		var pair = strings.Split(arg, " ")
+		if len(pair) == 1 {
+			result[pair[0]] = ""
+		} else {
+			result[pair[0]] = pair[1]
+		}
+	}
+
+	return result
 }
 
 func (goTestHelper) prepareTempDir(t *testing.T, conf testSpec, srcDir, tempDir, tempRoot string) func(err error) error {
+	// copy the source dir, including the relative paths (to make sure expected errors contain same paths)
+	assert.NoErr(t, copyDirectory(srcDir, tempDir, 0700, 0600))
+
 	// When outside of the project's directory, we need to set up the whole temp dir as its own module, otherwise
 	// it won't find this `objectbox-go`. Therefore, we create a go.mod file pointing it to the right path.
 	cwd, err := os.Getwd()

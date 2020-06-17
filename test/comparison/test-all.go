@@ -35,30 +35,44 @@ import (
 	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
+func typesFromConfKey(confKey string) (srcType, genType string) {
+	types := strings.Split(confKey, "-")
+	srcType = types[0]
+	genType = types[len(types)-1]
+	return
+}
+
 // generateAllDirs walks through the "data" and generates bindings for each subdirectory of langDir
 // set overwriteExpected to TRUE to update all ".expected" files with the generated content
-func generateAllDirs(t *testing.T, overwriteExpected bool, langDir string) {
-	t.Logf("Testing %s code generator", langDir)
+func generateAllDirs(t *testing.T, overwriteExpected bool, confKey string) {
+	t.Logf("Testing %s code generator", confKey)
 
-	folders, err := ioutil.ReadDir(langDir)
+	srcType, genType := typesFromConfKey(confKey)
+	testCases, err := ioutil.ReadDir(srcType)
 	assert.NoErr(t, err)
 
-	for _, folder := range folders {
-		if !folder.IsDir() {
+	conf, ok := confs[confKey]
+	assert.True(t, ok)
+
+	for _, testCase := range testCases {
+		if !testCase.IsDir() {
 			continue
 		}
 
-		var dir = filepath.Join(langDir, folder.Name())
-		t.Run(langDir+"/"+folder.Name(), func(t *testing.T) {
+		t.Run(confKey+"/"+testCase.Name(), func(t *testing.T) {
 			t.Parallel()
-			generateOneDir(t, overwriteExpected, confs[langDir], dir)
+			generateOneDir(t, overwriteExpected, conf, srcType, genType, testCase.Name())
 		})
 	}
 }
 
-func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcDir string) {
-	// NOTE: default configs, may be overridden below
-	var dir = srcDir
+func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType, genType, testCase string) {
+	var srcDir = filepath.Join(srcType, testCase)
+	var genDir = srcDir
+	if srcType != genType {
+		genDir = filepath.Join(srcDir, genType)
+	}
+
 	var errorTransformer = func(err error) error {
 		return err
 	}
@@ -79,21 +93,18 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcDir 
 			assert.NoErr(t, os.RemoveAll(tempRoot))
 		}
 
-		// copy the source dir, including the relative paths (to make sure expected errors contain same paths)
-		var tempDir = filepath.Join(tempRoot, srcDir)
-		assert.NoErr(t, copyDirectory(srcDir, tempDir, 0700, 0600))
-		t.Logf("Testing in a temporary directory %s", tempDir)
+		genDir = filepath.Join(tempRoot, testCase)
+		t.Logf("Testing in a temporary directory %s", genDir)
 
 		if conf.helper != nil {
-			if errTrans := conf.helper.prepareTempDir(t, conf, srcDir, tempDir, tempRoot); errTrans != nil {
+			if errTrans := conf.helper.prepareTempDir(t, conf, srcDir, genDir, tempRoot); errTrans != nil {
 				errorTransformer = errTrans
 			}
 		}
-		dir = tempDir
 	}
 
-	modelInfoFile := generator.ModelInfoFile(dir)
-	modelInfoExpectedFile := modelInfoFile + ".expected"
+	modelInfoFile := generator.ModelInfoFile(genDir)
+	modelInfoExpectedFile := generator.ModelInfoFile(srcDir) + ".expected"
 
 	modelFile := conf.generator.ModelFile(modelInfoFile)
 	modelExpectedFile := modelFile + ".expected"
@@ -101,22 +112,22 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcDir 
 	// run the generation twice, first time with deleting old modelInfo
 	for i := 0; i <= 1; i++ {
 		if i == 0 {
-			t.Logf("Testing %s without model info JSON", filepath.Base(dir))
+			t.Logf("Testing %s without model info JSON", filepath.Base(genDir))
 			os.Remove(modelInfoFile)
 		} else if testing.Short() {
 			continue // don't test twice in "short" tests
 		} else {
-			t.Logf("Testing %s with previous model info JSON", filepath.Base(dir))
+			t.Logf("Testing %s with previous model info JSON", filepath.Base(genDir))
 		}
 
 		// setup the desired directory contents by copying "*.initial" files to their name without the extension
-		initialFiles, err := filepath.Glob(filepath.Join(dir, "*.initial"))
+		initialFiles, err := filepath.Glob(filepath.Join(genDir, "*.initial"))
 		assert.NoErr(t, err)
 		for _, initialFile := range initialFiles {
 			assert.NoErr(t, copyFile(initialFile, initialFile[0:len(initialFile)-len(".initial")], 0))
 		}
 
-		generateAllFiles(t, overwriteExpected, conf, dir, modelInfoFile, errorTransformer)
+		generateAllFiles(t, overwriteExpected, conf, srcDir, genDir, modelInfoFile, errorTransformer)
 
 		assertSameFile(t, modelInfoFile, modelInfoExpectedFile, overwriteExpected)
 		assertSameFile(t, modelFile, modelExpectedFile, overwriteExpected)
@@ -132,12 +143,12 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcDir 
 			defer cleanupAfterCompile()
 			t.Parallel()
 			var expectedError error
-			if fileExists(path.Join(dir, "compile-error.expected")) {
-				content, err := ioutil.ReadFile(path.Join(dir, "compile-error.expected"))
+			if fileExists(path.Join(genDir, "compile-error.expected")) {
+				content, err := ioutil.ReadFile(path.Join(genDir, "compile-error.expected"))
 				assert.NoErr(t, err)
 				expectedError = errors.New(string(content))
 			}
-			conf.helper.build(t, conf, dir, expectedError, errorTransformer)
+			conf.helper.build(t, conf, genDir, expectedError, errorTransformer)
 		})
 	}
 }
@@ -167,12 +178,12 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 	}
 }
 
-func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, dir string, modelInfoFile string, errorTransformer func(error) error) {
+func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDir, genDir string, modelInfoFile string, errorTransformer func(error) error) {
 	var modelFile = conf.generator.ModelFile(modelInfoFile)
 
 	// remove generated files during development (they might be syntactically wrong)
 	if overwriteExpected {
-		files, err := filepath.Glob(filepath.Join(dir, "*."+conf.generatedExt))
+		files, err := filepath.Glob(filepath.Join(genDir, "*."+conf.generatedExt))
 		assert.NoErr(t, err)
 
 		for _, file := range files {
@@ -181,7 +192,7 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, dir s
 	}
 
 	// process all source files in the directory
-	inputFiles, err := filepath.Glob(filepath.Join(dir, "*"+conf.sourceExt))
+	inputFiles, err := filepath.Glob(filepath.Join(srcDir, "*"+conf.sourceExt))
 	assert.NoErr(t, err)
 	for _, sourceFile := range inputFiles {
 		// skip generated files & "expected results" files
@@ -195,7 +206,12 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, dir s
 
 		t.Logf("  %s", filepath.Base(sourceFile))
 
-		options := getOptions(t, conf, sourceFile, modelInfoFile)
+		var options = generator.Options{
+			ModelInfoFile: modelInfoFile,
+			// NOTE zero seed for test-only - avoid changes caused by random numbers by fixing them to the same seed
+			Rand:          rand.New(rand.NewSource(0)),
+			CodeGenerator: conf.helper.generatorFor(t, conf, sourceFile, genDir),
+		}
 		err = errorTransformer(generator.Process(sourceFile, options))
 
 		// handle negative test
@@ -218,23 +234,6 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, dir s
 	}
 }
 
-func getOptions(t *testing.T, conf testSpec, sourceFile, modelInfoFile string) generator.Options {
-	var options = generator.Options{
-		ModelInfoFile: modelInfoFile,
-		// NOTE zero seed for test-only - avoid changes caused by random numbers by fixing them to the same seed
-		Rand:          rand.New(rand.NewSource(0)),
-		CodeGenerator: conf.generator,
-	}
-
-	if conf.helper != nil {
-		if args := conf.helper.args(t, sourceFile); args != nil {
-			setArgs(t, args, &options)
-		}
-	}
-
-	return options
-}
-
 var expectedErrorRegexp = regexp.MustCompile(`// *ERROR *=(.+)[\n|\r]`)
 var expectedErrorRegexpMulti = regexp.MustCompile(`(?sU)/\* *ERROR.*[\n|\r](.+)\*/`)
 
@@ -252,38 +251,4 @@ func getExpectedError(t *testing.T, sourceFile string) error {
 
 	assert.Failf(t, "missing error declaration in %s - add comment to the file // ERROR = expected error text", sourceFile)
 	return nil
-}
-
-func setArgs(t *testing.T, args map[string]string, options *generator.Options) {
-	for name, value := range args {
-		_ = value // get rid of the testHelper warning until we start using some options with values
-
-		switch name {
-		case "byValue":
-			options.ByValue = true
-		default:
-			t.Fatalf("unknown option '%s'", name)
-		}
-	}
-}
-
-func argsToMap(args string) map[string]string {
-	var result = map[string]string{}
-
-	for _, arg := range strings.Split(strings.TrimSpace(args), "-") {
-		arg = strings.TrimSpace(arg)
-
-		if len(arg) == 0 {
-			continue
-		}
-
-		var pair = strings.Split(arg, " ")
-		if len(pair) == 1 {
-			result[pair[0]] = ""
-		} else {
-			result[pair[0]] = pair[1]
-		}
-	}
-
-	return result
 }

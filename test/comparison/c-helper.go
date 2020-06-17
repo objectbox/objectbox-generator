@@ -27,10 +27,11 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strings"
 	"testing"
 	"text/template"
 
+	"github.com/objectbox/objectbox-generator/internal/generator"
+	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
@@ -52,8 +53,11 @@ type cTestHelper struct {
 	cpp bool
 }
 
-func (cTestHelper) args(t *testing.T, sourceFile string) map[string]string {
-	return nil
+func (h cTestHelper) generatorFor(t *testing.T, conf testSpec, sourceFile string, genDir string) generator.CodeGenerator {
+	// make a copy of the default generator
+	var gen = *conf.generator.(*cgenerator.CGenerator)
+	gen.OutPath = genDir
+	return &gen
 }
 
 func (cTestHelper) prepareTempDir(t *testing.T, conf testSpec, srcDir, tempDir, tempRoot string) func(err error) error {
@@ -96,11 +100,11 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	{ // write main.c/cpp to the conf dir - a simple one, just include all sources
 		var mainSrc = ""
 
-		entries, err := ioutil.ReadDir(includeDir)
+		files, err := ioutil.ReadDir(includeDir)
 		assert.NoErr(t, err)
-		for _, entry := range entries {
-			if strings.HasPrefix(entry.Name(), conf.generatedExt) {
-				mainSrc = mainSrc + "#include \"" + entry.Name() + "\"\n"
+		for _, file := range files {
+			if conf.generator.IsGeneratedFile(file.Name()) {
+				mainSrc = mainSrc + "#include \"" + file.Name() + "\"\n"
 			}
 		}
 		mainSrc = mainSrc + "int main(){ return 0; }\n\n"

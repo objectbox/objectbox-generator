@@ -39,7 +39,7 @@ table Annotated {
 	/// objectbox:name="name",index
 	fullName:string;
 
-	/// objectbox:id-companion,date
+	/// objectbox:date
 	time:int64;
 
 	/// objectbox:transient

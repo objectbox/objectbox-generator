@@ -23,6 +23,8 @@ import (
 	"flag"
 	"strings"
 	"testing"
+
+	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
 // used during development of generator to overwrite the "golden" files
@@ -35,12 +37,17 @@ var target = flag.String("target", "", "Specify target subdirectory to generate"
 
 func TestCompare(t *testing.T) {
 	if *target == "" {
-		for langDir, _ := range confs {
-			generateAllDirs(t, *overwriteExpected, langDir)
+		for key, _ := range confs {
+			generateAllDirs(t, *overwriteExpected, key)
 		}
 	} else if parts := strings.Split(*target, "/"); len(parts) == 1 {
 		generateAllDirs(t, *overwriteExpected, parts[0])
+	} else if len(parts) == 2 {
+		srcType, genType := typesFromConfKey(parts[0])
+		conf, ok := confs[parts[0]]
+		assert.True(t, ok)
+		generateOneDir(t, *overwriteExpected, conf, srcType, genType, parts[1])
 	} else {
-		generateOneDir(t, *overwriteExpected, confs[parts[0]], "testdata/"+*target)
+		t.Fatal("invalid target specification, expected 1 or two parts separated by '/'")
 	}
 }

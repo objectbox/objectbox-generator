@@ -40,11 +40,10 @@ static inline OBX_model* create_obx_model() {
     obx_model_property_flags(model, OBXPropertyFlags_ID);
     obx_model_property(model, "name", OBXPropertyType_String, 2, 2661732831099943416);
     obx_model_property_flags(model, OBXPropertyFlags_INDEX_HASH);
-    obx_model_property_index_id(model, 1, 8325060299420976708)
+    obx_model_property_index_id(model, 1, 8325060299420976708);
     obx_model_property(model, "time", OBXPropertyType_Date, 3, 7837839688282259259);
-    obx_model_property_flags(model, OBXPropertyFlags_ID_COMPANION);
     obx_model_property(model, "relId", OBXPropertyType_Relation, 4, 2518412263346885298);
-    obx_model_property_flags(model, OBXPropertyFlags(OBXPropertyFlags_INDEXED | OBXPropertyFlags_INDEX_PARTIAL_SKIP_ZERO | OBXPropertyFlags_UNSIGNED));
+    obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEXED | OBXPropertyFlags_INDEX_PARTIAL_SKIP_ZERO | OBXPropertyFlags_UNSIGNED));
     obx_model_property_relation(model, "Typeful", 2, 5617773211005988520);
     obx_model_entity_last_property_id(model, 4, 2518412263346885298);
     
