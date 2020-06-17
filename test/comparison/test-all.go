@@ -48,7 +48,7 @@ func generateAllDirs(t *testing.T, overwriteExpected bool, confKey string) {
 	t.Logf("Testing %s code generator", confKey)
 
 	srcType, genType := typesFromConfKey(confKey)
-	testCases, err := ioutil.ReadDir(srcType)
+	testCases, err := ioutil.ReadDir(path.Join("testdata", srcType))
 	assert.NoErr(t, err)
 
 	conf, ok := confs[confKey]
@@ -67,9 +67,11 @@ func generateAllDirs(t *testing.T, overwriteExpected bool, confKey string) {
 }
 
 func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType, genType, testCase string) {
-	var srcDir = filepath.Join(srcType, testCase)
-	var genDir = srcDir
+	var srcDir = filepath.Join("testdata", srcType, testCase) // where input files, e.g. schema.fbs, are
+	var expDir = srcDir                                       // where expected files for the current type are
+	var genDir = srcDir                                       // where should the generator output the files
 	if srcType != genType {
+		expDir = filepath.Join(srcDir, genType)
 		genDir = filepath.Join(srcDir, genType)
 	}
 
@@ -95,9 +97,10 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 
 		genDir = filepath.Join(tempRoot, testCase)
 		t.Logf("Testing in a temporary directory %s", genDir)
+		assert.NoErr(t, os.MkdirAll(genDir, 0700))
 
 		if conf.helper != nil {
-			if errTrans := conf.helper.prepareTempDir(t, conf, srcDir, genDir, tempRoot); errTrans != nil {
+			if errTrans := conf.helper.prepareTempDir(t, conf, expDir, genDir, tempRoot); errTrans != nil {
 				errorTransformer = errTrans
 			}
 		}
@@ -106,22 +109,22 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 	modelInfoFile := generator.ModelInfoFile(genDir)
 	modelInfoExpectedFile := generator.ModelInfoFile(srcDir) + ".expected"
 
-	modelFile := conf.generator.ModelFile(modelInfoFile)
-	modelExpectedFile := modelFile + ".expected"
+	modelCodeFile := conf.generator.ModelFile(modelInfoFile)
+	modelCodeExpectedFile := conf.generator.ModelFile(generator.ModelInfoFile(expDir)) + ".expected"
 
 	// run the generation twice, first time with deleting old modelInfo
 	for i := 0; i <= 1; i++ {
 		if i == 0 {
-			t.Logf("Testing %s without model info JSON", filepath.Base(genDir))
+			t.Logf("Testing %s->%s '%s' without model info JSON", srcType, genType, testCase)
 			os.Remove(modelInfoFile)
 		} else if testing.Short() {
 			continue // don't test twice in "short" tests
 		} else {
-			t.Logf("Testing %s with previous model info JSON", filepath.Base(genDir))
+			t.Logf("Testing %s->%s '%s' with previous model info JSON", srcType, genType, testCase)
 		}
 
 		// setup the desired directory contents by copying "*.initial" files to their name without the extension
-		initialFiles, err := filepath.Glob(filepath.Join(genDir, "*.initial"))
+		initialFiles, err := filepath.Glob(filepath.Join(expDir, "*.initial"))
 		assert.NoErr(t, err)
 		for _, initialFile := range initialFiles {
 			assert.NoErr(t, copyFile(initialFile, initialFile[0:len(initialFile)-len(".initial")], 0))
@@ -130,7 +133,7 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 		generateAllFiles(t, overwriteExpected, conf, srcDir, genDir, modelInfoFile, errorTransformer)
 
 		assertSameFile(t, modelInfoFile, modelInfoExpectedFile, overwriteExpected)
-		assertSameFile(t, modelFile, modelExpectedFile, overwriteExpected)
+		assertSameFile(t, modelCodeFile, modelCodeExpectedFile, overwriteExpected)
 	}
 
 	// verify the result can be built
@@ -143,8 +146,8 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 			defer cleanupAfterCompile()
 			t.Parallel()
 			var expectedError error
-			if fileExists(path.Join(genDir, "compile-error.expected")) {
-				content, err := ioutil.ReadFile(path.Join(genDir, "compile-error.expected"))
+			if fileExists(path.Join(expDir, "compile-error.expected")) {
+				content, err := ioutil.ReadFile(path.Join(expDir, "compile-error.expected"))
 				assert.NoErr(t, err)
 				expectedError = errors.New(string(content))
 			}
