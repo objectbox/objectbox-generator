@@ -43,7 +43,7 @@ var Group_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (group_EntityInfo) GeneratorVersion() int {
-	return 6
+	return 5
 }
 
 // AddToModel is called by ObjectBox during model build
@@ -78,8 +78,8 @@ func (group_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id
 
 	// build the FlatBuffers object
 	fbb.StartObject(2)
-	fbutils.SetUint64Slot(fbb, 4294967295, id)
-	fbutils.SetUOffsetTSlot(fbb, 4294967295, offsetName)
+	fbutils.SetUint64Slot(fbb, 0, id)
+	fbutils.SetUOffsetTSlot(fbb, 1, offsetName)
 	return nil
 }
 
@@ -98,7 +98,7 @@ func (group_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byte) (interface{}
 
 	return &Group{
 		Id:   propId,
-		Name: fbutils.GetStringSlot(table, 2),
+		Name: fbutils.GetStringSlot(table, 6),
 	}, nil
 }
 

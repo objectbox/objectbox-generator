@@ -36,7 +36,7 @@ var A_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (a_EntityInfo) GeneratorVersion() int {
-	return 6
+	return 5
 }
 
 // AddToModel is called by ObjectBox during model build
@@ -68,7 +68,7 @@ func (a_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id uin
 
 	// build the FlatBuffers object
 	fbb.StartObject(1)
-	fbutils.SetUint64Slot(fbb, 4294967295, id)
+	fbutils.SetUint64Slot(fbb, 0, id)
 	return nil
 }
 

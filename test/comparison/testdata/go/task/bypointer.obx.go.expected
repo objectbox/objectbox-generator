@@ -42,7 +42,7 @@ var Task_ = struct {
 			Entity: &TaskBinding.Entity,
 		},
 	},
-	text: &objectbox.PropertyString{
+	Text: &objectbox.PropertyString{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     3,
 			Entity: &TaskBinding.Entity,
@@ -65,7 +65,7 @@ var Task_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (task_EntityInfo) GeneratorVersion() int {
-	return 6
+	return 5
 }
 
 // AddToModel is called by ObjectBox during model build
@@ -105,17 +105,17 @@ func (task_EntityInfo) PutRelated(ob *objectbox.ObjectBox, object interface{}, i
 func (task_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id uint64) error {
 	obj := object.(*Task)
 	var offsetUid = fbutils.CreateStringOffset(fbb, obj.Uid)
-	var offsettext = fbutils.CreateStringOffset(fbb, obj.Text)
+	var offsetText = fbutils.CreateStringOffset(fbb, obj.Text)
 
 	var rIdGroupId = obj.GroupId
 
 	// build the FlatBuffers object
 	fbb.StartObject(5)
-	fbutils.SetUint64Slot(fbb, 4294967295, id)
-	fbutils.SetUOffsetTSlot(fbb, 4294967295, offsetUid)
-	fbutils.SetUOffsetTSlot(fbb, 4294967295, offsetText)
-	fbutils.SetUint64Slot(fbb, 4294967295, obj.Date)
-	fbutils.SetUint64Slot(fbb, 4294967295, rIdGroupId)
+	fbutils.SetUint64Slot(fbb, 0, id)
+	fbutils.SetUOffsetTSlot(fbb, 1, offsetUid)
+	fbutils.SetUOffsetTSlot(fbb, 2, offsetText)
+	fbutils.SetUint64Slot(fbb, 3, obj.Date)
+	fbutils.SetUint64Slot(fbb, 4, rIdGroupId)
 	return nil
 }
 
@@ -134,10 +134,10 @@ func (task_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byte) (interface{},
 
 	return &Task{
 		Id:      propId,
-		Uid:     fbutils.GetStringSlot(table, 2),
-		Text:    fbutils.GetStringSlot(table, 2),
-		Date:    fbutils.GetUint64Slot(table, 2),
-		GroupId: fbutils.GetUint64Slot(table, 2),
+		Uid:     fbutils.GetStringSlot(table, 6),
+		Text:    fbutils.GetStringSlot(table, 8),
+		Date:    fbutils.GetUint64Slot(table, 10),
+		GroupId: fbutils.GetUint64Slot(table, 12),
 	}, nil
 }
 
@@ -402,7 +402,7 @@ var Group_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (group_EntityInfo) GeneratorVersion() int {
-	return 6
+	return 5
 }
 
 // AddToModel is called by ObjectBox during model build
@@ -434,7 +434,7 @@ func (group_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id
 
 	// build the FlatBuffers object
 	fbb.StartObject(1)
-	fbutils.SetUint64Slot(fbb, 4294967295, id)
+	fbutils.SetUint64Slot(fbb, 0, id)
 	return nil
 }
 
