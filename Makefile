@@ -1,7 +1,7 @@
 # Default target executed when no arguments are given to make.
 default_target: all
 
-.PHONY: default_target clean depend build help
+.PHONY: default_target help clean depend build test
 
 help:			## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -10,14 +10,13 @@ help:			## Show this help
 
 #==============================================================================
 
-all: depend build test
+all: depend build
 
 build:			## Build all targets
 	CGO_ENABLED=1 go build ./cmd/objectbox-generator/
 
-test: build		## Test all targets
-	# echo "NOTE tests are WIP, currently not executed"
-	# go test -v ./...
+test: 			## Test all targets
+	go test ./...
 
 clean:			## Clean previous builds
 	go clean -cache ./..
