@@ -37,15 +37,15 @@ type GoGenerator struct {
 }
 
 // BindingFile returns a name of the binding file for the given entity file.
-func BindingFile(sourceFile string) string {
-	var extension = filepath.Ext(sourceFile)
-	return sourceFile[0:len(sourceFile)-len(extension)] + ".obx" + extension
+func (GoGenerator) BindingFile(forFile string) string {
+	var extension = filepath.Ext(forFile)
+	return forFile[0:len(forFile)-len(extension)] + ".obx" + extension
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
-func ModelFile(modelInfoFile string) string {
-	var extension = filepath.Ext(modelInfoFile)
-	return modelInfoFile[0:len(modelInfoFile)-len(extension)] + ".go"
+func (GoGenerator) ModelFile(forFile string) string {
+	var extension = filepath.Ext(forFile)
+	return forFile[0:len(forFile)-len(extension)] + ".go"
 }
 
 func (GoGenerator) IsGeneratedFile(file string) bool {
@@ -80,7 +80,7 @@ func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator
 		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
 	}
 
-	var bindingFile = BindingFile(sourceFile)
+	var bindingFile = goGen.BindingFile(sourceFile)
 	if formattedSource, err := format.Source(bindingSource); err != nil {
 		// we just store error but still write the file so that we can check it manually
 		err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
@@ -123,7 +123,7 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options, m *mode
 func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, modelInfo *model.ModelInfo) error {
 	var err, err2 error
 
-	var modelFile = ModelFile(options.ModelInfoFile)
+	var modelFile = goGen.ModelFile(options.ModelInfoFile)
 	var modelSource []byte
 
 	if modelSource, err = goGen.generateModelFile(modelInfo); err != nil {

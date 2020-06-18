@@ -1,0 +1,8 @@
+// ERROR = can't merge model information: merging entity EntityC: property New: uid annotation value must not be empty, the property isn't present in the persisted model
+
+// negative test, uid annotation on an unknown property
+table EntityC {
+	Id		: uint64	;
+	/// objectbox:uid
+	New		: string	;
+}

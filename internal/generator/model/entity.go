@@ -90,7 +90,7 @@ func (entity *Entity) Validate() (err error) {
 
 			if lastId == property.Id.getIdSafe() {
 				if lastUid != property.Id.getUidSafe() {
-					return fmt.Errorf("lastPropertyId %s doesn't match relation %s %s",
+					return fmt.Errorf("lastPropertyId %s doesn't match property %s %s",
 						entity.LastPropertyId, property.Name, property.Id)
 				}
 				found = true
