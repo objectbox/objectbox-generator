@@ -59,9 +59,10 @@ func generateAllDirs(t *testing.T, overwriteExpected bool, confKey string) {
 			continue
 		}
 
+		var tc = testCase.Name() // need to create a variable in order to be captured properly by the lambda below
 		t.Run(confKey+"/"+testCase.Name(), func(t *testing.T) {
 			t.Parallel()
-			generateOneDir(t, overwriteExpected, conf, srcType, genType, testCase.Name())
+			generateOneDir(t, overwriteExpected, conf, srcType, genType, tc)
 		})
 	}
 }
@@ -124,13 +125,10 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 		}
 
 		// setup the desired directory contents by copying "*.initial" files to their name without the extension
-		initialFiles, err := filepath.Glob(filepath.Join(expDir, "*.initial"))
-		assert.NoErr(t, err)
-		for _, initialFile := range initialFiles {
-			assert.NoErr(t, copyFile(initialFile, initialFile[0:len(initialFile)-len(".initial")], 0))
-		}
+		setupInitialFiles(t, srcDir, genDir)
+		setupInitialFiles(t, expDir, genDir)
 
-		generateAllFiles(t, overwriteExpected, conf, srcDir, genDir, modelInfoFile, errorTransformer)
+		generateAllFiles(t, overwriteExpected, conf, srcDir, expDir, genDir, modelInfoFile, errorTransformer)
 
 		assertSameFile(t, modelInfoFile, modelInfoExpectedFile, overwriteExpected)
 		assertSameFile(t, modelCodeFile, modelCodeExpectedFile, overwriteExpected)
@@ -156,7 +154,22 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 	}
 }
 
+func setupInitialFiles(t *testing.T, srcDir, targetDir string) {
+	srcFiles, err := filepath.Glob(filepath.Join(srcDir, "*.initial"))
+	assert.NoErr(t, err)
+	for _, srcFile := range srcFiles {
+		targetFile := filepath.Base(srcFile)
+		targetFile = targetFile[0 : len(targetFile)-len(".initial")]
+		targetFile = filepath.Join(targetDir, targetFile)
+		assert.NoErr(t, copyFile(srcFile, targetFile, 0))
+	}
+}
+
 func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExpected bool) {
+	if overwriteExpected && fileExists(file) {
+		assert.NoErr(t, copyFile(file, expectedFile, 0))
+	}
+
 	// if no file is expected
 	if !fileExists(expectedFile) {
 		// there can be no source file either
@@ -169,10 +182,6 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 	content, err := ioutil.ReadFile(file)
 	assert.NoErr(t, err)
 
-	if overwriteExpected {
-		assert.NoErr(t, copyFile(file, expectedFile, 0))
-	}
-
 	contentExpected, err := ioutil.ReadFile(expectedFile)
 	assert.NoErr(t, err)
 
@@ -181,7 +190,7 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 	}
 }
 
-func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDir, genDir string, modelInfoFile string, errorTransformer func(error) error) {
+func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDir, expDir, genDir string, modelInfoFile string, errorTransformer func(error) error) {
 	var modelFile = conf.generator.ModelFile(modelInfoFile)
 
 	// remove generated files during development (they might be syntactically wrong)
@@ -218,7 +227,7 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 		err = errorTransformer(generator.Process(sourceFile, options))
 
 		// handle negative test
-		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail"+conf.generatedExt)
+		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail"+conf.sourceExt)
 		if shouldFail {
 			if err == nil {
 				assert.Failf(t, "Unexpected PASS on a negative test %s", sourceFile)
@@ -231,8 +240,8 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 
 		assert.NoErr(t, err)
 
-		var bindingFile = conf.generator.BindingFile(sourceFile)
-		var expectedFile = bindingFile + ".expected"
+		var bindingFile = options.CodeGenerator.BindingFile(sourceFile)
+		var expectedFile = strings.Replace(bindingFile, genDir, expDir, 1) + ".expected"
 		assertSameFile(t, bindingFile, expectedFile, overwriteExpected)
 	}
 }

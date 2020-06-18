@@ -116,13 +116,18 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	if err != nil {
 		assert.Failf(t, "cmake build configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 	}
-	t.Logf("configuration output:\n%s", string(stdOut))
+	if testing.Verbose() {
+		t.Logf("configuration output:\n%s", string(stdOut))
+	}
 
 	// build the code
 	stdOut, stdErr, err = cmake(includeDir, "--build", buildDir)
 
 	checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)
-	t.Logf("build output:\n%s", string(stdOut))
+
+	if testing.Verbose() {
+		t.Logf("build output:\n%s", string(stdOut))
+	}
 }
 
 func cmake(cwd string, args ...string) (stdOut []byte, stdErr []byte, err error) {
