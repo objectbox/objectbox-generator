@@ -20,34 +20,16 @@
 package comparison
 
 import (
-	"bufio"
-	"bytes"
 	"io/ioutil"
-	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"testing"
-	"text/template"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
 	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/test/cmake"
 )
-
-var cmakeListsTpl = template.Must(template.New("cmake").Parse(`
-cmake_minimum_required(VERSION 3.0)
-{{if .Cpp}}
-set(CMAKE_CXX_STANDARD 11)
-{{else}}
-set(CMAKE_C_STANDARD 99)
-{{end}}
-project(compilation-test {{if not .Cpp}}C{{end}})
-
-add_executable(${PROJECT_NAME} {{.Main}})
-target_include_directories(${PROJECT_NAME} PRIVATE {{.Include}})
-target_link_libraries(${PROJECT_NAME} objectbox)
-`))
 
 type cTestHelper struct {
 	cpp bool
@@ -68,34 +50,25 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	includeDir, err := filepath.Abs(dir) // main.c/cpp will include generated headers from here
 	assert.NoErr(t, err)
 
-	tempRoot, err := ioutil.TempDir("", "objectbox-generator-test-build")
+	build, err := cmake.CreateCmake("compilation-test", includeDir, true)
 	assert.NoErr(t, err)
-	defer os.RemoveAll(tempRoot)
+	defer build.RemoveTempDirs()
 
-	buildDir := path.Join(tempRoot, "build")
-	cmakeConfDir := path.Join(tempRoot, "conf") // using "conf" dir to write CMakeLists.txt and main.c/cpp
-	assert.NoErr(t, os.Mkdir(buildDir, 0700))
-	assert.NoErr(t, os.Mkdir(cmakeConfDir, 0700))
-
-	mainFile := path.Join(cmakeConfDir, "main.c")
+	var mainFile string
 	if h.cpp {
-		mainFile = path.Join(cmakeConfDir, "main.cpp")
+		build.IsCpp = true
+		build.Standard = 11
+		mainFile = path.Join(build.ConfDir, "main.cpp")
+	} else {
+		build.Standard = 99
+		mainFile = path.Join(build.ConfDir, "main.c")
 	}
 
-	{ // write CMakeLists.txt to the conf dir
-		var tplArguments = struct {
-			Cpp     bool
-			Ext     string
-			Include string
-			Main    string
-		}{h.cpp, conf.generatedExt, includeDir, mainFile}
+	build.Files = append(build.Files, mainFile)
+	build.LinkLibs = append(build.LinkLibs, "objectbox")
+	build.IncludeDirs = append(build.IncludeDirs, includeDir)
 
-		var b bytes.Buffer
-		writer := bufio.NewWriter(&b)
-		assert.NoErr(t, cmakeListsTpl.Execute(writer, tplArguments))
-		assert.NoErr(t, writer.Flush())
-		assert.NoErr(t, ioutil.WriteFile(path.Join(cmakeConfDir, "CMakeLists.txt"), b.Bytes(), 0600))
-	}
+	assert.NoErr(t, build.WriteCMakeListsTxt())
 
 	{ // write main.c/cpp to the conf dir - a simple one, just include all sources
 		var mainSrc = ""
@@ -111,31 +84,16 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 		assert.NoErr(t, ioutil.WriteFile(mainFile, []byte(mainSrc), 0600))
 	}
 
-	// configure the cmake project
-	stdOut, stdErr, err := cmake(buildDir, cmakeConfDir)
-	if err != nil {
-		assert.Failf(t, "cmake build configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
-	}
-	if testing.Verbose() {
+	if stdOut, stdErr, err := build.Configure(); err != nil {
+		assert.Failf(t, "cmake configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+	} else if testing.Verbose() {
 		t.Logf("configuration output:\n%s", string(stdOut))
 	}
 
-	// build the code
-	stdOut, stdErr, err = cmake(includeDir, "--build", buildDir)
-
-	checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)
-
-	if testing.Verbose() {
+	if stdOut, stdErr, err := build.Build(); err != nil {
+		checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)
+		assert.Failf(t, "cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+	} else if testing.Verbose() {
 		t.Logf("build output:\n%s", string(stdOut))
 	}
-}
-
-func cmake(cwd string, args ...string) (stdOut []byte, stdErr []byte, err error) {
-	var cmd = exec.Command("cmake", args...)
-	cmd.Dir = cwd
-	stdOut, err = cmd.Output()
-	if ee, ok := err.(*exec.ExitError); ok {
-		stdErr = ee.Stderr
-	}
-	return
 }
