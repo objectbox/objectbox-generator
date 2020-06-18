@@ -20,6 +20,7 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -191,13 +192,12 @@ func getModelProperty(currentProperty *model.Property, storedEntity *model.Entit
 			}
 
 			// handle "reset property data" use-case - adding a new UID to an existing property
-			return nil, fmt.Errorf(`uid annotation value must not be empty on property %s, entity %s:
+			return nil, fmt.Errorf(`uid annotation value must not be empty:
     [rename] apply the current UID %d
     [change/reset] apply a new UID %d`,
-				currentProperty.Name, currentProperty.Entity.Name, uid, newUid)
+				uid, newUid)
 		}
-		return nil, fmt.Errorf("uid annotation value must not be empty on an unknown property %s, entity %s",
-			currentProperty.Name, currentProperty.Entity.Name)
+		return nil, errors.New("uid annotation value must not be empty, the property isn't present in the persisted model")
 	}
 
 	if property == nil {
@@ -225,7 +225,14 @@ func mergeModelProperty(currentProperty *model.Property, storedProperty *model.P
 		if err != nil {
 			return err
 		}
+
+		prevFullId := storedProperty.Id
 		storedProperty.Id = model.CreateIdUid(id, uid)
+
+		// if the updated property is the "last property ID" on it's owning entity, update - update the reference
+		if storedProperty.Entity.LastPropertyId == prevFullId {
+			storedProperty.Entity.LastPropertyId = storedProperty.Id
+		}
 	}
 
 	// TODO not sure we need this check

@@ -3,172 +3,134 @@
 #pragma once
 
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
 
-#include "flatcc/flatcc.h"
-#include "flatcc/flatcc_builder.h"
+#include "flatbuffers/flatbuffers.h"
 #include "objectbox.h"
 
-typedef struct test_Other {
+namespace test {
+struct Other_;
+
+struct Other {
+    using _OBX_MetaInfo = Other_;
+    
     uint64_t id;
     int32_t value;
-    
-} test_Other;
-
-enum test_Other_ {
-    test_Other_ENTITY_ID = 1,
-    test_Other_PROP_ID_id = 1,
-    test_Other_PROP_ID_value = 2,
 };
 
-typedef struct test2_multi_Another {
+struct Other_ {
+    static const obx_schema_id id = 1;
+    static const obx_schema_id value = 2;
+
+    static constexpr obx_schema_id entityId() { return 1; }
+
+    static void setObjectId(Other& object, obx_id newId) { object.id = newId; }
+
+    /// Write given object to the FlatBufferBuilder
+    static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Other& object);
+
+    /// Read an object from a valid FlatBuffer
+    static Other fromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static std::unique_ptr<Other> newFromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static void fromFlatBuffer(const void* data, size_t size, Other& outObject);
+};
+}  // namespace test
+
+namespace test2 {
+namespace multi {
+struct Another_;
+
+struct Another {
+    using _OBX_MetaInfo = Another_;
+    
     uint64_t id;
     int32_t value;
-    
-} test2_multi_Another;
-
-enum test2_multi_Another_ {
-    test2_multi_Another_ENTITY_ID = 2,
-    test2_multi_Another_PROP_ID_id = 1,
-    test2_multi_Another_PROP_ID_value = 2,
 };
 
-/// Write given object to the FlatBufferBuilder
-/// TODO test on a big-endian platform... especially vector creation
-static bool test_Other_to_flatbuffer(flatcc_builder_t* B, const test_Other* object, void** out_buffer, size_t* out_size) {
-    assert(B);
-    assert(object);
-    assert(out_buffer);
-    assert(out_size);
+struct Another_ {
+    static const obx_schema_id id = 1;
+    static const obx_schema_id value = 2;
 
-    flatcc_builder_reset(B);
-    flatcc_builder_start_buffer(B, 0, 0, 0);
-    
+    static constexpr obx_schema_id entityId() { return 2; }
 
-    if (flatcc_builder_start_table(B, 2) != 0) return false;
+    static void setObjectId(Another& object, obx_id newId) { object.id = newId; }
 
-    void* p;
-    flatcc_builder_ref_t* _p;
-    
-    if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->id);
-    
-    if (!(p = flatcc_builder_table_add(B, 1, 4, 4))) return false;
-    flatbuffers_int32_write_to_pe(p, object->value);
-    
-    flatcc_builder_ref_t ref;
-    if (!(ref = flatcc_builder_end_table(B))) return false;
-    if (!flatcc_builder_end_buffer(B, ref)) return false;
-    return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
+    /// Write given object to the FlatBufferBuilder
+    static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Another& object);
+
+    /// Read an object from a valid FlatBuffer
+    static Another fromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static std::unique_ptr<Another> newFromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static void fromFlatBuffer(const void* data, size_t size, Another& outObject);
+};
+}  // namespace multi
+}  // namespace test2
+
+inline void test::Other_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const test::Other& object) {
+    fbb.Clear();
+    flatbuffers::uoffset_t fbStart = fbb.StartTable();
+    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.id));
+    fbb.TrackField(6, fbb.PushElement<int32_t>(object.value));
+    flatbuffers::Offset<flatbuffers::Table> offset;
+    offset.o = fbb.EndTable(fbStart);
+    fbb.Finish(offset);
 }
 
-/// Read an object from a valid FlatBuffer.
-/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling test_Other_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function twice on the same object. 
-static void test_Other_from_flatbuffer(const void* data, size_t size, test_Other* out_object) {
-    assert(data);
-    assert(out_object);
-
-    const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
-    assert(table);
-    flatbuffers_voffset_t *vt = (flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
-    flatbuffers_voffset_t vs = __flatbuffers_voffset_read_from_pe(vt);
-
-    // variables reused when reading strings and vectors
-    flatbuffers_voffset_t offset;
-    const flatbuffers_uoffset_t* val;
-    size_t len;
-
-    out_object->id = (vs < sizeof(vt[0]) * (0 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 0 + 2));
-    out_object->value = (vs < sizeof(vt[0]) * (1 + 3)) ? 0 : flatbuffers_int32_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 1 + 2));
-    
-}
-
-/// Read an object from a valid FlatBuffer, allocating the object on heap. 
-/// The object must be freed after use by calling test_Other_free();
-static test_Other* test_Other_new_from_flatbuffer(const void* data, size_t size) {
-    test_Other* object = (test_Other*) malloc(sizeof(test_Other));
-    test_Other_from_flatbuffer(data, size, object);
+inline test::Other test::Other_::fromFlatBuffer(const void* data, size_t size) {
+    test::Other object;
+    fromFlatBuffer(data, size, object);
     return object;
 }
 
-static void test_Other_free_pointers(test_Other* object) {
-}
-
-static void test_Other_free(test_Other** object) {
-    if (!object || !*object) return;
-    test_Other_free_pointers(*object);
-    free(*object);
-    *object = NULL;
-}
-
-/// Write given object to the FlatBufferBuilder
-/// TODO test on a big-endian platform... especially vector creation
-static bool test2_multi_Another_to_flatbuffer(flatcc_builder_t* B, const test2_multi_Another* object, void** out_buffer, size_t* out_size) {
-    assert(B);
-    assert(object);
-    assert(out_buffer);
-    assert(out_size);
-
-    flatcc_builder_reset(B);
-    flatcc_builder_start_buffer(B, 0, 0, 0);
-    
-
-    if (flatcc_builder_start_table(B, 2) != 0) return false;
-
-    void* p;
-    flatcc_builder_ref_t* _p;
-    
-    if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->id);
-    
-    if (!(p = flatcc_builder_table_add(B, 1, 4, 4))) return false;
-    flatbuffers_int32_write_to_pe(p, object->value);
-    
-    flatcc_builder_ref_t ref;
-    if (!(ref = flatcc_builder_end_table(B))) return false;
-    if (!flatcc_builder_end_buffer(B, ref)) return false;
-    return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
-}
-
-/// Read an object from a valid FlatBuffer.
-/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling test2_multi_Another_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function twice on the same object. 
-static void test2_multi_Another_from_flatbuffer(const void* data, size_t size, test2_multi_Another* out_object) {
-    assert(data);
-    assert(out_object);
-
-    const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
-    assert(table);
-    flatbuffers_voffset_t *vt = (flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
-    flatbuffers_voffset_t vs = __flatbuffers_voffset_read_from_pe(vt);
-
-    // variables reused when reading strings and vectors
-    flatbuffers_voffset_t offset;
-    const flatbuffers_uoffset_t* val;
-    size_t len;
-
-    out_object->id = (vs < sizeof(vt[0]) * (0 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 0 + 2));
-    out_object->value = (vs < sizeof(vt[0]) * (1 + 3)) ? 0 : flatbuffers_int32_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 1 + 2));
-    
-}
-
-/// Read an object from a valid FlatBuffer, allocating the object on heap. 
-/// The object must be freed after use by calling test2_multi_Another_free();
-static test2_multi_Another* test2_multi_Another_new_from_flatbuffer(const void* data, size_t size) {
-    test2_multi_Another* object = (test2_multi_Another*) malloc(sizeof(test2_multi_Another));
-    test2_multi_Another_from_flatbuffer(data, size, object);
+inline std::unique_ptr<test::Other> test::Other_::newFromFlatBuffer(const void* data, size_t size) {
+    auto object = std::unique_ptr<test::Other>(new test::Other());
+    fromFlatBuffer(data, size, *object);
     return object;
 }
 
-static void test2_multi_Another_free_pointers(test2_multi_Another* object) {
+inline void test::Other_::fromFlatBuffer(const void* data, size_t size, test::Other& outObject) {
+    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
+    assert(table);
+    outObject.id = table->GetField<uint64_t>(4, 0);
+    outObject.value = table->GetField<int32_t>(6, 0);
+    
 }
 
-static void test2_multi_Another_free(test2_multi_Another** object) {
-    if (!object || !*object) return;
-    test2_multi_Another_free_pointers(*object);
-    free(*object);
-    *object = NULL;
+inline void test2::multi::Another_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const test2::multi::Another& object) {
+    fbb.Clear();
+    flatbuffers::uoffset_t fbStart = fbb.StartTable();
+    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.id));
+    fbb.TrackField(6, fbb.PushElement<int32_t>(object.value));
+    flatbuffers::Offset<flatbuffers::Table> offset;
+    offset.o = fbb.EndTable(fbStart);
+    fbb.Finish(offset);
+}
+
+inline test2::multi::Another test2::multi::Another_::fromFlatBuffer(const void* data, size_t size) {
+    test2::multi::Another object;
+    fromFlatBuffer(data, size, object);
+    return object;
+}
+
+inline std::unique_ptr<test2::multi::Another> test2::multi::Another_::newFromFlatBuffer(const void* data, size_t size) {
+    auto object = std::unique_ptr<test2::multi::Another>(new test2::multi::Another());
+    fromFlatBuffer(data, size, *object);
+    return object;
+}
+
+inline void test2::multi::Another_::fromFlatBuffer(const void* data, size_t size, test2::multi::Another& outObject) {
+    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
+    assert(table);
+    outObject.id = table->GetField<uint64_t>(4, 0);
+    outObject.value = table->GetField<int32_t>(6, 0);
+    
 }
 
