@@ -26,11 +26,12 @@ import (
 )
 
 // LibraryExists tries to compile a simple program linking to the given library
-func LibraryExists(name string, includeFiles []string) error {
+func LibraryExists(name string, includeFiles []string, includeDirs []string) error {
 	build := Cmake{
-		Name:  "check-" + name,
-		IsCpp: true,
-		Files: []string{"main.cpp"},
+		Name:        "check-" + name,
+		IsCpp:       true,
+		Files:       []string{"main.cpp"},
+		IncludeDirs: includeDirs,
 	}
 	if err := build.CreateTempDirs(); err != nil {
 		return err

@@ -17,22 +17,6 @@
  * along with ObjectBox Generator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cmake_test
+package build
 
-import (
-	"testing"
-
-	"github.com/objectbox/objectbox-generator/test/assert"
-	"github.com/objectbox/objectbox-generator/test/cmake"
-)
-
-func TestLibExists(t *testing.T) {
-	err := cmake.LibraryExists("nonsense", nil, nil)
-	assert.Err(t, err)
-
-	err = cmake.LibraryExists("", []string{"non-existent-lib/include.h"}, nil)
-	assert.Err(t, err)
-
-	err = cmake.LibraryExists("stdc++", []string{"bits/stdc++.h"}, nil)
-	assert.NoErr(t, err)
-}
+const FlatbuffersIncludeDir = "third_party/flatbuffers-c-bridge/third_party/flatbuffers/include"

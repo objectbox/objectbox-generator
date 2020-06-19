@@ -17,9 +17,10 @@
  * along with ObjectBox Generator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package compilers
+package build
 
 import (
+	"path"
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/test/assert"
@@ -27,22 +28,25 @@ import (
 )
 
 // Check verifies the C/C++ objectbox test code can be compiled - whether the required libraries are available.
-func CanCompileC(t *testing.T, cpp, required bool) bool {
-	{ // check objectbox lib
-		var includeFiles = []string{"objectbox.h"}
-		if cpp {
-			includeFiles = append(includeFiles, "objectbox-cpp.h")
-		}
-		assert.NoErr(t, cmake.LibraryExists("objectbox", includeFiles))
+func CanCompileObjectBoxCCpp(t *testing.T, repoRoot string, cpp, required bool) bool {
+	var fbsIncludeDirs = []string{path.Join(repoRoot, FlatbuffersIncludeDir)}
+
+	var err error
+
+	// check objectbox lib
+	if cpp {
+		err = cmake.LibraryExists("objectbox", []string{"objectbox-cpp.h"}, fbsIncludeDirs)
+	} else {
+		err = cmake.LibraryExists("objectbox", []string{"objectbox.h"}, nil)
 	}
+	assert.NoErr(t, err)
 
 	// check flatbuffers library availability
-	var err error
 	if cpp {
 		// Note: we don't need flatbuffers library explicitly, it's part of objectbox at the moment.
-		err = cmake.LibraryExists("", []string{"flatbuffers/flatbuffers.h"})
+		err = cmake.LibraryExists("", []string{"flatbuffers/flatbuffers.h"}, fbsIncludeDirs)
 	} else {
-		err = cmake.LibraryExists("flatccrt", []string{"flatcc/flatcc.h", "flatcc/flatcc_builder.h"})
+		err = cmake.LibraryExists("flatccrt", []string{"flatcc/flatcc.h", "flatcc/flatcc_builder.h"}, nil)
 	}
 
 	if required {

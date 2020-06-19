@@ -26,10 +26,10 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
-	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
+	"github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/test/build"
 	"github.com/objectbox/objectbox-generator/test/cmake"
-	"github.com/objectbox/objectbox-generator/test/compilers"
 )
 
 type cTestHelper struct {
@@ -39,8 +39,9 @@ type cTestHelper struct {
 
 func (h *cTestHelper) init(t *testing.T, conf testSpec) {
 	if !testing.Short() {
+
 		var mandatory = h.cpp // we require cpp compilation to be available at the moment
-		h.canCompile = compilers.CanCompileC(t, h.cpp, mandatory)
+		h.canCompile = build.CanCompileObjectBoxCCpp(t, repoRoot(t), h.cpp, mandatory)
 	}
 }
 
@@ -63,31 +64,31 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	includeDir, err := filepath.Abs(dir) // main.c/cpp will include generated headers from here
 	assert.NoErr(t, err)
 
-	build := cmake.Cmake{
+	cmak := cmake.Cmake{
 		Name:        "compilation-test",
 		IsCpp:       h.cpp,
-		IncludeDirs: []string{includeDir},
+		IncludeDirs: []string{includeDir, path.Join(repoRoot(t), build.FlatbuffersIncludeDir)},
 		LinkLibs:    []string{"objectbox"},
 	}
-	assert.NoErr(t, build.CreateTempDirs())
-	defer build.RemoveTempDirs()
+	assert.NoErr(t, cmak.CreateTempDirs())
+	defer cmak.RemoveTempDirs()
 
 	var mainFile string
-	if build.IsCpp {
-		build.Standard = 11
-		mainFile = path.Join(build.ConfDir, "main.cpp")
+	if cmak.IsCpp {
+		cmak.Standard = 11
+		mainFile = path.Join(cmak.ConfDir, "main.cpp")
 	} else {
-		build.Standard = 99
-		mainFile = path.Join(build.ConfDir, "main.c")
+		cmak.Standard = 99
+		mainFile = path.Join(cmak.ConfDir, "main.c")
 	}
 
-	build.Files = append(build.Files, mainFile)
+	cmak.Files = append(cmak.Files, mainFile)
 
-	assert.NoErr(t, build.WriteCMakeListsTxt())
+	assert.NoErr(t, cmak.WriteCMakeListsTxt())
 
 	{ // write main.c/cpp to the conf dir - a simple one, just include all sources
 		var mainSrc = ""
-		if build.IsCpp {
+		if cmak.IsCpp {
 			mainSrc = mainSrc + "#include \"objectbox-cpp.h\"\n"
 		} else {
 			mainSrc = mainSrc + "#include \"objectbox.h\"\n"
@@ -106,13 +107,13 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 		assert.NoErr(t, ioutil.WriteFile(mainFile, []byte(mainSrc), 0600))
 	}
 
-	if stdOut, stdErr, err := build.Configure(); err != nil {
+	if stdOut, stdErr, err := cmak.Configure(); err != nil {
 		assert.Failf(t, "cmake configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 	} else {
 		t.Logf("configuration output:\n%s", string(stdOut))
 	}
 
-	if stdOut, stdErr, err := build.Build(); err != nil {
+	if stdOut, stdErr, err := cmak.Build(); err != nil {
 		checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)
 		assert.Failf(t, "cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 	} else {
