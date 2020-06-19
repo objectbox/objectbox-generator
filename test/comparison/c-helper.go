@@ -50,13 +50,17 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	includeDir, err := filepath.Abs(dir) // main.c/cpp will include generated headers from here
 	assert.NoErr(t, err)
 
-	build, err := cmake.CreateCmake("compilation-test", includeDir, true)
-	assert.NoErr(t, err)
+	build := cmake.Cmake{
+		Name:        "compilation-test",
+		IsCpp:       h.cpp,
+		IncludeDirs: []string{includeDir},
+		LinkLibs:    []string{"objectbox"},
+	}
+	assert.NoErr(t, build.CreateTempDirs())
 	defer build.RemoveTempDirs()
 
 	var mainFile string
-	if h.cpp {
-		build.IsCpp = true
+	if build.IsCpp {
 		build.Standard = 11
 		mainFile = path.Join(build.ConfDir, "main.cpp")
 	} else {
@@ -65,8 +69,6 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	}
 
 	build.Files = append(build.Files, mainFile)
-	build.LinkLibs = append(build.LinkLibs, "objectbox")
-	build.IncludeDirs = append(build.IncludeDirs, includeDir)
 
 	assert.NoErr(t, build.WriteCMakeListsTxt())
 
@@ -86,14 +88,14 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 
 	if stdOut, stdErr, err := build.Configure(); err != nil {
 		assert.Failf(t, "cmake configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
-	} else if testing.Verbose() {
+	} else {
 		t.Logf("configuration output:\n%s", string(stdOut))
 	}
 
 	if stdOut, stdErr, err := build.Build(); err != nil {
 		checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)
 		assert.Failf(t, "cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
-	} else if testing.Verbose() {
+	} else {
 		t.Logf("build output:\n%s", string(stdOut))
 	}
 }

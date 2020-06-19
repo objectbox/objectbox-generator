@@ -31,6 +31,7 @@ import (
 	"text/template"
 )
 
+// Cmake contains all configuration necessary to configure and build a CMake project
 type Cmake struct {
 	// Configs required for CMakeLists.txt
 	Name        string // Executable name
@@ -49,38 +50,49 @@ type Cmake struct {
 	tempRoot string
 }
 
-// CreateCmake creates new cmake configuration.
-// If useTempDirs is true, ConfDir and BuildDir are created as temporary directory
-func CreateCmake(name, sourceDir string, useTempDirs bool) (Cmake, error) {
-	var cmake = Cmake{
-		Name:      name,
-		SourceDir: sourceDir,
+// CreateTempDirs creates temporary directories for conf and build dir
+func (cmake *Cmake) CreateTempDirs() error {
+	if len(cmake.tempRoot) != 0 {
+		return errors.New("temp root is already set")
 	}
 
-	if useTempDirs {
-		var err error
-		if cmake.tempRoot, err = ioutil.TempDir("", name+"cmake"); err != nil {
-			return cmake, err
-		}
-
-		cmake.BuildDir = filepath.Join(cmake.tempRoot, "build")
-		cmake.ConfDir = filepath.Join(cmake.tempRoot, "conf")
-		if err = os.Mkdir(cmake.BuildDir, 0700); err != nil {
-			os.RemoveAll(cmake.tempRoot)
-			return cmake, err
-		}
-		if err = os.Mkdir(cmake.ConfDir, 0700); err != nil {
-			os.RemoveAll(cmake.tempRoot)
-			return cmake, err
-		}
+	tempRoot, err := ioutil.TempDir("", cmake.Name+"cmake")
+	if err != nil {
+		return err
 	}
 
-	return cmake, nil
+	buildDir, err := createTempDir(tempRoot, "build")
+	confDir, err2 := createTempDir(tempRoot, "conf")
+
+	if err != nil || err2 != nil {
+		os.RemoveAll(cmake.tempRoot)
+		if err != nil {
+			return err
+		}
+		return err2
+	}
+
+	cmake.tempRoot = tempRoot
+	cmake.BuildDir = buildDir
+	cmake.ConfDir = confDir
+
+	if len(cmake.SourceDir) == 0 {
+		cmake.SourceDir = cmake.ConfDir
+	}
+	return nil
+}
+
+func createTempDir(parent, name string) (string, error) {
+	var path = filepath.Join(parent, name)
+	if err := os.Mkdir(path, 0700); err != nil {
+		return "", err
+	}
+	return path, nil
 }
 
 func (cmake *Cmake) RemoveTempDirs() error {
-	if len(cmake.tempRoot) == 0 {
-		return errors.New("temp dirs were not used")
+	if len(cmake.SourceDir) == 0 {
+		cmake.SourceDir = cmake.ConfDir
 	}
 	return os.RemoveAll(cmake.tempRoot)
 }
@@ -110,7 +122,7 @@ var cmakeListsTpl = template.Must(template.New("CMakeLists.txt").
 	}).
 	Parse(`
 cmake_minimum_required(VERSION 3.0)
-set(CMAKE_C{{if .IsCpp}}XX{{end}}_STANDARD {{.Standard}})
+{{if .Standard}}set(CMAKE_C{{if .IsCpp}}XX{{end}}_STANDARD {{.Standard}}){{end}}
 project({{.Name}} C{{if .IsCpp}}XX{{end}})
 
 add_executable(${PROJECT_NAME} {{Join .Files}})
