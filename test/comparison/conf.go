@@ -27,6 +27,9 @@ import (
 )
 
 type testHelper interface {
+	// init sets up the helper before the very first execution
+	init(t *testing.T, conf testSpec)
+
 	// generatorFor constructs and configures a code generator for the given source file
 	generatorFor(t *testing.T, conf testSpec, sourceFile string, genDir string) generator.CodeGenerator
 
@@ -48,7 +51,7 @@ type testSpec struct {
 }
 
 var confs = map[string]testSpec{
-	"fbs-c":   {"c", ".fbs", ".obx.h", &cgenerator.CGenerator{PlainC: true}, cTestHelper{cpp: false}},
-	"fbs-cpp": {"cpp", ".fbs", "-cpp.obx.h", &cgenerator.CGenerator{PlainC: false}, cTestHelper{cpp: true}},
+	"fbs-c":   {"c", ".fbs", ".obx.h", &cgenerator.CGenerator{PlainC: true}, &cTestHelper{cpp: false}},
+	"fbs-cpp": {"cpp", ".fbs", "-cpp.obx.h", &cgenerator.CGenerator{PlainC: false}, &cTestHelper{cpp: true}},
 	// TODO "go":  {"go", ".go", ".obx.go", &gogenerator.GoGenerator{}, goTestHelper{}},
 }

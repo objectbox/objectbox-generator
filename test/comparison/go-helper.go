@@ -42,6 +42,8 @@ var goGeneratorArgsRegexp = regexp.MustCompile("//go:generate go run github.com/
 
 type goTestHelper struct{}
 
+func (h *goTestHelper) init(t *testing.T, conf testSpec) {}
+
 func (h goTestHelper) generatorFor(t *testing.T, conf testSpec, sourceFile string, genDir string) generator.CodeGenerator {
 	source, err := ioutil.ReadFile(sourceFile)
 	assert.NoErr(t, err)

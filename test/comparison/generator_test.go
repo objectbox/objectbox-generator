@@ -46,6 +46,7 @@ func TestCompare(t *testing.T) {
 		srcType, genType := typesFromConfKey(parts[0])
 		conf, ok := confs[parts[0]]
 		assert.True(t, ok)
+		conf.helper.init(t, conf)
 		generateOneDir(t, *overwriteExpected, conf, srcType, genType, parts[1])
 	} else {
 		t.Fatal("invalid target specification, expected 1 or two parts separated by '/'")

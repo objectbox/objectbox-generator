@@ -26,14 +26,14 @@ import (
 )
 
 // LibraryExists tries to compile a simple program linking to the given library
-func LibraryExists(name, includeFile string) (bool, error) {
+func LibraryExists(name string, includeFiles []string) error {
 	build := Cmake{
 		Name:  "check-" + name,
 		IsCpp: true,
 		Files: []string{"main.cpp"},
 	}
 	if err := build.CreateTempDirs(); err != nil {
-		return false, err
+		return err
 	}
 	defer build.RemoveTempDirs()
 
@@ -42,27 +42,30 @@ func LibraryExists(name, includeFile string) (bool, error) {
 	}
 
 	if err := build.WriteCMakeListsTxt(); err != nil {
-		return false, err
+		return err
 	}
 
 	{ // write main.cpp
 		mainPath := filepath.Join(build.SourceDir, build.Files[0])
-		mainSrc := "int main(){ return 0; }\n\n"
-		if len(includeFile) > 0 {
-			mainSrc = "#include <" + includeFile + ">\n" + mainSrc
+		var mainSrc string
+		if len(includeFiles) > 0 {
+			for _, inc := range includeFiles {
+				mainSrc = mainSrc + "#include <" + inc + ">\n"
+			}
 		}
+		mainSrc = mainSrc + "\nint main(){ return 0; }\n\n"
 		if err := ioutil.WriteFile(mainPath, []byte(mainSrc), 0600); err != nil {
-			return false, err
+			return err
 		}
 	}
 
 	if stdOut, stdErr, err := build.Configure(); err != nil {
-		return false, fmt.Errorf("cmake configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+		return fmt.Errorf("cmake configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 	}
 
 	if stdOut, stdErr, err := build.Build(); err != nil {
-		return false, fmt.Errorf("cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+		return fmt.Errorf("cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 	}
 
-	return true, nil
+	return nil
 }
