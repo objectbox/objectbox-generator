@@ -29,6 +29,7 @@ import (
 	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/assert"
 	"github.com/objectbox/objectbox-generator/test/cmake"
+	"github.com/objectbox/objectbox-generator/test/compilers"
 )
 
 type cTestHelper struct {
@@ -38,29 +39,8 @@ type cTestHelper struct {
 
 func (h *cTestHelper) init(t *testing.T, conf testSpec) {
 	if !testing.Short() {
-		h.canCompile = true
-
-		{ // check objectbox lib
-			var includeFiles = []string{"objectbox.h"}
-			if h.cpp {
-				includeFiles = append(includeFiles, "objectbox-cpp.h")
-			}
-			assert.NoErr(t, cmake.LibraryExists("objectbox", includeFiles))
-		}
-
-		// check flatbuffers library availability
-		if h.cpp {
-			// Cpp compilation is mandatory.
-			// Note: we don't need flatbuffers library explicitly, it's part of objectbox at the moment.
-			assert.NoErr(t, cmake.LibraryExists("", []string{"flatbuffers/flatbuffers.h"}))
-		} else {
-
-			err := cmake.LibraryExists("flatccrt", []string{"flatcc/flatcc.h", "flatcc/flatcc_builder.h"})
-			if err != nil {
-				t.Logf("C compilation not available, it will be skipped during tests, because %s", err)
-				h.canCompile = false
-			}
-		}
+		var mandatory = h.cpp // we require cpp compilation to be available at the moment
+		h.canCompile = compilers.CanCompileC(t, h.cpp, mandatory)
 	}
 }
 
