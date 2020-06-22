@@ -13,9 +13,9 @@ buildType=Release
 configArgs="-DCMAKE_BUILD_TYPE=${buildType}"
 
 if [[ "$(uname)" == MINGW* ]] || [[ "$(uname)" == CYGWIN* ]]; then
-    echo "TODO flatcc temporarily disabled on Windows, see https://github.com/dvidelabs/flatcc/issues/155"
-    exit 0
     configArgs+=' -G "MinGW Makefiles"'
+    echo "aligned_alloc() would be missing on MinGW, see https://github.com/dvidelabs/flatcc/issues/155"
+    export CFLAGS="-DFLATCC_USE_GENERIC_ALIGNED_ALLOC=1"
 fi
 
 function prepare() {
@@ -33,7 +33,15 @@ function prepare() {
 function build() {
     echo "******** Configuring & building ********"
 
-    srcDirAbsolute="$(pwd)/$srcDir"
+    # Note: we need an absolute path...
+    # realpath isn't available on macOS and the "else" variant didn't work well on windows because the path was already absolute...
+    srcDirAbsolute=
+    if [[ -x $(command -v realpath) ]]; then
+        srcDirAbsolute=$(realpath "$srcDir")
+    else
+        srcDirAbsolute="$(pwd)/$srcDir"
+    fi
+
     pwd=$(pwd)
     mkdir -p "$buildDir"
 
