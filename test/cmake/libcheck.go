@@ -30,6 +30,7 @@ func LibraryExists(name string, includeFiles, includeDirs, linkDirs []string) er
 	build := Cmake{
 		Name:        "check-" + name,
 		IsCpp:       true,
+		Standard:    11,
 		Files:       []string{"main.cpp"},
 		IncludeDirs: includeDirs,
 		LinkDirs:    linkDirs,
