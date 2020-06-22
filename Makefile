@@ -6,8 +6,6 @@ default_target: all
 help:			## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-
-
 #==============================================================================
 
 all: depend build
@@ -26,3 +24,5 @@ clean:			## Clean previous builds
 
 depend:			## Build dependencies
 	./third_party/flatbuffers-c-bridge/build.sh
+	./third_party/objectbox-c/get-objectbox-c.sh
+
