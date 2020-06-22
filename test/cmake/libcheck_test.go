@@ -33,6 +33,6 @@ func TestLibExists(t *testing.T) {
 	err = cmake.LibraryExists("", []string{"non-existent-lib/include.h"}, nil, nil)
 	assert.Err(t, err)
 
-	err = cmake.LibraryExists("stdc++", []string{"bits/stdc++.h"}, nil, nil)
+	err = cmake.LibraryExists("stdc++", []string{"array"}, nil, nil)
 	assert.NoErr(t, err)
 }
