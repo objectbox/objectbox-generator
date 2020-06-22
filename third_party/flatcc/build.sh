@@ -12,6 +12,12 @@ installDir=${scriptDir}
 buildType=Release
 configArgs="-DCMAKE_BUILD_TYPE=${buildType}"
 
+if [[ "$(uname)" == MINGW* ]] || [[ "$(uname)" == CYGWIN* ]]; then
+    echo "TODO flatcc temporarily disabled on Windows, see https://github.com/dvidelabs/flatcc/issues/155"
+    exit 0
+    configArgs+=' -G "MinGW Makefiles"'
+fi
+
 function prepare() {
     echo "******** Getting Flatcc sources ********"
     if [[ ! -d ${srcDir} ]]; then

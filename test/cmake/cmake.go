@@ -22,12 +22,13 @@ package cmake
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
+	"runtime"
 	"text/template"
 )
 
@@ -41,6 +42,7 @@ type Cmake struct {
 	IncludeDirs []string
 	LinkLibs    []string // Library names or full paths
 	LinkDirs    []string // Where should the linker look for libraries
+	Generator   string
 
 	// Build configuration
 	SourceDir string
@@ -114,10 +116,32 @@ func (cmake *Cmake) WriteCMakeListsTxt() error {
 	return writer.Flush()
 }
 
+func (cmake *Cmake) GetCMakeListsTxt() (string, error) {
+	var b bytes.Buffer
+	writer := bufio.NewWriter(&b)
+	if err := cmakeListsTpl.Execute(writer, cmake); err != nil {
+		return "", err
+	} else if err = writer.Flush(); err != nil {
+		return "", err
+	}
+	return string(b.Bytes()), nil
+}
+
 var cmakeListsTpl = template.Must(template.New("CMakeLists.txt").
 	Funcs(template.FuncMap{
 		"Join": func(ss []string) string {
-			return strings.Join(ss, " ")
+			switch len(ss) {
+			case 0:
+				return ""
+			case 1:
+				return filepath.ToSlash(ss[0])
+			default:
+				var result string
+				for _, s := range ss {
+					result = result + "\n\t" + filepath.ToSlash(s)
+				}
+				return result
+			}
 		},
 	}).
 	Parse(`
@@ -133,7 +157,16 @@ add_executable(${PROJECT_NAME} {{Join .Files}})
 
 // Configure runs cmake configuration step.
 func (cmake *Cmake) Configure() ([]byte, []byte, error) {
-	return cmakeExec(cmake.BuildDir, cmake.ConfDir)
+	if len(cmake.Generator) == 0 && runtime.GOOS == "windows" {
+		// Using MinGW because MSVC doesn't support linking to .dll - app is supposed to load them on runtime
+		cmake.Generator = "MinGW Makefiles"
+	}
+
+	if len(cmake.Generator) > 0 {
+		return cmakeExec(cmake.BuildDir, cmake.ConfDir, "-G", cmake.Generator)
+	} else {
+		return cmakeExec(cmake.BuildDir, cmake.ConfDir)
+	}
 }
 
 // Configure runs cmake build step.

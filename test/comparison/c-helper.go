@@ -86,6 +86,11 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	cmak.Files = append(cmak.Files, mainFile)
 
 	assert.NoErr(t, cmak.WriteCMakeListsTxt())
+	if testing.Verbose() {
+		cml, err := cmak.GetCMakeListsTxt()
+		assert.NoErr(t, err)
+		t.Logf("Using CMakeLists.txt: %s", cml)
+	}
 
 	{ // write main.c/cpp to the conf dir - a simple one, just include all sources
 		var mainSrc = ""
