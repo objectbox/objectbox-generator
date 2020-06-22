@@ -27,12 +27,12 @@ import (
 )
 
 func TestLibExists(t *testing.T) {
-	err := cmake.LibraryExists("nonsense", nil, nil)
+	err := cmake.LibraryExists("nonsense", nil, nil, nil)
 	assert.Err(t, err)
 
-	err = cmake.LibraryExists("", []string{"non-existent-lib/include.h"}, nil)
+	err = cmake.LibraryExists("", []string{"non-existent-lib/include.h"}, nil, nil)
 	assert.Err(t, err)
 
-	err = cmake.LibraryExists("stdc++", []string{"bits/stdc++.h"}, nil)
+	err = cmake.LibraryExists("stdc++", []string{"bits/stdc++.h"}, nil, nil)
 	assert.NoErr(t, err)
 }

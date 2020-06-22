@@ -19,4 +19,20 @@
 
 package build
 
-const FlatbuffersIncludeDir = "third_party/flatbuffers-c-bridge/third_party/flatbuffers/include"
+import "path"
+
+const flatbuffersDir = "third_party/flatbuffers-c-bridge/third_party/flatbuffers"
+const ObjectBoxCDir = "third_party/objectbox-c"
+
+func IncludeDirs(repoRoot string) []string {
+	var result []string
+	result = append(result, path.Join(repoRoot, flatbuffersDir, "include"))
+	result = append(result, path.Join(repoRoot, ObjectBoxCDir, "include"))
+	return result
+}
+
+func LibDirs(repoRoot string) []string {
+	var result []string
+	result = append(result, path.Join(repoRoot, ObjectBoxCDir, "lib"))
+	return result
+}

@@ -127,8 +127,8 @@ project({{.Name}} C{{if .IsCpp}}XX{{end}})
 
 add_executable(${PROJECT_NAME} {{Join .Files}})
 {{if .IncludeDirs}}target_include_directories(${PROJECT_NAME} PRIVATE {{Join .IncludeDirs}}){{end}}
-{{if .LinkLibs}}target_link_libraries(${PROJECT_NAME} {{Join .LinkLibs}}){{end}}
-{{if .LinkDirs}}target_link_directories(${PROJECT_NAME} {{Join .LinkDirs}}){{end}}
+{{if .LinkLibs}}target_link_libraries(${PROJECT_NAME} PRIVATE {{Join .LinkLibs}}){{end}}
+{{if .LinkDirs}}target_link_directories(${PROJECT_NAME} PRIVATE {{Join .LinkDirs}}){{end}}
 `))
 
 // Configure runs cmake configuration step.

@@ -67,7 +67,8 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	cmak := cmake.Cmake{
 		Name:        "compilation-test",
 		IsCpp:       h.cpp,
-		IncludeDirs: []string{includeDir, path.Join(repoRoot(t), build.FlatbuffersIncludeDir)},
+		IncludeDirs: append(build.IncludeDirs(repoRoot(t)), includeDir),
+		LinkDirs:    build.LibDirs(repoRoot(t)),
 		LinkLibs:    []string{"objectbox"},
 	}
 	assert.NoErr(t, cmak.CreateTempDirs())
