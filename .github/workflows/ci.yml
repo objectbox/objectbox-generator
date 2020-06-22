@@ -3,6 +3,10 @@ name: CI
 
 on: [push, pull_request]
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build-linux:
     runs-on: ubuntu-latest
@@ -34,11 +38,9 @@ jobs:
           path: ./third_party/*
           key: ${{ runner.os }}-deps-${{ hashFiles('./third_party/*') }}
 
-      - name: Build & Test
-        run: |
-          make
-          make test-depend
-          make test
+      - run: make
+      - run: make test-depend
+      - run: make test
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -63,12 +65,9 @@ jobs:
           path: ./third_party/*
           key: ${{ runner.os }}-deps-${{ hashFiles('./third_party/*') }}
 
-      - name: Build & Test
-        shell: bash
-        run: |
-          make
-          make test-depend
-          make test
+      - run: make
+      - run: make test-depend
+      - run: make test
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
