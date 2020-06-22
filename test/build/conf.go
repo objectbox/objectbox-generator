@@ -22,17 +22,20 @@ package build
 import "path"
 
 const flatbuffersDir = "third_party/flatbuffers-c-bridge/third_party/flatbuffers"
-const ObjectBoxCDir = "third_party/objectbox-c"
+const flatccDir = "third_party/flatcc"
+const objectBoxCDir = "third_party/objectbox-c"
 
 func IncludeDirs(repoRoot string) []string {
 	var result []string
 	result = append(result, path.Join(repoRoot, flatbuffersDir, "include"))
-	result = append(result, path.Join(repoRoot, ObjectBoxCDir, "include"))
+	result = append(result, path.Join(repoRoot, flatccDir, "include"))
+	result = append(result, path.Join(repoRoot, objectBoxCDir, "include"))
 	return result
 }
 
 func LibDirs(repoRoot string) []string {
 	var result []string
-	result = append(result, path.Join(repoRoot, ObjectBoxCDir, "lib"))
+	result = append(result, path.Join(repoRoot, objectBoxCDir, "lib"))
+	result = append(result, path.Join(repoRoot, flatccDir, "lib"))
 	return result
 }
