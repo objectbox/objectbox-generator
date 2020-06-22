@@ -21,6 +21,8 @@ clean:			## Clean previous builds
 	rm -f objectbox-generator
 	rm -f objectbox-generator.exe
 	rm -rf third_party/flatbuffers-c-bridge/cmake-build
+	./third_party/flatcc/clean.sh
+	./third_party/objectbox-c/clean.sh
 
 depend:			## Build dependencies
 	./third_party/flatbuffers-c-bridge/build.sh
