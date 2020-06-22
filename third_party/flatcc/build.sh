@@ -14,7 +14,8 @@ configArgs="-DCMAKE_BUILD_TYPE=${buildType}"
 
 if [[ "$(uname)" == MINGW* ]] || [[ "$(uname)" == CYGWIN* ]]; then
     configArgs+=' -G "MinGW Makefiles"'
-    echo "aligned_alloc() would be missing on MinGW, see https://github.com/dvidelabs/flatcc/issues/155"
+    # aligned_alloc() would be missing on MinGW, see https://github.com/dvidelabs/flatcc/issues/155
+    # It's fixed now on master, the following line can be removed after upgrading to a new release
     export CFLAGS="-DFLATCC_USE_GENERIC_ALIGNED_ALLOC=1"
 fi
 
