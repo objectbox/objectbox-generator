@@ -46,7 +46,7 @@ func CanCompileObjectBoxCCpp(t *testing.T, repoRoot string, cpp, required bool) 
 		// Note: we don't need flatbuffers library explicitly, it's part of objectbox at the moment.
 		err = cmake.LibraryExists("", []string{"flatbuffers/flatbuffers.h"}, fbsIncludeDirs)
 	} else {
-		err = cmake.LibraryExists("flatccrt", []string{"flatcc/flatcc.h", "flatcc/flatcc_builder.h"}, nil)
+		err = cmake.LibraryExists("flatccrt", []string{"stddef.h", "flatcc/flatcc.h", "flatcc/flatcc_builder.h"}, nil)
 	}
 
 	if required {
