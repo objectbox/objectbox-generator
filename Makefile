@@ -27,7 +27,7 @@ clean:			## Clean previous builds
 depend:			## Build dependencies
 	./third_party/flatbuffers-c-bridge/build.sh
 
-test-depend:	## Build test dependencies
+test-depend: depend		## Build test dependencies
 	./third_party/flatcc/build.sh
 	./third_party/objectbox-c/get-objectbox-c.sh
 

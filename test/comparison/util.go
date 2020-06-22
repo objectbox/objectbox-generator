@@ -55,5 +55,5 @@ func checkBuildError(t *testing.T, errorTransformer func(err error) error, stdOu
 func repoRoot(t *testing.T) string {
 	cwd, err := os.Getwd()
 	assert.NoErr(t, err)
-	return filepath.Join(cwd, "..", "..")
+	return filepath.ToSlash(filepath.Join(cwd, "..", ".."))
 }

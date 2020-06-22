@@ -10,12 +10,7 @@ buildDir=${scriptDir}/build
 installDir=${scriptDir}
 
 buildType=Release
-
 configArgs="-DCMAKE_BUILD_TYPE=${buildType}"
-buildArgs="-- -j"
-if [[ "$(uname)" == MINGW* ]] || [[ "$(uname)" == CYGWIN* ]]; then
-    configArgs+=' -G "MinGW Makefiles"'
-fi
 
 function prepare() {
     echo "******** Getting Flatcc sources ********"
@@ -43,7 +38,7 @@ function build() {
     eval "cmake \"$srcDirAbsolute\" $configArgs"
     cd "$pwd"
 
-    cmake --build "$buildDir" --config ${buildType} --target flatccrt ${buildArgs}
+    cmake --build "$buildDir" --config ${buildType} --target flatccrt
     set +x
 }
 
@@ -51,7 +46,11 @@ function install() {
     echo "******** Collecting artifacts ********"
     echo "Copying from ${srcDir} to ${installDir}:"
     cp -rv "${srcDir}/include" "${installDir}"
-    cp -rv "${srcDir}/lib" "${installDir}"
+    if [[ -d "${srcDir}/lib/${buildType}" ]]; then
+        cp -rv "${srcDir}/lib/${buildType}" "${installDir}/lib"
+    else
+        cp -rv "${srcDir}/lib" "${installDir}"
+    fi
 }
 
 prepare

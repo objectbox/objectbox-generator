@@ -64,6 +64,7 @@ jobs:
           key: ${{ runner.os }}-deps-${{ hashFiles('./third_party/*') }}
 
       - name: Build & Test
+        shell: bash
         run: |
           make
           make test-depend

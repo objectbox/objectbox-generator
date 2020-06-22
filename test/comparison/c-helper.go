@@ -39,7 +39,6 @@ type cTestHelper struct {
 
 func (h *cTestHelper) init(t *testing.T, conf testSpec) {
 	if !testing.Short() {
-
 		var mandatory = h.cpp // we require cpp compilation to be available at the moment
 		h.canCompile = build.CanCompileObjectBoxCCpp(t, repoRoot(t), h.cpp, mandatory)
 	}
@@ -81,6 +80,7 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	} else {
 		cmak.Standard = 99
 		mainFile = path.Join(cmak.ConfDir, "main.c")
+		cmak.LinkLibs = append(cmak.LinkLibs, "flatccrt")
 	}
 
 	cmak.Files = append(cmak.Files, mainFile)

@@ -20,6 +20,7 @@
 package cmake_test
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/test/assert"
@@ -27,12 +28,20 @@ import (
 )
 
 func TestLibExists(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
 	err := cmake.LibraryExists("nonsense", nil, nil, nil)
 	assert.Err(t, err)
 
 	err = cmake.LibraryExists("", []string{"non-existent-lib/include.h"}, nil, nil)
 	assert.Err(t, err)
 
-	err = cmake.LibraryExists("stdc++", []string{"array"}, nil, nil)
+	if runtime.GOOS == "windows" {
+		err = cmake.LibraryExists("", []string{"array"}, nil, nil)
+	} else {
+		err = cmake.LibraryExists("stdc++", []string{"array"}, nil, nil)
+	}
 	assert.NoErr(t, err)
 }
