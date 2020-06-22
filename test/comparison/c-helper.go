@@ -21,8 +21,10 @@ package comparison
 
 import (
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
@@ -40,6 +42,16 @@ type cTestHelper struct {
 func (h *cTestHelper) init(t *testing.T, conf testSpec) {
 	if !testing.Short() {
 		var mandatory = h.cpp // we require cpp compilation to be available at the moment
+		if _, isCI := os.LookupEnv("CI"); isCI {
+			t.Log("CI environment variable defined. Compilation support is mandatory.")
+
+			// TODO remove the exception
+			//  C build is temporarily not mandatory on Windows due to https://github.com/dvidelabs/flatcc/issues/155
+			if runtime.GOOS != "windows" {
+				mandatory = true
+			}
+		}
+
 		h.canCompile = build.CanCompileObjectBoxCCpp(t, repoRoot(t), h.cpp, mandatory)
 	}
 }
