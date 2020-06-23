@@ -26,11 +26,13 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/test/assert"
 	"github.com/objectbox/objectbox-generator/test/build"
 	"github.com/objectbox/objectbox-generator/test/cmake"
+	"github.com/objectbox/objectbox-generator/test/comparison"
 )
 
 // used during development to generate code into the source directory instead of temp
@@ -129,11 +131,16 @@ func TestCCpp(t *testing.T, cpp bool) {
 
 	// Execute
 	if !testing.Short() {
-		var cmd = exec.Command(path.Join(cmak.BuildDir, cmak.Name))
+		var testExecutable = path.Join(cmak.BuildDir, cmak.Name)
+		if runtime.GOOS == "windows" {
+			testExecutable = testExecutable + ".exe"
+			assert.NoErr(t, comparison.CopyFile(path.Join(repoRoot(t), build.ObjectBoxCDir, "lib", "objectbox.dll"), path.Join(cmak.BuildDir, "objectbox.dll"), 0))
+		}
+		var cmd = exec.Command(testExecutable)
 		cmd.Dir = cmak.BuildDir
 		stdOut, err := cmd.Output()
 		if ee, ok := err.(*exec.ExitError); ok {
-			t.Fatalf("compiled test failed: \n%s\n%s", string(stdOut), string(ee.Stderr))
+			t.Fatalf("compiled test failed: %s\n%s\n%s", err, string(stdOut), string(ee.Stderr))
 		}
 		t.Logf("compiled test output: \n%s", string(stdOut))
 		assert.NoErr(t, err)

@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 )
 
-func copyFile(sourceFile, targetFile string, permsOverride os.FileMode) error {
+func CopyFile(sourceFile, targetFile string, permsOverride os.FileMode) error {
 	data, err := ioutil.ReadFile(sourceFile)
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func copyDirectory(sourceDir, targetDir string, dirPerms, filePerms os.FileMode)
 				return err
 			}
 		} else if info.Mode().IsRegular() {
-			if err := copyFile(sourcePath, targetPath, filePerms); err != nil {
+			if err := CopyFile(sourcePath, targetPath, filePerms); err != nil {
 				return err
 			}
 		} else {

@@ -162,13 +162,13 @@ func setupInitialFiles(t *testing.T, srcDir, targetDir string) {
 		targetFile := filepath.Base(srcFile)
 		targetFile = targetFile[0 : len(targetFile)-len(".initial")]
 		targetFile = filepath.Join(targetDir, targetFile)
-		assert.NoErr(t, copyFile(srcFile, targetFile, 0))
+		assert.NoErr(t, CopyFile(srcFile, targetFile, 0))
 	}
 }
 
 func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExpected bool) {
 	if overwriteExpected && fileExists(file) {
-		assert.NoErr(t, copyFile(file, expectedFile, 0))
+		assert.NoErr(t, CopyFile(file, expectedFile, 0))
 	}
 
 	// if no file is expected
