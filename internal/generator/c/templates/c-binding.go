@@ -127,7 +127,7 @@ static void {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size
 	if ((offset = (vs < sizeof(vt[0]) * ({{$property.FbSlot}} + 3)) ? {{$property.Meta.FbDefaultValue}} : __flatbuffers_voffset_read_from_pe(vt + {{$property.FbSlot}} + 2))) {
 		val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
 		len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
-		out_object->{{$property.Meta.CppName}} = ({{$property.Meta.CElementType}}*) malloc(len * sizeof({{$property.Meta.CElementType}}));
+		out_object->{{$property.Meta.CppName}} = ({{$property.Meta.CElementType}}*) malloc({{if eq $propType "String"}}(len+1){{else}}len{{end}} * sizeof({{$property.Meta.CElementType}}));
 		{{- if not (eq $propType "String")}}
 		out_object->{{$property.Meta.CppName}}_len = len;
 		{{- end -}}
