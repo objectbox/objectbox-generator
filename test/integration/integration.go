@@ -93,6 +93,7 @@ func TestCCpp(t *testing.T, cpp bool) {
 	if *inSource {
 		cmak.ConfDir = testSrcDir
 	}
+	cmak.IncludeDirs = append(cmak.IncludeDirs, cmak.ConfDir) // because of the generated files
 
 	if !cpp {
 		cmak.LinkLibs = append(cmak.LinkLibs, "flatccrt")
