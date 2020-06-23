@@ -53,6 +53,7 @@ func generateAllDirs(t *testing.T, overwriteExpected bool, confKey string) {
 
 	conf, ok := confs[confKey]
 	assert.True(t, ok)
+	conf.helper.init(t, conf)
 
 	for _, testCase := range testCases {
 		if !testCase.IsDir() {

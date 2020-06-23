@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -40,7 +41,7 @@ func checkBuildError(t *testing.T, errorTransformer func(err error) error, stdOu
 	var receivedError = errorTransformer(fmt.Errorf("%s\n%s\n%s", stdOut, stdErr, err))
 
 	// Fix paths in the error output on Windows so that it matches the expected error (which always uses '/').
-	if os.PathSeparator != '/' {
+	if os.PathSeparator != '/' && expectedError != nil {
 		// Make sure the expected error doesn't contain the path separator already - to make it easier to debug.
 		if strings.Contains(expectedError.Error(), string(os.PathSeparator)) {
 			assert.Failf(t, "compile-error.expected contains this OS path separator '%v' so paths can't be normalized to '/'", string(os.PathSeparator))
@@ -49,4 +50,10 @@ func checkBuildError(t *testing.T, errorTransformer func(err error) error, stdOu
 	}
 
 	assert.Eq(t, expectedError, receivedError)
+}
+
+func repoRoot(t *testing.T) string {
+	cwd, err := os.Getwd()
+	assert.NoErr(t, err)
+	return filepath.ToSlash(filepath.Join(cwd, "..", ".."))
 }

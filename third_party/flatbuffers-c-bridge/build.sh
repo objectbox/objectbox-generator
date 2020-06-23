@@ -31,7 +31,15 @@ fi
 function build() {
     echo "******** Configuring & building ********"
 
-    srcDirAbsolute="$(pwd)/$srcDir"
+    # Note: we need an absolute path...
+    # realpath isn't available on macOS and the "else" variant didn't work well on windows because the path was already absolute...
+    srcDirAbsolute=
+    if [[ -x $(command -v realpath) ]]; then
+        srcDirAbsolute=$(realpath "$srcDir")
+    else
+        srcDirAbsolute="$(pwd)/$srcDir"
+    fi
+
     pwd=$(pwd)
     mkdir -p "$buildDir"
 

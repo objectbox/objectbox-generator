@@ -3,6 +3,10 @@ name: CI
 
 on: [push, pull_request]
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build-linux:
     runs-on: ubuntu-latest
@@ -10,6 +14,9 @@ jobs:
       image: centos/devtoolset-7-toolchain-centos7
       options: --user 0
     steps:
+      - name: Install Git
+        run: yum install -y git
+
       - name: Install CMake
         env:
           version: 3.17.3
@@ -25,29 +32,21 @@ jobs:
       - name: Get sources
         uses: actions/checkout@v2
 
-      - name: Cache FBS-C-Bridge build dir
-        id: fbs-bridge-cache
+      - name: Cache Deps
         uses: actions/cache@v2
-        env:
-          cache-name: cache-fbs-c-bridge-build
         with:
-          path: ./third_party/flatbuffers-c-bridge/cmake-build/*.a
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('./third_party/flatbuffers-c-bridge/*') }}
+          path: ./third_party/*
+          key: ${{ runner.os }}-deps-${{ hashFiles('./third_party/*') }}
 
-      - name: Build FBS-C-Bridge
-        if: steps.fbs-bridge-cache.outputs.cache-hit != 'true'
-        run: ./third_party/flatbuffers-c-bridge/build.sh
-
-      - name: Build
-        run: |
-          cd cmd/objectbox-generator
-          go build
+      - run: make
+      - run: make test-depend
+      - run: make test
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: objectbox-generator-${{ runner.os }}
-          path: cmd/objectbox-generator/objectbox-generator
+          path: objectbox-generator
 
   build:
     strategy:
@@ -57,30 +56,23 @@ jobs:
           - macos-10.15
     runs-on: ${{ matrix.os }}
     steps:
+      - run: git config --global core.autocrlf false
+
       - name: Get sources
         uses: actions/checkout@v2
 
-      - name: Cache FBS-C-Bridge build dir
-        id: fbs-bridge-cache
+      - name: Cache Deps
         uses: actions/cache@v2
-        env:
-          cache-name: cache-fbs-c-bridge-build
         with:
-          path: ./third_party/flatbuffers-c-bridge/cmake-build/*.a
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('./third_party/flatbuffers-c-bridge/*') }}
+          path: ./third_party/*
+          key: ${{ runner.os }}-deps-${{ hashFiles('./third_party/*') }}
 
-      - name: Build FBS-C-Bridge
-        if: steps.fbs-bridge-cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: ./third_party/flatbuffers-c-bridge/build.sh
-
-      - name: Build
-        run: |
-          cd cmd/objectbox-generator
-          go build
+      - run: make
+      - run: make test-depend
+      - run: make test
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: objectbox-generator-${{ runner.os }}
-          path: cmd/objectbox-generator/objectbox-generator*
+          path: objectbox-generator*

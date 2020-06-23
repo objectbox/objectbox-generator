@@ -65,6 +65,7 @@ func TestFbsSchemaParser(t *testing.T) {
 
 	_, err = file.WriteString(testSchema)
 	assert.NoErr(t, err)
+	assert.NoErr(t, file.Close())
 
 	schema, err = ParseSchemaFile(file.Name())
 	assert.NoErr(t, err)
@@ -123,6 +124,7 @@ func TestFbsFlatc(t *testing.T) {
 
 	_, err = file.WriteString(testSchema)
 	assert.NoErr(t, err)
+	assert.NoErr(t, file.Close())
 
 	code, err = ExecuteFlatc([]string{"--go", "-o", outDir, file.Name()})
 	assert.NoErr(t, err)
