@@ -118,8 +118,8 @@ obx_id task_put(OBX_box* box, Task* task) {
     flatcc_builder_t builder;
     flatcc_builder_init(&builder);
 
-    size_t size;
-    void* buffer;
+    size_t size = 0;
+    void* buffer = NULL;
 
     // Note: Task_to_flatbuffer() is provided by the generated code
     obx_id id = 0;
@@ -128,6 +128,7 @@ obx_id task_put(OBX_box* box, Task* task) {
     }
 
     flatcc_builder_clear(&builder);
+    if (buffer) flatcc_builder_aligned_free(buffer);
 
     if (id == 0) {
         // TODO: won't be able to print the right error if it occurred in Task_to_flatbuffer(), 
