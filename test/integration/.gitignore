@@ -1,0 +1,4 @@
+CMakeLists.txt
+objectbox-model.json
+objectbox-model.[c|h]
+*.obx.[c|h]

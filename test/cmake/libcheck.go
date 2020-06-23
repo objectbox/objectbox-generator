@@ -49,7 +49,7 @@ func LibraryExists(name string, includeFiles, includeDirs, linkDirs []string) er
 	}
 
 	{ // write main.cpp
-		mainPath := filepath.Join(build.SourceDir, build.Files[0])
+		mainPath := filepath.Join(build.ConfDir, build.Files[0])
 		var mainSrc string
 		if len(includeFiles) > 0 {
 			for _, inc := range includeFiles {

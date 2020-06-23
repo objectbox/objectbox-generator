@@ -1,0 +1,20 @@
+/// objectbox: name=AnnotatedEntity
+table Annotated {
+	/// Objectbox requires an ID property.
+	/// It is recognized automatically if it has a right name ("id") or needs to be annotated otherwise.
+	/// objectbox:id
+	identifier:ulong;
+
+	/// objectbox:name="name",index
+	fullName:string;
+
+	/// objectbox:date
+	time:int64;
+
+	/// objectbox:transient
+	skippedField:[uint64];
+
+	/// objectbox:link=Typeful
+	relId:ulong;
+}
+
