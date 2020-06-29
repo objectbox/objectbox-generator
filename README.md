@@ -61,7 +61,7 @@ The following files will be generated:
 > most importantly the objectbox-model.json which ensures compatibility 
 > with previous versions of your database after you make changes to the schema.
 
-Now in your application, you can include the headers and start to work with your database. 
+Now, you can include the generated headers in your application and start working with your database.  
 Consider the following `main.cpp`:
 
 ```cpp
@@ -71,7 +71,7 @@ Consider the following `main.cpp`:
 
 int main(int argc, char* args[]) {
     // create_obx_model() provided by objectbox-model.h
-    // obx interface contents provided by objectbox-ext.h
+    // obx interface contents provided by objectbox-cpp.h
     obx::Store store(create_obx_model());
     obx::Box<Task> box(store);
 
@@ -134,10 +134,10 @@ table Annotated {
 To ensure that the annotations are recognized, follow these guidelines:
 
 * Must be a comment immediately preceding an Entity or a Property (no empty lines between them).
-* The comment must start with three slashes so it's be picked up by FlatBuffer schema parser as  "documentation".
-* Spaces between words inside the comment are skipped so you can use them for better readability, if you like. See e.g. `Annotated`, `time`.
-* The comment must start with the text `objectbox:` and is followed by one or more annotations, separatedy by commas.
-* Each annotation has a name and some annotations also support specifying a value (some even require a value, e.g. `name`). See e.g. `Annotated`, `relId`.
+* The comment must start with three slashes so it's picked up by FlatBuffer schema parser as a "documentation".
+* Spaces between words inside the comment are skipped so you can use them for better readability if you like. See e.g. `Annotated`, `time`.
+* The comment must start with the text `objectbox:` and is followed by one or more annotations, separated by commas.
+* Each annotation has a name and some annotations also support specifying a value (some even require a value, e.g. the `name` annotation). See e.g. `Annotated`, `relId`.
 * Value, if present, is added to the annotation by adding an equal sign and the actual value.
 * A value may additionally be surrounded by double quotes but it's not necessary. See e.g. `fullName` showing both variants.
 
@@ -149,7 +149,7 @@ The following annotations are currently supported:
 
 * **name** - specifies the name to use in the database if it's desired to be different than what the FlatBuffer schema "table" is called.
 * **transient** - this entity is skipped, no code is generated for it. Useful if you have custom FlatBuffer handling but still want to generate ObjectBox binding code for some parts of the same file.
-* **uid** - used to explicitly specify UID used with this entity; used when renaming entities. See [Go documentation on schema changes](https://golang.objectbox.io/schema-changes) which applies here as well.
+* **uid** - used to explicitly specify UID used with this entity; used when renaming entities. See [Go documentation on schema changes](https://golang.objectbox.io/schema-changes) which apply here as well.
 
 #### Property annotations
 
@@ -159,12 +159,12 @@ The following annotations are currently supported:
 * **index** - creates a database index. This can improve performance when querying for that property. You can specify an index type as the annotation value:
   * not specified - automatically choose the index type based on the property type (`hash` for string, `value` for others).
   * `value` - uses property values to build the index. For string, this may require more storage than a hash-based index.
-  * `hash` - uses a 32-bit hash of property value to build the index. Occasional collisions may occur which should not have any performance impact in practice (with normal value distribution). Usually a better choice than `hash64`, as it requires less storage.
-  * `hash64` - uses long hash of property values to build the index. Requires more storage than `hash` and thus should not be the first choice in most cases.
+  * `hash` - uses a 32-bit hash of property value to build the index. Occasional collisions may occur which should not have any performance impact in practice (with normal value distribution). Usually, a better choice than `hash64`, as it requires less storage.
+  * `hash64` - uses a long hash of property values to build the index. Requires more storage than `hash` and thus should not be the first choice in most cases.
 * **link** - declares the field as a relation ID, linking to another Entity which must be specified as a value of this annotation.
 * **name** - specifies the name to use in the database if it's desired to be different than what the FlatBuffer schema "field" is called.
 * **transient** - this property is skipped, no code is generated for it. Useful if you have custom FlatBuffer handling but still want to generate ObjectBox binding code for the entity.
-* **uid** - used to explicitly specify UID used with this property; used when renaming properties. See [Go documentation on schema changes](https://golang.objectbox.io/schema-changes) which applies here as well.
+* **uid** - used to explicitly specify UID used with this property; used when renaming properties. See [Go documentation on schema changes](https://golang.objectbox.io/schema-changes) which apply here as well.
 * **unique** - set to enforce that values are unique before an entity is inserted/updated. A `put` operation will abort and return an error if the unique constraint is violated.
 
 # License
