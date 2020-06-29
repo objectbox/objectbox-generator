@@ -17,12 +17,13 @@ Have a look at the following `main.c` showing one of the many ways you can work 
 objectbox-c and the generated code:
 
 ```c
-#include "objectbox-model.h"
 #include "objectbox.h"
+#include "objectbox-model.h"
 #include "tasklist.obx.h"
 
 obx_err print_last_error() {
-    printf("Unexpected error: %d %s\n", obx_last_error_code(), obx_last_error_message());
+    printf("Unexpected error: %d %s\n", 
+        obx_last_error_code(), obx_last_error_message());
     return obx_last_error_code();
 }
 
@@ -36,18 +37,18 @@ obx_id task_put(OBX_box* box, Task* task) {
     // Note: Task_to_flatbuffer() is provided by the generated code
     obx_id id = 0;
     if (Task_to_flatbuffer(&builder, task, &buffer, &size)) {
-        id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // returns 0 on error
+        id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // 0 on error
     }
 
     flatcc_builder_clear(&builder);
     if (buffer) flatcc_builder_aligned_free(buffer);
 
     if (id == 0) {
-        // TODO: won't be able to print the right error if it occurred in Task_to_flatbuffer(), 
-        //  i.e. outside objectbox
+        // TODO: restructure; won't print the right error if it occurred 
+        //  in Task_to_flatbuffer(), i.e. outside objectbox
         print_last_error();
     } else {
-        task->id = id;  // Note: we're updating the ID on new objects for convenience
+        task->id = id;  // update the ID property on new objects for convenience
     }
 
     return id;
@@ -56,8 +57,8 @@ obx_id task_put(OBX_box* box, Task* task) {
 Task* task_read(OBX_store* store, OBX_box* box, obx_id id) {
     OBX_txn* txn = NULL;
 
-    // We need an explicit TX - read flatbuffers lifecycle is bound to the open transaction.
-    // The transaction can be closed safely after reading the object properties from flatbuffers.
+    // We need an explicit TX - read data lifecycle is bound to the open TX.
+    // The transaction can be closed after reading the object from flatbuffers.
     txn = obx_txn_read(store);
     if (!txn) {
         print_last_error();
@@ -68,7 +69,7 @@ Task* task_read(OBX_store* store, OBX_box* box, obx_id id) {
     size_t size;
     int rc = obx_box_get(box, id, &data, &size);
     if (rc != OBX_SUCCESS) {
-        // if (rc == OBX_NOT_FOUND); // No special treatment at the moment if not found
+        // if (rc == OBX_NOT_FOUND); // No special treatment at the moment
         obx_txn_close(txn);
         return NULL;
     }
@@ -86,7 +87,7 @@ int main(int argc, char* args[]) {
 
     // Firstly, we need to create a model for our data and the store
     {
-        OBX_model* model = create_obx_model();  // create_obx_model() provided by objectbox-model.h
+        OBX_model* model = create_obx_model();  // defined in objectbox-model.h
         if (!model) goto handle_error;
         if (obx_model_error_code(model)) {
             printf("Model definition error: %d %s\n", 
@@ -123,14 +124,15 @@ int main(int argc, char* args[]) {
     {  // Update
         const char* appendix = " & some bread";
 
-        // updating a string property is a little more involved but nothing too hard
+        // updating a string property is a little more involved 
         size_t old_text_len = task->text ? strlen(task->text) : 0;
-        char* new_text = (char*) malloc((old_text_len + strlen(appendix) + 1) * sizeof(char));
+        char* new_text = 
+            (char*) malloc((old_text_len + strlen(appendix) + 1) * sizeof(char));
 
         if (task->text) {
             memcpy(new_text, task->text, old_text_len);
 
-            // free the previously allocated memory or it would be lost when overwritten below
+            // free the memory allocated previously before overwritting below
             free(task->text);
         }
         memcpy(new_text + old_text_len, appendix, strlen(appendix) + 1);
@@ -142,8 +144,8 @@ int main(int argc, char* args[]) {
     if (obx_box_remove(box, id) != OBX_SUCCESS) goto handle_error;
 
 free_resources:  // free any remaining allocated resources
-    if (task) Task_free(&task); // We must free the object allocated by Task_new_from_flatbuffer() 
-    if (store) obx_store_close(store); // And close the store. Boxes are closed automatically.
+    if (task) Task_free(&task); // free allocs by Task_new_from_flatbuffer()
+    if (store) obx_store_close(store); // and close the store
     return rc;
 
 handle_error:  // print error and clean up
