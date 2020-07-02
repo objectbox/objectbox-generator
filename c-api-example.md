@@ -27,58 +27,6 @@ obx_err print_last_error() {
     return obx_last_error_code();
 }
 
-obx_id task_put(OBX_box* box, Task* task) {
-    flatcc_builder_t builder;
-    flatcc_builder_init(&builder);
-
-    size_t size = 0;
-    void* buffer = NULL;
-
-    // Note: Task_to_flatbuffer() is provided by the generated code
-    obx_id id = 0;
-    if (Task_to_flatbuffer(&builder, task, &buffer, &size)) {
-        id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // 0 on error
-    }
-
-    flatcc_builder_clear(&builder);
-    if (buffer) flatcc_builder_aligned_free(buffer);
-
-    if (id == 0) {
-        // TODO: restructure; won't print the right error if it occurred 
-        //  in Task_to_flatbuffer(), i.e. outside objectbox
-        print_last_error();
-    } else {
-        task->id = id;  // update the ID property on new objects for convenience
-    }
-
-    return id;
-}
-
-Task* task_read(OBX_store* store, OBX_box* box, obx_id id) {
-    OBX_txn* txn = NULL;
-
-    // We need an explicit TX - read data lifecycle is bound to the open TX.
-    // The transaction can be closed after reading the object from flatbuffers.
-    txn = obx_txn_read(store);
-    if (!txn) {
-        print_last_error();
-        return NULL;
-    }
-
-    void* data;
-    size_t size;
-    int rc = obx_box_get(box, id, &data, &size);
-    if (rc != OBX_SUCCESS) {
-        // if (rc == OBX_NOT_FOUND); // No special treatment at the moment
-        obx_txn_close(txn);
-        return NULL;
-    }
-
-    Task* result = Task_new_from_flatbuffer(data, size);
-    obx_txn_close(txn);
-    return result;
-}
-
 int main(int argc, char* args[]) {
     int rc = 0;
     OBX_store* store = NULL;
@@ -110,13 +58,13 @@ int main(int argc, char* args[]) {
 
     {  // Create
         Task task = {.text = "Buy milk"};
-        id = task_put(box, &task);
+        id = Task_put(store, &task);
         if (!id) goto handle_error;
         printf("New task inserted with ID %d\n", id);
     }
 
     {  // Read
-        task = task_read(store, box, id);
+        task = Task_get(store, id);
         if (!task) goto handle_error;
         printf("Task %d read with text: %s\n", id, task->text);
     }
@@ -137,6 +85,7 @@ int main(int argc, char* args[]) {
         }
         memcpy(new_text + old_text_len, appendix, strlen(appendix) + 1);
         task->text = new_text;
+        if (!Task_put(store, task)) goto handle_error;
         printf("Updated task %d with a new text: %s\n", id, task->text);
     }
 
