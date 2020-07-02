@@ -35,16 +35,16 @@ static bool Annotated_to_flatbuffer(flatcc_builder_t* B, const Annotated* object
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling Annotated_free_pointers().
-/// Thus, when calling this function multiple times on the same object, ensure to call Annotated_free_pointers() before subsequent calls to avoid leaks. 
-/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+/// Thus, when calling this function multiple times on the same object, ensure to call Annotated_free_pointers() before subsequent calls to avoid leaks.
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool Annotated_from_flatbuffer(const void* data, size_t size, Annotated* out_object);
 
-/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// Read an object from a valid FlatBuffer, allocating the object on heap.
 /// The object must be freed after use by calling Annotated_free();
 static Annotated* Annotated_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.
 static void Annotated_free_pointers(Annotated* object);
 
 /// Free Annotated* object pointer and all its property pointers (vectors and strings).
@@ -67,16 +67,16 @@ static bool Simple_to_flatbuffer(flatcc_builder_t* B, const Simple* object, void
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling Simple_free_pointers().
-/// Thus, when calling this function multiple times on the same object, ensure to call Simple_free_pointers() before subsequent calls to avoid leaks. 
-/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+/// Thus, when calling this function multiple times on the same object, ensure to call Simple_free_pointers() before subsequent calls to avoid leaks.
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool Simple_from_flatbuffer(const void* data, size_t size, Simple* out_object);
 
-/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// Read an object from a valid FlatBuffer, allocating the object on heap.
 /// The object must be freed after use by calling Simple_free();
 static Simple* Simple_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.
 static void Simple_free_pointers(Simple* object);
 
 /// Free Simple* object pointer and all its property pointers (vectors and strings).
@@ -145,16 +145,16 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling Typeful_free_pointers().
-/// Thus, when calling this function multiple times on the same object, ensure to call Typeful_free_pointers() before subsequent calls to avoid leaks. 
-/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+/// Thus, when calling this function multiple times on the same object, ensure to call Typeful_free_pointers() before subsequent calls to avoid leaks.
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_object);
 
-/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// Read an object from a valid FlatBuffer, allocating the object on heap.
 /// The object must be freed after use by calling Typeful_free();
 static Typeful* Typeful_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.
 static void Typeful_free_pointers(Typeful* object);
 
 /// Free Typeful* object pointer and all its property pointers (vectors and strings).
@@ -257,6 +257,75 @@ static void Annotated_free(Annotated* object) {
     free(object);
 }
 
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id Annotated_put(OBX_store* store, Annotated* object) {
+    flatcc_builder_t builder;
+    flatcc_builder_init(&builder);
+
+    obx_id id = 0;
+    size_t size = 0;
+    void* buffer = NULL;
+    if (!Annotated_to_flatbuffer(&builder, object, &buffer, &size)) {
+        // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+        // checks obx_last_error_code() it will be zero in this case.
+        obx_last_error_clear();
+    } else {
+        OBX_box* box = obx_box(store, Annotated_ENTITY_ID);
+        if (box != NULL) {
+            id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // 0 on error
+        }
+    }
+
+    flatcc_builder_clear(&builder);
+    if (buffer) flatcc_builder_aligned_free(buffer);
+
+    if (id != 0) {
+        object->identifier = id;  // update the ID property on new objects for convenience
+    }
+
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling Annotated_free();
+static Annotated* Annotated_get(OBX_store* store, obx_id id) {
+    // We need an explicit TX - read data lifecycle is bound to the open TX.
+    OBX_txn* tx = obx_txn_read(store);
+    if (!tx) return NULL;
+
+    OBX_cursor* cursor = obx_cursor(tx, Annotated_ENTITY_ID);
+    if (!cursor) {
+        obx_txn_close(tx);
+        return NULL;
+    }
+
+    Annotated* result = NULL;
+    void* data;
+    size_t size;
+    if (obx_cursor_get(cursor, id, &data, &size) == OBX_SUCCESS) {
+        result = Annotated_new_from_flatbuffer(data, size);
+        if (result == NULL) {
+            // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+            // checks obx_last_error_code() it will be zero in this case.
+            obx_last_error_clear();
+        }
+    }
+
+    obx_cursor_close(cursor);
+    obx_txn_close(tx);
+    return result;
+}
+
+
+/// Write given object to the FlatBufferBuilder
 static bool Simple_to_flatbuffer(flatcc_builder_t* B, const Simple* object, void** out_buffer, size_t* out_size) {
     assert(B);
     assert(object);
@@ -319,6 +388,75 @@ static void Simple_free(Simple* object) {
     free(object);
 }
 
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id Simple_put(OBX_store* store, Simple* object) {
+    flatcc_builder_t builder;
+    flatcc_builder_init(&builder);
+
+    obx_id id = 0;
+    size_t size = 0;
+    void* buffer = NULL;
+    if (!Simple_to_flatbuffer(&builder, object, &buffer, &size)) {
+        // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+        // checks obx_last_error_code() it will be zero in this case.
+        obx_last_error_clear();
+    } else {
+        OBX_box* box = obx_box(store, Simple_ENTITY_ID);
+        if (box != NULL) {
+            id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // 0 on error
+        }
+    }
+
+    flatcc_builder_clear(&builder);
+    if (buffer) flatcc_builder_aligned_free(buffer);
+
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling Simple_free();
+static Simple* Simple_get(OBX_store* store, obx_id id) {
+    // We need an explicit TX - read data lifecycle is bound to the open TX.
+    OBX_txn* tx = obx_txn_read(store);
+    if (!tx) return NULL;
+
+    OBX_cursor* cursor = obx_cursor(tx, Simple_ENTITY_ID);
+    if (!cursor) {
+        obx_txn_close(tx);
+        return NULL;
+    }
+
+    Simple* result = NULL;
+    void* data;
+    size_t size;
+    if (obx_cursor_get(cursor, id, &data, &size) == OBX_SUCCESS) {
+        result = Simple_new_from_flatbuffer(data, size);
+        if (result == NULL) {
+            // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+            // checks obx_last_error_code() it will be zero in this case.
+            obx_last_error_clear();
+        }
+    }
+
+    obx_cursor_close(cursor);
+    obx_txn_close(tx);
+    return result;
+}
+
+
+/// Write given object to the FlatBufferBuilder
 static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, void** out_buffer, size_t* out_size) {
     assert(B);
     assert(object);
@@ -586,4 +724,72 @@ static void Typeful_free(Typeful* object) {
     Typeful_free_pointers(object);
     free(object);
 }
+
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id Typeful_put(OBX_store* store, Typeful* object) {
+    flatcc_builder_t builder;
+    flatcc_builder_init(&builder);
+
+    obx_id id = 0;
+    size_t size = 0;
+    void* buffer = NULL;
+    if (!Typeful_to_flatbuffer(&builder, object, &buffer, &size)) {
+        // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+        // checks obx_last_error_code() it will be zero in this case.
+        obx_last_error_clear();
+    } else {
+        OBX_box* box = obx_box(store, Typeful_ENTITY_ID);
+        if (box != NULL) {
+            id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // 0 on error
+        }
+    }
+
+    flatcc_builder_clear(&builder);
+    if (buffer) flatcc_builder_aligned_free(buffer);
+
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling Typeful_free();
+static Typeful* Typeful_get(OBX_store* store, obx_id id) {
+    // We need an explicit TX - read data lifecycle is bound to the open TX.
+    OBX_txn* tx = obx_txn_read(store);
+    if (!tx) return NULL;
+
+    OBX_cursor* cursor = obx_cursor(tx, Typeful_ENTITY_ID);
+    if (!cursor) {
+        obx_txn_close(tx);
+        return NULL;
+    }
+
+    Typeful* result = NULL;
+    void* data;
+    size_t size;
+    if (obx_cursor_get(cursor, id, &data, &size) == OBX_SUCCESS) {
+        result = Typeful_new_from_flatbuffer(data, size);
+        if (result == NULL) {
+            // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+            // checks obx_last_error_code() it will be zero in this case.
+            obx_last_error_clear();
+        }
+    }
+
+    obx_cursor_close(cursor);
+    obx_txn_close(tx);
+    return result;
+}
+
 

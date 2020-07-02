@@ -27,16 +27,16 @@ static bool test_Other_to_flatbuffer(flatcc_builder_t* B, const test_Other* obje
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling test_Other_free_pointers().
-/// Thus, when calling this function multiple times on the same object, ensure to call test_Other_free_pointers() before subsequent calls to avoid leaks. 
-/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+/// Thus, when calling this function multiple times on the same object, ensure to call test_Other_free_pointers() before subsequent calls to avoid leaks.
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool test_Other_from_flatbuffer(const void* data, size_t size, test_Other* out_object);
 
-/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// Read an object from a valid FlatBuffer, allocating the object on heap.
 /// The object must be freed after use by calling test_Other_free();
 static test_Other* test_Other_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.
 static void test_Other_free_pointers(test_Other* object);
 
 /// Free test_Other* object pointer and all its property pointers (vectors and strings).
@@ -60,16 +60,16 @@ static bool test2_multi_Another_to_flatbuffer(flatcc_builder_t* B, const test2_m
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling test2_multi_Another_free_pointers().
-/// Thus, when calling this function multiple times on the same object, ensure to call test2_multi_Another_free_pointers() before subsequent calls to avoid leaks. 
-/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+/// Thus, when calling this function multiple times on the same object, ensure to call test2_multi_Another_free_pointers() before subsequent calls to avoid leaks.
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool test2_multi_Another_from_flatbuffer(const void* data, size_t size, test2_multi_Another* out_object);
 
-/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// Read an object from a valid FlatBuffer, allocating the object on heap.
 /// The object must be freed after use by calling test2_multi_Another_free();
 static test2_multi_Another* test2_multi_Another_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.
 static void test2_multi_Another_free_pointers(test2_multi_Another* object);
 
 /// Free test2_multi_Another* object pointer and all its property pointers (vectors and strings).
@@ -142,6 +142,75 @@ static void test_Other_free(test_Other* object) {
     free(object);
 }
 
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id test_Other_put(OBX_store* store, test_Other* object) {
+    flatcc_builder_t builder;
+    flatcc_builder_init(&builder);
+
+    obx_id id = 0;
+    size_t size = 0;
+    void* buffer = NULL;
+    if (!test_Other_to_flatbuffer(&builder, object, &buffer, &size)) {
+        // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+        // checks obx_last_error_code() it will be zero in this case.
+        obx_last_error_clear();
+    } else {
+        OBX_box* box = obx_box(store, test_Other_ENTITY_ID);
+        if (box != NULL) {
+            id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // 0 on error
+        }
+    }
+
+    flatcc_builder_clear(&builder);
+    if (buffer) flatcc_builder_aligned_free(buffer);
+
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling test_Other_free();
+static test_Other* test_Other_get(OBX_store* store, obx_id id) {
+    // We need an explicit TX - read data lifecycle is bound to the open TX.
+    OBX_txn* tx = obx_txn_read(store);
+    if (!tx) return NULL;
+
+    OBX_cursor* cursor = obx_cursor(tx, test_Other_ENTITY_ID);
+    if (!cursor) {
+        obx_txn_close(tx);
+        return NULL;
+    }
+
+    test_Other* result = NULL;
+    void* data;
+    size_t size;
+    if (obx_cursor_get(cursor, id, &data, &size) == OBX_SUCCESS) {
+        result = test_Other_new_from_flatbuffer(data, size);
+        if (result == NULL) {
+            // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+            // checks obx_last_error_code() it will be zero in this case.
+            obx_last_error_clear();
+        }
+    }
+
+    obx_cursor_close(cursor);
+    obx_txn_close(tx);
+    return result;
+}
+
+
+/// Write given object to the FlatBufferBuilder
 static bool test2_multi_Another_to_flatbuffer(flatcc_builder_t* B, const test2_multi_Another* object, void** out_buffer, size_t* out_size) {
     assert(B);
     assert(object);
@@ -207,4 +276,72 @@ static void test2_multi_Another_free(test2_multi_Another* object) {
     test2_multi_Another_free_pointers(object);
     free(object);
 }
+
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id test2_multi_Another_put(OBX_store* store, test2_multi_Another* object) {
+    flatcc_builder_t builder;
+    flatcc_builder_init(&builder);
+
+    obx_id id = 0;
+    size_t size = 0;
+    void* buffer = NULL;
+    if (!test2_multi_Another_to_flatbuffer(&builder, object, &buffer, &size)) {
+        // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+        // checks obx_last_error_code() it will be zero in this case.
+        obx_last_error_clear();
+    } else {
+        OBX_box* box = obx_box(store, test2_multi_Another_ENTITY_ID);
+        if (box != NULL) {
+            id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // 0 on error
+        }
+    }
+
+    flatcc_builder_clear(&builder);
+    if (buffer) flatcc_builder_aligned_free(buffer);
+
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling test2_multi_Another_free();
+static test2_multi_Another* test2_multi_Another_get(OBX_store* store, obx_id id) {
+    // We need an explicit TX - read data lifecycle is bound to the open TX.
+    OBX_txn* tx = obx_txn_read(store);
+    if (!tx) return NULL;
+
+    OBX_cursor* cursor = obx_cursor(tx, test2_multi_Another_ENTITY_ID);
+    if (!cursor) {
+        obx_txn_close(tx);
+        return NULL;
+    }
+
+    test2_multi_Another* result = NULL;
+    void* data;
+    size_t size;
+    if (obx_cursor_get(cursor, id, &data, &size) == OBX_SUCCESS) {
+        result = test2_multi_Another_new_from_flatbuffer(data, size);
+        if (result == NULL) {
+            // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+            // checks obx_last_error_code() it will be zero in this case.
+            obx_last_error_clear();
+        }
+    }
+
+    obx_cursor_close(cursor);
+    obx_txn_close(tx);
+    return result;
+}
+
 
