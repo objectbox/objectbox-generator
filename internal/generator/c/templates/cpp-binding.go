@@ -49,6 +49,9 @@ struct {{$entity.Meta.CppName}}_ {
 {{- range $property := $entity.Properties}}
 	static const obx_schema_id {{$property.Meta.CppName}} = {{$property.Id.GetId}};
 {{- end}}
+{{- range $relation := $entity.Relations}}
+	static const obx_schema_id {{$relation.Meta.CppName}} = {{$relation.Id.GetId}};
+{{- end}}
 
     static constexpr obx_schema_id entityId() { return {{$entity.Id.GetId}}; }
 

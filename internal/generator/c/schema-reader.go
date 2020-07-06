@@ -97,6 +97,11 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 		return nil
 	}
 
+	// attach "meta" objects to relations
+	for _, rel := range entity.Relations {
+		rel.Meta = &standaloneRel{ModelRelation: rel}
+	}
+
 	for i := 0; i < object.FieldsLength(); i++ {
 		var field reflection.Field
 		if !object.Fields(&field, i) {
@@ -224,6 +229,17 @@ func (s *annotInProgress) finishAnnotation(annotations *map[string]*binding.Anno
 	return nil
 }
 
+// counts all "relation-" prefixed annotations (standalone relations) - used to ensure consistent processing order
+func relationsCount(annotations map[string]*binding.Annotation) uint {
+	var count uint
+	for key := range annotations {
+		if strings.HasPrefix(key, "relation-") {
+			count++
+		}
+	}
+	return count
+}
+
 // parseAnnotations parses annotations in any of the following formats.
 // name="name",index - creates two annotations, name and index, the former having a non-empty value
 // relation(name=manyToManyRelName,to=TargetEntity) - creates a single annotation relation with two items as details
@@ -265,7 +281,7 @@ func parseAnnotations(str string, annotations *map[string]*binding.Annotation, s
 				if s.value.Details["name"] == nil {
 					return fmt.Errorf("invalid annotation format: relation name missing in `%s`", str)
 				}
-				s.key = "relation-" + s.value.Details["name"].Value
+				s.key = fmt.Sprintf("relation-%10d-%s", relationsCount(*annotations), s.value.Details["name"].Value)
 				if err := s.finishAnnotation(annotations, supportedAnnotations); err != nil {
 					return err
 				}

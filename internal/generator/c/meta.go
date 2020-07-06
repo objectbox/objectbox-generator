@@ -189,3 +189,18 @@ func (mp *fbsField) FbDefaultValue() string {
 	}
 	return "0"
 }
+
+type standaloneRel struct {
+	ModelRelation *model.StandaloneRelation
+}
+
+// Merge implements model.PropertyMeta interface
+func (mr *standaloneRel) Merge(rel *model.StandaloneRelation) model.StandaloneRelationMeta {
+	mr.ModelRelation = rel
+	return mr
+}
+
+// CppName returns C++ variable name with reserved keywords suffixed by an underscore
+func (mr *standaloneRel) CppName() string {
+	return cppName(mr.ModelRelation.Name)
+}

@@ -25,6 +25,7 @@ table Typeful  {
 	double       : double	;
 }
 
+/// objectbox: relation(to=Typeful, name=many)
 table Simple {
 	id:ulong;
 }

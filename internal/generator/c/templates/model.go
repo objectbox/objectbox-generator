@@ -58,9 +58,9 @@ static inline OBX_model* create_obx_model() {
 	{{if $property.RelationTarget}}obx_model_property_relation(model, "{{$property.RelationTarget}}", {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}});
 	{{else if $property.IndexId}}obx_model_property_index_id(model, {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}});
 	{{end -}}
+	{{end -}}
 	{{range $relation := $entity.Relations -}}
     obx_model_relation(model, {{$relation.Id.GetId}}, {{$relation.Id.GetUid}}, {{$relation.Target.Id.GetId}}, {{$relation.Target.Id.GetUid}});
-	{{end -}}
 	{{end -}}
 	obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}});
 	{{end}}
