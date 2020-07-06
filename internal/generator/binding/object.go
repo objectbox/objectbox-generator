@@ -88,5 +88,36 @@ func (object *Object) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 	}
 
+	// process standalone relations
+	for key, value := range a {
+		if strings.HasPrefix(key, "relation-") {
+			var relation = model.CreateStandaloneRelation(object.ModelEntity, model.CreateIdUid(0, 0))
+			if value.Details["name"] == nil || len(value.Details["name"].Value) == 0 {
+				return fmt.Errorf("name annotation value must not be empty on relation - it's the relation name in DB")
+			}
+			relation.Name = value.Details["name"].Value
+
+			if value.Details["to"] == nil || len(value.Details["to"].Value) == 0 {
+				return fmt.Errorf("to annotation value must not be empty on relation %s - specify target entity", relation.Name)
+			}
+
+			// NOTE: we don't need an actual entity pointer, it's resolved during stored model merging.
+			relation.Target = &model.Entity{Name: value.Details["to"].Value}
+
+			if value.Details["uid"] != nil {
+				if len(value.Details["uid"].Value) == 0 {
+					// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID
+					// this flag is handled by the merge mechanism and prints the UID of the already existing entity
+					relation.UidRequest = true
+				} else if uid, err := strconv.ParseUint(value.Details["uid"].Value, 10, 64); err != nil {
+					return fmt.Errorf("can't parse uid on relation %s - %s", relation.Name, err)
+				} else {
+					relation.Id = model.CreateIdUid(0, uid)
+				}
+			}
+			object.ModelEntity.Relations = append(object.ModelEntity.Relations, relation)
+		}
+	}
+
 	return nil
 }
