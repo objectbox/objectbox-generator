@@ -22,4 +22,7 @@ package binding
 // Annotation is a tag on a struct-field
 type Annotation struct {
 	Value string
+	// Details is used for many-to-many relations instead of `value` for brackets content.
+	// e.g. relation(name=manyToManyRelName,to=TargetEntity)
+	Details map[string]*Annotation
 }

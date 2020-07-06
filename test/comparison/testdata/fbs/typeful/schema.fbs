@@ -29,7 +29,8 @@ table Simple {
 	id:ulong;
 }
 
-/// objectbox: name=AnnotatedEntity
+/// objectbox: relation(to=Typeful, name=typefuls), name=AnnotatedEntity
+/// objectbox: relation(to=Typeful, name=m2m)
 table Annotated {
 	/// Objectbox requires an ID property.
 	/// It is recognized automatically if it has a right name ("id") or needs to be annotated otherwise.
