@@ -23,7 +23,26 @@ enum ChangeUid_ {
 };
 
 /// Write given object to the FlatBufferBuilder
-/// TODO test on a big-endian platform... especially vector creation
+static bool ChangeUid_to_flatbuffer(flatcc_builder_t* B, const ChangeUid* object, void** out_buffer, size_t* out_size);
+
+/// Read an object from a valid FlatBuffer.
+/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling ChangeUid_free_pointers().
+/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function on the same object twice. 
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+///          allocated by this function will also be freed before returning, allowing you to retry.
+static bool ChangeUid_from_flatbuffer(const void* data, size_t size, ChangeUid* out_object);
+
+/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// The object must be freed after use by calling ChangeUid_free();
+static ChangeUid* ChangeUid_new_from_flatbuffer(const void* data, size_t size);
+
+/// Free memory allocated for vector and string properties.  
+static void ChangeUid_free_pointers(ChangeUid* object);
+
+/// Free ChangeUid* object pointer and all its property pointers (vectors and strings).
+/// Equivalent to calling ChangeUid_free_pointers() followed by free();
+static void ChangeUid_free(ChangeUid* object);
+
 static bool ChangeUid_to_flatbuffer(flatcc_builder_t* B, const ChangeUid* object, void** out_buffer, size_t* out_size) {
     assert(B);
     assert(object);
@@ -54,10 +73,7 @@ static bool ChangeUid_to_flatbuffer(flatcc_builder_t* B, const ChangeUid* object
     return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
 }
 
-/// Read an object from a valid FlatBuffer.
-/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling ChangeUid_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function twice on the same object. 
-static void ChangeUid_from_flatbuffer(const void* data, size_t size, ChangeUid* out_object) {
+static bool ChangeUid_from_flatbuffer(const void* data, size_t size, ChangeUid* out_object) {
     assert(data);
     assert(out_object);
 
@@ -77,24 +93,32 @@ static void ChangeUid_from_flatbuffer(const void* data, size_t size, ChangeUid* 
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->Value = (char*) malloc((len+1) * sizeof(char));
+        if (out_object->Value == NULL) {
+            ChangeUid_free_pointers(out_object);
+            return false;
+        }
         memcpy((void*)out_object->Value, (const void*)val, len+1);
         
     } else {
         out_object->Value = NULL;
     }
     
-    
+    return true;
 }
 
-/// Read an object from a valid FlatBuffer, allocating the object on heap. 
-/// The object must be freed after use by calling ChangeUid_free();
 static ChangeUid* ChangeUid_new_from_flatbuffer(const void* data, size_t size) {
     ChangeUid* object = (ChangeUid*) malloc(sizeof(ChangeUid));
-    ChangeUid_from_flatbuffer(data, size, object);
+    if (object != NULL) {
+        if (!ChangeUid_from_flatbuffer(data, size, object)) {
+            free(object);
+            object = NULL;
+        }
+    }
     return object;
 }
 
 static void ChangeUid_free_pointers(ChangeUid* object) {
+    if (!object) return;
     if (object->Value) {
         free(object->Value);
         object->Value = NULL;
@@ -102,10 +126,8 @@ static void ChangeUid_free_pointers(ChangeUid* object) {
     
 }
 
-static void ChangeUid_free(ChangeUid** object) {
-    if (!object || !*object) return;
-    ChangeUid_free_pointers(*object);
-    free(*object);
-    *object = NULL;
+static void ChangeUid_free(ChangeUid* object) {
+    ChangeUid_free_pointers(object);
+    free(object);
 }
 
