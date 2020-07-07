@@ -23,7 +23,6 @@ import (
 	"text/template"
 )
 
-// TODO how to handle null values?
 // TODO check failed allocs?
 
 // CBindingTemplate is used to generated the binding code
