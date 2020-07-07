@@ -61,7 +61,6 @@ func (field *Field) PreProcessAnnotations(a map[string]*Annotation) error {
 }
 
 // ProcessAnnotations checks all set annotations for any inconsistencies and sets local/property fields (flags, name, ...)
-// TODO move generator.Annotation to this package
 func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 	if err := field.PreProcessAnnotations(a); err != nil {
 		return err

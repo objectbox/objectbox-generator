@@ -42,9 +42,9 @@ var fbsTypeToObxType = map[reflection.BaseType]model.PropertyType{
 	reflection.BaseTypeDouble: model.PropertyTypeDouble,
 	reflection.BaseTypeString: model.PropertyTypeString,
 	reflection.BaseTypeVector: 0, // handled in schema-reader
-	reflection.BaseTypeObj:    0, // TODO, also in other maps
-	reflection.BaseTypeUnion:  0, // TODO, also in other maps
-	reflection.BaseTypeArray:  0, // TODO, also in other maps
+	reflection.BaseTypeObj:    0, // not supported
+	reflection.BaseTypeUnion:  0, // not supported
+	reflection.BaseTypeArray:  0, // not supported
 }
 
 var fbsTypeToObxFlag = map[reflection.BaseType]model.PropertyFlags{

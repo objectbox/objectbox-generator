@@ -183,9 +183,9 @@ func generateModelFile(m *model.ModelInfo) (data []byte, err error) {
 }
 
 func format(source []byte) ([]byte, error) {
-	// replace tabs with spaces
-	source = bytes.ReplaceAll(source, []byte("\t"), []byte("    "))
+	// NOTE we could do C/C++ source formatting here if there was an easy to integrate go module.
+	// For now, we just try to do our best within the templates themselves.
 
-	// TODO c source formatting
-	return source, nil
+	// replace tabs with spaces
+	return bytes.ReplaceAll(source, []byte("\t"), []byte("    ")), nil
 }
