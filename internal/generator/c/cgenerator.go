@@ -110,14 +110,14 @@ func (gen *CGenerator) generateBindingFile(bindingFile string, m *model.ModelInf
 	writer := bufio.NewWriter(&b)
 
 	var replaceSpecialChars = strings.NewReplacer("-", "_", ".", "_")
-	var ifdefGuard = strings.ToUpper(filepath.Base(bindingFile))
-	ifdefGuard = replaceSpecialChars.Replace(ifdefGuard)
+	var fileIdentifier = strings.ToLower(filepath.Base(bindingFile))
+	fileIdentifier = replaceSpecialChars.Replace(fileIdentifier)
 
 	var tplArguments = struct {
 		Model            *model.ModelInfo
 		GeneratorVersion int
-		IfdefGuard       string
-	}{m, generator.VersionId, ifdefGuard}
+		FileIdentifier   string
+	}{m, generator.VersionId, fileIdentifier}
 
 	var tpl = templates.CppBindingTemplate
 	if gen.PlainC {

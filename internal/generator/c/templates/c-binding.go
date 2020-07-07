@@ -36,6 +36,14 @@ var CBindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Pars
 #include "flatcc/flatcc.h"
 #include "flatcc/flatcc_builder.h"
 #include "objectbox.h"
+
+/// Internal function used in other generated functions to put (write) explicitly typed objects 
+static obx_id {{.FileIdentifier}}_put_object(OBX_box* box, void* object,
+                             bool (*to_flatbuffer)(flatcc_builder_t*, const void*, void**, size_t*), OBXPutMode mode);
+
+/// Internal function used in other generated functions to get (read) explicitly typed objects
+static void* {{.FileIdentifier}}_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t));
+
 {{range $entity := .Model.EntitiesWithMeta}}
 {{PrintComments 0 $entity.Comments}}typedef struct {{$entity.Meta.CName}} {
 	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type -}}
@@ -218,31 +226,13 @@ static void {{$entity.Meta.CName}}_free({{$entity.Meta.CName}}* object) {
 /// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
 /// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
 /// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
-static obx_id {{$entity.Meta.CName}}_put(OBX_store* store, {{$entity.Meta.CName}}* object) {
-    flatcc_builder_t builder;
-    flatcc_builder_init(&builder);
-
-    obx_id id = 0;
-    size_t size = 0;
-    void* buffer = NULL;
-    if (!{{$entity.Meta.CName}}_to_flatbuffer(&builder, object, &buffer, &size)) {
-        // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
-        // checks obx_last_error_code() it will be zero in this case.
-        obx_last_error_clear();
-    } else {
-        OBX_box* box = obx_box(store, {{$entity.Meta.CName}}_ENTITY_ID);
-        if (box != NULL) {
-            id = obx_box_put_object(box, buffer, size, OBXPutMode_PUT);  // 0 on error
-        }
-    }
-
-    flatcc_builder_clear(&builder);
-    if (buffer) flatcc_builder_aligned_free(buffer);
-
+static obx_id {{$entity.Meta.CName}}_put(OBX_box* box, {{$entity.Meta.CName}}* object) {
+    obx_id id = {{$.FileIdentifier}}_put_object(box, object,
+                               (bool (*)(flatcc_builder_t*, const void*, void**, size_t*)) {{$entity.Meta.CName}}_to_flatbuffer,
+                               OBXPutMode_PUT);
     if (id != 0) {
         object->{{$entity.IdProperty.Meta.CppName}} = id;  // update the ID property on new objects for convenience
     }
-
     return id;
 }
 
@@ -251,22 +241,42 @@ static obx_id {{$entity.Meta.CName}}_put(OBX_store* store, {{$entity.Meta.CName}
 /// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
 /// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
 /// @note: The returned object must be freed after use by calling {{$entity.Meta.CName}}_free();
-static {{$entity.Meta.CName}}* {{$entity.Meta.CName}}_get(OBX_store* store, obx_id id) {
-    // We need an explicit TX - read data lifecycle is bound to the open TX.
-    OBX_txn* tx = obx_txn_read(store);
-    if (!tx) return NULL;
+static {{$entity.Meta.CName}}* {{$entity.Meta.CName}}_get(OBX_box* box, obx_id id) {
+	return ({{$entity.Meta.CName}}*) {{$.FileIdentifier}}_get_object(box, id, (void* (*) (const void*, size_t)) {{$entity.Meta.CName}}_new_from_flatbuffer);
+}
+{{end}}
+static obx_id {{.FileIdentifier}}_put_object(OBX_box* box, void* object,
+                             bool (*to_flatbuffer)(flatcc_builder_t*, const void*, void**, size_t*), OBXPutMode mode) {
+    flatcc_builder_t builder;
+    flatcc_builder_init(&builder);
 
-    OBX_cursor* cursor = obx_cursor(tx, {{$entity.Meta.CName}}_ENTITY_ID);
-    if (!cursor) {
-        obx_txn_close(tx);
-        return NULL;
+    obx_id id = 0;
+    size_t size = 0;
+    void* buffer = NULL;
+    if (!to_flatbuffer(&builder, object, &buffer, &size)) {
+        // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
+        // checks obx_last_error_code() it will be zero in this case.
+        obx_last_error_clear();
+    } else {
+        id = obx_box_put_object4(box, buffer, size, mode);  // 0 on error
     }
 
-    {{$entity.Meta.CName}}* result = NULL;
+    flatcc_builder_clear(&builder);
+    if (buffer) flatcc_builder_aligned_free(buffer);
+
+    return id;
+}
+
+static void* {{.FileIdentifier}}_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t)) {
+    // We need an explicit TX - read data lifecycle is bound to the open TX.
+    OBX_txn* tx = obx_txn_read(obx_box_store(box));
+    if (!tx) return NULL;
+
+    void* result = NULL;
     void* data;
     size_t size;
-    if (obx_cursor_get(cursor, id, &data, &size) == OBX_SUCCESS) {
-        result = {{$entity.Meta.CName}}_new_from_flatbuffer(data, size);
+    if (obx_box_get(box, id, &data, &size) == OBX_SUCCESS) {
+        result = from_flatbuffer(data, size);
         if (result == NULL) {
             // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
             // checks obx_last_error_code() it will be zero in this case.
@@ -274,10 +284,7 @@ static {{$entity.Meta.CName}}* {{$entity.Meta.CName}}_get(OBX_store* store, obx_
         }
     }
 
-    obx_cursor_close(cursor);
     obx_txn_close(tx);
     return result;
 }
-
-{{end}}
 `))
