@@ -189,7 +189,6 @@ static void {{$entity.Meta.CName}}_free_pointers({{$entity.Meta.CName}}* object)
 	{{- range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type}}{{if $property.Meta.FbIsVector}}
 	if (object->{{$property.Meta.CppName}}) {
 		{{- if eq $propType "StringVector"}}
-		assert(object->{{$property.Meta.CppName}}_len > 0);
 		for (size_t i = 0; i < object->{{$property.Meta.CppName}}_len; i++) {
 			if (object->{{$property.Meta.CppName}}[i]) free(object->{{$property.Meta.CppName}}[i]);
 		}{{end}}

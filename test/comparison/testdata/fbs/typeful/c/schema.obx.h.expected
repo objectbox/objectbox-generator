@@ -551,7 +551,6 @@ static void Typeful_free_pointers(Typeful* object) {
     }
     
     if (object->stringvector) {
-        assert(object->stringvector_len > 0);
         for (size_t i = 0; i < object->stringvector_len; i++) {
             if (object->stringvector[i]) free(object->stringvector[i]);
         }
