@@ -36,7 +36,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ./third_party/*
-          key: ${{ runner.os }}-deps-${{ hashFiles('./third_party/*') }}
+          key: ${{ runner.os }}-${{ github.workspace }}-deps-${{ hashFiles('./third_party/*') }}
 
       - run: make
       - run: make test-depend
@@ -65,7 +65,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ./third_party/*
-          key: ${{ runner.os }}-deps-${{ hashFiles('./third_party/*') }}
+          key: ${{ runner.os }}-${{ github.workspace }}-deps-${{ hashFiles('./third_party/*') }}
 
       - run: make
       - run: make test-depend
