@@ -99,6 +99,14 @@ func TestCCpp(t *testing.T, cpp bool) {
 		cmak.LinkLibs = append(cmak.LinkLibs, "flatccrt")
 	}
 
+	// Link the test executable statically on Windows or it won't execute in the temp dir (missing DLL)
+	if runtime.GOOS == "windows" {
+		cmak.LinkLibs = append(cmak.LinkLibs, "-static-libgcc")
+		if cpp {
+			cmak.LinkLibs = append(cmak.LinkLibs, "-static-libstdc++")
+		}
+	}
+
 	// Generate all FBS files, putting output into the tempoorary directory
 	{
 		inputFiles, err := filepath.Glob("*.fbs")
