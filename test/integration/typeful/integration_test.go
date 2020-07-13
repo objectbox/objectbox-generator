@@ -17,28 +17,14 @@
  * along with ObjectBox Generator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package build
+package typeful
 
 import (
-	"path"
+	"testing"
+
+	"github.com/objectbox/objectbox-generator/test/integration"
 )
 
-const flatbuffersDir = "third_party/flatbuffers-c-bridge/third_party/flatbuffers"
-const flatccDir = "third_party/flatcc"
-const ObjectBoxCDir = "third_party/objectbox-c"
-
-func IncludeDirs(repoRoot string) []string {
-	var result []string
-	result = append(result, path.Join(repoRoot, flatbuffersDir, "include"))
-	result = append(result, path.Join(repoRoot, flatccDir, "include"))
-	result = append(result, path.Join(repoRoot, ObjectBoxCDir, "include"))
-	result = append(result, path.Join(repoRoot, "third_party"))
-	return result
-}
-
-func LibDirs(repoRoot string) []string {
-	var result []string
-	result = append(result, path.Join(repoRoot, ObjectBoxCDir, "lib"))
-	result = append(result, path.Join(repoRoot, flatccDir, "lib"))
-	return result
+func TestCpp(t *testing.T) {
+	integration.TestCCpp(t, true)
 }

@@ -45,9 +45,8 @@ type Cmake struct {
 	Generator   string
 
 	// Build configuration
-	SourceDir string
-	ConfDir   string
-	BuildDir  string
+	ConfDir  string
+	BuildDir string
 
 	tempRoot string
 }
@@ -77,10 +76,6 @@ func (cmake *Cmake) CreateTempDirs() error {
 	cmake.tempRoot = tempRoot
 	cmake.BuildDir = buildDir
 	cmake.ConfDir = confDir
-
-	if len(cmake.SourceDir) == 0 {
-		cmake.SourceDir = cmake.ConfDir
-	}
 	return nil
 }
 
@@ -93,8 +88,8 @@ func createTempDir(parent, name string) (string, error) {
 }
 
 func (cmake *Cmake) RemoveTempDirs() error {
-	if len(cmake.SourceDir) == 0 {
-		cmake.SourceDir = cmake.ConfDir
+	if len(cmake.tempRoot) == 0 {
+		return nil
 	}
 	return os.RemoveAll(cmake.tempRoot)
 }
@@ -171,7 +166,7 @@ func (cmake *Cmake) Configure() ([]byte, []byte, error) {
 
 // Configure runs cmake build step.
 func (cmake *Cmake) Build() ([]byte, []byte, error) {
-	return cmakeExec(cmake.SourceDir, "--build", cmake.BuildDir)
+	return cmakeExec(cmake.ConfDir, "--build", cmake.BuildDir)
 }
 
 func cmakeExec(cwd string, args ...string) (stdOut []byte, stdErr []byte, err error) {
