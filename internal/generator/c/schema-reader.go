@@ -197,7 +197,7 @@ func parseCommentAsAnnotations(comment string, annotations *map[string]*binding.
 	return false, nil
 }
 
-type annotInProgress struct {
+type annotationInProgress struct {
 	name          string
 	key           string
 	value         *binding.Annotation
@@ -205,7 +205,7 @@ type annotInProgress struct {
 	valueFinished bool
 }
 
-func (s *annotInProgress) finishAnnotation(annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) error {
+func (s *annotationInProgress) finishAnnotation(annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) error {
 	s.name = strings.TrimSpace(s.name)
 	if len(s.name) == 0 {
 		return nil
@@ -247,7 +247,7 @@ func relationsCount(annotations map[string]*binding.Annotation) uint {
 // NOTE: this started as a very simple parser but it seems like the requirements are ever-increasing... maybe some form
 //       of recursive tokenization would be better in case we decided to rework.
 func parseAnnotations(str string, annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) error {
-	var s annotInProgress
+	var s annotationInProgress
 	for i := 0; i < len(str); i++ {
 		var char = str[i]
 
@@ -285,14 +285,14 @@ func parseAnnotations(str string, annotations *map[string]*binding.Annotation, s
 				if err := s.finishAnnotation(annotations, supportedAnnotations); err != nil {
 					return err
 				}
-				s = annotInProgress{} // reset
+				s = annotationInProgress{} // reset
 			}
 
 		} else if char == ',' && !s.valueQuoted { // finish an annotation
 			if err := s.finishAnnotation(annotations, supportedAnnotations); err != nil {
 				return err
 			}
-			s = annotInProgress{} // reset
+			s = annotationInProgress{} // reset
 		} else if s.value != nil { // continue a value (set contents)
 			if char == '"' {
 				if len(s.value.Value) == 0 {

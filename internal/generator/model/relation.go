@@ -28,7 +28,7 @@ import (
 type StandaloneRelation struct {
 	Id         IdUid                  `json:"id"`
 	Name       string                 `json:"name"`
-	Target     *Entity                `json:"-"` // TODO consider changing to TargetName
+	Target     *Entity                `json:"-"` // TODO consider changing to TargetName, nothing else seems to be used.
 	TargetId   IdUid                  `json:"targetId"`
 	UidRequest bool                   `json:"-"` // TODO test
 	Meta       StandaloneRelationMeta `json:"-"`

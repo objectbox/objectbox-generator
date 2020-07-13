@@ -89,14 +89,14 @@ func (object *Object) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 	}
 
-	// Process standalone relations in order by gathering the keys and sorting them
+	// Always process standalone relations in the same order by gathering the keys and sorting them, instead of relying
+	// on the random order of map keys. We're doing this to avoid unintended order changes in the generated code/model.
 	var relationKeys []string
 	for key := range a {
 		if strings.HasPrefix(key, "relation-") {
 			relationKeys = append(relationKeys, key)
 		}
 	}
-
 	sort.Strings(relationKeys)
 	for _, key := range relationKeys {
 		var value = a[key]
