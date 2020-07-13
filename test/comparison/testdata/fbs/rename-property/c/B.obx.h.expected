@@ -27,7 +27,7 @@ static bool EntityB_to_flatbuffer(flatcc_builder_t* B, const EntityB* object, vo
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling EntityB_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function on the same object twice. 
+/// Thus, when calling this function multiple times on the same object, ensure to call EntityB_free_pointers() before subsequent calls to avoid leaks. 
 /// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool EntityB_from_flatbuffer(const void* data, size_t size, EntityB* out_object);
@@ -36,7 +36,7 @@ static bool EntityB_from_flatbuffer(const void* data, size_t size, EntityB* out_
 /// The object must be freed after use by calling EntityB_free();
 static EntityB* EntityB_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
 static void EntityB_free_pointers(EntityB* object);
 
 /// Free EntityB* object pointer and all its property pointers (vectors and strings).
@@ -108,7 +108,7 @@ static bool EntityB_from_flatbuffer(const void* data, size_t size, EntityB* out_
 
 static EntityB* EntityB_new_from_flatbuffer(const void* data, size_t size) {
     EntityB* object = (EntityB*) malloc(sizeof(EntityB));
-    if (object != NULL) {
+    if (object) {
         if (!EntityB_from_flatbuffer(data, size, object)) {
             free(object);
             object = NULL;
@@ -118,7 +118,7 @@ static EntityB* EntityB_new_from_flatbuffer(const void* data, size_t size) {
 }
 
 static void EntityB_free_pointers(EntityB* object) {
-    if (!object) return;
+    if (object == NULL) return;
     if (object->New) {
         free(object->New);
         object->New = NULL;

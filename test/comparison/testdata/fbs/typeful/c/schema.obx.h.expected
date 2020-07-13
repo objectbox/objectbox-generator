@@ -33,7 +33,7 @@ static bool Annotated_to_flatbuffer(flatcc_builder_t* B, const Annotated* object
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling Annotated_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function on the same object twice. 
+/// Thus, when calling this function multiple times on the same object, ensure to call Annotated_free_pointers() before subsequent calls to avoid leaks. 
 /// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool Annotated_from_flatbuffer(const void* data, size_t size, Annotated* out_object);
@@ -42,7 +42,7 @@ static bool Annotated_from_flatbuffer(const void* data, size_t size, Annotated* 
 /// The object must be freed after use by calling Annotated_free();
 static Annotated* Annotated_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
 static void Annotated_free_pointers(Annotated* object);
 
 /// Free Annotated* object pointer and all its property pointers (vectors and strings).
@@ -64,7 +64,7 @@ static bool Simple_to_flatbuffer(flatcc_builder_t* B, const Simple* object, void
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling Simple_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function on the same object twice. 
+/// Thus, when calling this function multiple times on the same object, ensure to call Simple_free_pointers() before subsequent calls to avoid leaks. 
 /// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool Simple_from_flatbuffer(const void* data, size_t size, Simple* out_object);
@@ -73,7 +73,7 @@ static bool Simple_from_flatbuffer(const void* data, size_t size, Simple* out_ob
 /// The object must be freed after use by calling Simple_free();
 static Simple* Simple_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
 static void Simple_free_pointers(Simple* object);
 
 /// Free Simple* object pointer and all its property pointers (vectors and strings).
@@ -142,7 +142,7 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling Typeful_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function on the same object twice. 
+/// Thus, when calling this function multiple times on the same object, ensure to call Typeful_free_pointers() before subsequent calls to avoid leaks. 
 /// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_object);
@@ -151,7 +151,7 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
 /// The object must be freed after use by calling Typeful_free();
 static Typeful* Typeful_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
 static void Typeful_free_pointers(Typeful* object);
 
 /// Free Typeful* object pointer and all its property pointers (vectors and strings).
@@ -231,7 +231,7 @@ static bool Annotated_from_flatbuffer(const void* data, size_t size, Annotated* 
 
 static Annotated* Annotated_new_from_flatbuffer(const void* data, size_t size) {
     Annotated* object = (Annotated*) malloc(sizeof(Annotated));
-    if (object != NULL) {
+    if (object) {
         if (!Annotated_from_flatbuffer(data, size, object)) {
             free(object);
             object = NULL;
@@ -241,7 +241,7 @@ static Annotated* Annotated_new_from_flatbuffer(const void* data, size_t size) {
 }
 
 static void Annotated_free_pointers(Annotated* object) {
-    if (!object) return;
+    if (object == NULL) return;
     if (object->fullName) {
         free(object->fullName);
         object->fullName = NULL;
@@ -298,7 +298,7 @@ static bool Simple_from_flatbuffer(const void* data, size_t size, Simple* out_ob
 
 static Simple* Simple_new_from_flatbuffer(const void* data, size_t size) {
     Simple* object = (Simple*) malloc(sizeof(Simple));
-    if (object != NULL) {
+    if (object) {
         if (!Simple_from_flatbuffer(data, size, object)) {
             free(object);
             object = NULL;
@@ -308,7 +308,7 @@ static Simple* Simple_new_from_flatbuffer(const void* data, size_t size) {
 }
 
 static void Simple_free_pointers(Simple* object) {
-    if (!object) return;
+    if (object == NULL) return;
 }
 
 static void Simple_free(Simple* object) {
@@ -534,7 +534,7 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
 
 static Typeful* Typeful_new_from_flatbuffer(const void* data, size_t size) {
     Typeful* object = (Typeful*) malloc(sizeof(Typeful));
-    if (object != NULL) {
+    if (object) {
         if (!Typeful_from_flatbuffer(data, size, object)) {
             free(object);
             object = NULL;
@@ -544,7 +544,7 @@ static Typeful* Typeful_new_from_flatbuffer(const void* data, size_t size) {
 }
 
 static void Typeful_free_pointers(Typeful* object) {
-    if (!object) return;
+    if (object == NULL) return;
     if (object->string) {
         free(object->string);
         object->string = NULL;

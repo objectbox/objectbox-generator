@@ -27,7 +27,7 @@ static bool ChangeUid_to_flatbuffer(flatcc_builder_t* B, const ChangeUid* object
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling ChangeUid_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function on the same object twice. 
+/// Thus, when calling this function multiple times on the same object, ensure to call ChangeUid_free_pointers() before subsequent calls to avoid leaks. 
 /// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool ChangeUid_from_flatbuffer(const void* data, size_t size, ChangeUid* out_object);
@@ -36,7 +36,7 @@ static bool ChangeUid_from_flatbuffer(const void* data, size_t size, ChangeUid* 
 /// The object must be freed after use by calling ChangeUid_free();
 static ChangeUid* ChangeUid_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
 static void ChangeUid_free_pointers(ChangeUid* object);
 
 /// Free ChangeUid* object pointer and all its property pointers (vectors and strings).
@@ -108,7 +108,7 @@ static bool ChangeUid_from_flatbuffer(const void* data, size_t size, ChangeUid* 
 
 static ChangeUid* ChangeUid_new_from_flatbuffer(const void* data, size_t size) {
     ChangeUid* object = (ChangeUid*) malloc(sizeof(ChangeUid));
-    if (object != NULL) {
+    if (object) {
         if (!ChangeUid_from_flatbuffer(data, size, object)) {
             free(object);
             object = NULL;
@@ -118,7 +118,7 @@ static ChangeUid* ChangeUid_new_from_flatbuffer(const void* data, size_t size) {
 }
 
 static void ChangeUid_free_pointers(ChangeUid* object) {
-    if (!object) return;
+    if (object == NULL) return;
     if (object->Value) {
         free(object->Value);
         object->Value = NULL;

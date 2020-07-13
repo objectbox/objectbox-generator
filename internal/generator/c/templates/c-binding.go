@@ -58,7 +58,7 @@ static bool {{$entity.Meta.CName}}_to_flatbuffer(flatcc_builder_t* B, const {{$e
 
 /// Read an object from a valid FlatBuffer.
 /// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling {{$entity.Meta.CName}}_free_pointers().
-/// If the given object already contains un-freed pointers, the memory will be lost - free manually before calling this function on the same object twice. 
+/// Thus, when calling this function multiple times on the same object, ensure to call {{$entity.Meta.CName}}_free_pointers() before subsequent calls to avoid leaks. 
 /// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
 ///          allocated by this function will also be freed before returning, allowing you to retry.
 static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size, {{$entity.Meta.CName}}* out_object);
@@ -67,7 +67,7 @@ static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size
 /// The object must be freed after use by calling {{$entity.Meta.CName}}_free();
 static {{$entity.Meta.CName}}* {{$entity.Meta.CName}}_new_from_flatbuffer(const void* data, size_t size);
 
-/// Free memory allocated for vector and string properties.  
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
 static void {{$entity.Meta.CName}}_free_pointers({{$entity.Meta.CName}}* object);
 
 /// Free {{$entity.Meta.CName}}* object pointer and all its property pointers (vectors and strings).
@@ -175,7 +175,7 @@ static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size
 
 static {{$entity.Meta.CName}}* {{$entity.Meta.CName}}_new_from_flatbuffer(const void* data, size_t size) {
 	{{$entity.Meta.CName}}* object = ({{$entity.Meta.CName}}*) malloc(sizeof({{$entity.Meta.CName}}));
-	if (object != NULL) {
+	if (object) {
 		if (!{{$entity.Meta.CName}}_from_flatbuffer(data, size, object)) {
 			free(object);
 			object = NULL;
@@ -185,7 +185,7 @@ static {{$entity.Meta.CName}}* {{$entity.Meta.CName}}_new_from_flatbuffer(const 
 }
 
 static void {{$entity.Meta.CName}}_free_pointers({{$entity.Meta.CName}}* object) {
-	if (!object) return;
+	if (object == NULL) return;
 	{{- range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type}}{{if $property.Meta.FbIsVector}}
 	if (object->{{$property.Meta.CppName}}) {
 		{{- if eq $propType "StringVector"}}
