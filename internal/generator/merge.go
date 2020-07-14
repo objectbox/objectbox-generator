@@ -218,21 +218,18 @@ func mergeModelProperty(currentProperty *model.Property, storedProperty *model.P
 	}
 
 	// handle "reset property data" use-case - adding a new UID to an existing property
-	if uid, err := currentProperty.Id.GetUidAllowZero(); err != nil {
+	if curUid, err := currentProperty.Id.GetUidAllowZero(); err != nil {
 		return err
-	} else if uid != 0 {
-		id, _, err := storedProperty.Id.Get()
+	} else if oldUid, err := storedProperty.Id.GetUidAllowZero(); err != nil {
+		return err
+	} else if curUid != 0 && oldUid != curUid {
+		highestId, _, err := storedProperty.Entity.LastPropertyId.Get()
 		if err != nil {
 			return err
 		}
 
-		prevFullId := storedProperty.Id
-		storedProperty.Id = model.CreateIdUid(id, uid)
-
-		// if the updated property is the "last property ID" on it's owning entity, update - update the reference
-		if storedProperty.Entity.LastPropertyId == prevFullId {
-			storedProperty.Entity.LastPropertyId = storedProperty.Id
-		}
+		storedProperty.Id = model.CreateIdUid(highestId+1, curUid)
+		storedProperty.Entity.LastPropertyId = storedProperty.Id
 	}
 
 	// TODO not sure we need this check

@@ -148,6 +148,8 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, cpp bool, mainFile string) {
 			conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "-static-libstdc++")
 		}
 	}
+
+	assert.NoErr(t, conf.Cmake.WriteCMakeListsTxt())
 }
 
 // Generate loads *.fbs files in the current dir (or the given schema file) and generates the code
@@ -174,7 +176,6 @@ func (conf *CCppTestConf) Generate(t *testing.T, schema string) {
 // Build compiles the test sources producing an executable
 func (conf *CCppTestConf) Build(t *testing.T) {
 	if !testing.Short() {
-		assert.NoErr(t, conf.Cmake.WriteCMakeListsTxt())
 		if testing.Verbose() {
 			cml, err := conf.Cmake.GetCMakeListsTxt()
 			assert.NoErr(t, err)
