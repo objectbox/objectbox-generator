@@ -209,7 +209,7 @@ func (conf *CCppTestConf) Run(t *testing.T, envVars []string) {
 		}
 		var cmd = exec.Command(testExecutable)
 		cmd.Dir = conf.Cmake.BuildDir
-		cmd.Env = envVars
+		cmd.Env = append(os.Environ(), envVars...)
 		stdOut, err := cmd.Output()
 		if ee, ok := err.(*exec.ExitError); ok {
 			t.Fatalf("compiled test failed: %s\n%s\n%s", err, string(stdOut), string(ee.Stderr))
