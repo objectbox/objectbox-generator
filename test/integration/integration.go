@@ -30,6 +30,8 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/objectbox/objectbox-generator/internal/generator"
+	"github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/assert"
 	"github.com/objectbox/objectbox-generator/test/build"
 	"github.com/objectbox/objectbox-generator/test/cmake"
@@ -45,27 +47,44 @@ func repoRoot(t *testing.T) string {
 	return filepath.ToSlash(filepath.Join(cwd, "..", "..", ".."))
 }
 
+// Calls the generator command-line executable (using `go run`).
+// Doesn't work well with go test cache - not invalidated when the generator code changes.
+// Leaving the code here as a backup for now - if we wanted to do "real" integration test after all,
+// e.g. in addition to generating with `generator.Process(srcFile, options)` as below.
+//
+// func generateCCpp(t *testing.T, srcFile string, cpp bool, outDir string) {
+// 	var args = []string{"run", path.Join(repoRoot(t), "cmd/objectbox-generator")}
+// 	if cpp {
+// 		args = append(args, "-cpp")
+// 	} else {
+// 		args = append(args, "-c")
+// 	}
+// 	args = append(args, "-out", outDir)
+// 	args = append(args, "-persist", path.Join(outDir, "objectbox-model.json"))
+// 	args = append(args, srcFile)
+//
+// 	t.Logf("executing generator %v", args)
+//
+// 	var cmd = exec.Command("go", args...)
+// 	stdOut, err := cmd.Output()
+// 	if ee, ok := err.(*exec.ExitError); ok {
+// 		t.Fatalf("code generation failed: \n%s\n%s", string(stdOut), string(ee.Stderr))
+// 	}
+// 	t.Logf("code generation successful: %s", string(stdOut))
+// 	assert.NoErr(t, err)
+// 	return
+// }
+
 func generateCCpp(t *testing.T, srcFile string, cpp bool, outDir string) {
-	var args = []string{"run", path.Join(repoRoot(t), "cmd/objectbox-generator")}
-	if cpp {
-		args = append(args, "-cpp")
-	} else {
-		args = append(args, "-c")
+	t.Logf("generating code for %s into %s", srcFile, outDir)
+	var options = generator.Options{
+		ModelInfoFile: path.Join(outDir, "objectbox-model.json"),
+		CodeGenerator: &cgenerator.CGenerator{
+			OutPath: outDir,
+			PlainC:  !cpp,
+		},
 	}
-	args = append(args, "-out", outDir)
-	args = append(args, "-persist", path.Join(outDir, "objectbox-model.json"))
-	args = append(args, srcFile)
-
-	t.Logf("executing generator %v", args)
-
-	var cmd = exec.Command("go", args...)
-	stdOut, err := cmd.Output()
-	if ee, ok := err.(*exec.ExitError); ok {
-		t.Fatalf("code generation failed: \n%s\n%s", string(stdOut), string(ee.Stderr))
-	}
-	t.Logf("code generation successful: %s", string(stdOut))
-	assert.NoErr(t, err)
-	return
+	assert.NoErr(t, generator.Process(srcFile, options))
 }
 
 type CCppTestConf struct {
