@@ -37,17 +37,18 @@ type CGenerator struct {
 	PlainC  bool
 }
 
-// BindingFile returns a name of the binding file for the given entity source file.
-func (gen *CGenerator) BindingFile(forFile string) string {
+// BindingFiles returns names of binding files for the given entity file.
+func (gen *CGenerator) BindingFiles(forFile string) []string {
 	if len(gen.OutPath) > 0 {
 		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
 	}
 	var extension = filepath.Ext(forFile)
-	var suffix string
-	if !gen.PlainC {
-		suffix = "-cpp"
+	var base = forFile[0 : len(forFile)-len(extension)]
+
+	if gen.PlainC {
+		return []string{base + ".obx.h", base + ".obx.c"}
 	}
-	return forFile[0:len(forFile)-len(extension)] + suffix + ".obx.h"
+	return []string{base + "-cpp.obx.h", base + ".obx.cpp"}
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
@@ -81,7 +82,7 @@ func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) 
 func (gen *CGenerator) WriteBindingFiles(sourceFile string, _ generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
-	var bindingFile = gen.BindingFile(sourceFile)
+	var bindingFile = gen.BindingFiles(sourceFile)[0]
 
 	var bindingSource []byte
 	if bindingSource, err = gen.generateBindingFile(bindingFile, mergedModel); err != nil {
