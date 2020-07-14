@@ -30,7 +30,7 @@ type StandaloneRelation struct {
 	Name       string                 `json:"name"`
 	Target     *Entity                `json:"-"` // TODO consider changing to TargetName, nothing else seems to be used.
 	TargetId   IdUid                  `json:"targetId"`
-	UidRequest bool                   `json:"-"` // TODO test
+	UidRequest bool                   `json:"-"` // used when the user gives an empty uid annotation // TODO test
 	Meta       StandaloneRelationMeta `json:"-"`
 
 	entity *Entity
