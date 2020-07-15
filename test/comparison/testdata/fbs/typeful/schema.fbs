@@ -25,9 +25,7 @@ table Typeful  {
 	double       : double	;
 }
 
-table Simple {
-	id:ulong;
-}
+namespace ns;
 
 /// objectbox: name=AnnotatedEntity
 table Annotated {
