@@ -254,9 +254,7 @@ static obx_id {{.FileIdentifier}}_put_object(OBX_box* box, void* object,
     size_t size = 0;
     void* buffer = NULL;
     if (!to_flatbuffer(&builder, object, &buffer, &size)) {
-        // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
-        // checks obx_last_error_code() it will be zero in this case.
-        obx_last_error_clear();
+        obx_last_error_set(OBX_ERROR_STD_OTHER, 0, "FlatBuffer serialization failed");
     } else {
         id = obx_box_put_object4(box, buffer, size, mode);  // 0 on error
     }
@@ -278,9 +276,7 @@ static void* {{.FileIdentifier}}_get_object(OBX_box* box, obx_id id, void* (*fro
     if (obx_box_get(box, id, &data, &size) == OBX_SUCCESS) {
         result = from_flatbuffer(data, size);
         if (result == NULL) {
-            // if the FlatBuffers serialization fails, we clear any previous ObjectBox errors, so that when our caller
-            // checks obx_last_error_code() it will be zero in this case.
-            obx_last_error_clear();
+			obx_last_error_set(OBX_ERROR_STD_OTHER, 0, "FlatBuffer deserialization failed");
         }
     }
 
