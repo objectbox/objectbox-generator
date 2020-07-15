@@ -58,13 +58,13 @@ int main(int argc, char* args[]) {
 
     {  // Create
         Task task = {.text = "Buy milk"};
-        id = Task_put(store, &task);
+        id = Task_put(box, &task);
         if (!id) goto handle_error;
         printf("New task inserted with ID %d\n", id);
     }
 
     {  // Read
-        task = Task_get(store, id);
+        task = Task_get(box, id);
         if (!task) goto handle_error;
         printf("Task %d read with text: %s\n", id, task->text);
     }
@@ -85,7 +85,7 @@ int main(int argc, char* args[]) {
         }
         memcpy(new_text + old_text_len, appendix, strlen(appendix) + 1);
         task->text = new_text;
-        if (!Task_put(store, task)) goto handle_error;
+        if (!Task_put(box, task)) goto handle_error;
         printf("Updated task %d with a new text: %s\n", id, task->text);
     }
 
