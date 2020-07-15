@@ -26,6 +26,8 @@ struct Annotated_ {
     static const obx_schema_id fullName = 2;
     static const obx_schema_id time = 3;
     static const obx_schema_id relId = 4;
+    static const obx_schema_id typefuls = 1;
+    static const obx_schema_id m2m = 2;
 
     static constexpr obx_schema_id entityId() { return 3; }
 
@@ -54,6 +56,7 @@ struct Simple {
 
 struct Simple_ {
     static const obx_schema_id id = 1;
+    static const obx_schema_id many = 3;
 
     static constexpr obx_schema_id entityId() { return 4; }
 

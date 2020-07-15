@@ -26,6 +26,8 @@ enum Annotated_ {
     Annotated_PROP_ID_fullName = 2,
     Annotated_PROP_ID_time = 3,
     Annotated_PROP_ID_relId = 4,
+    Annotated_REL_ID_typefuls = 1,
+    Annotated_REL_ID_m2m = 2,
 };
 
 /// Write given object to the FlatBufferBuilder
@@ -57,6 +59,7 @@ typedef struct Simple {
 enum Simple_ {
     Simple_ENTITY_ID = 4,
     Simple_PROP_ID_id = 1,
+    Simple_REL_ID_many = 3,
 };
 
 /// Write given object to the FlatBufferBuilder

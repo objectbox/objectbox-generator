@@ -51,6 +51,9 @@ enum {{$entity.Meta.CName}}_ {
 {{- range $property := $entity.Properties}}
 	{{$entity.Meta.CName}}_PROP_ID_{{$property.Meta.CppName}} = {{$property.Id.GetId}},
 {{- end}}
+{{- range $relation := $entity.Relations}}
+	{{$entity.Meta.CName}}_REL_ID_{{$relation.Meta.CppName}} = {{$relation.Id.GetId}},
+{{- end}}
 };
 
 /// Write given object to the FlatBufferBuilder

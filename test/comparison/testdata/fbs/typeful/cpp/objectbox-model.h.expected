@@ -45,47 +45,51 @@ static inline OBX_model* create_obx_model() {
     obx_model_property(model, "relId", OBXPropertyType_Relation, 4, 2518412263346885298);
     obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEXED | OBXPropertyFlags_INDEX_PARTIAL_SKIP_ZERO | OBXPropertyFlags_UNSIGNED));
     obx_model_property_relation(model, "Typeful", 2, 5617773211005988520);
+    obx_model_relation(model, 1, 2339563716805116249, 5, 8274930044578894929);
+    obx_model_relation(model, 2, 7144924247938981575, 5, 8274930044578894929);
     obx_model_entity_last_property_id(model, 4, 2518412263346885298);
     
     obx_model_entity(model, "Simple", 4, 6044372234677422456);
-    obx_model_property(model, "id", OBXPropertyType_Long, 1, 2339563716805116249);
+    obx_model_property(model, "id", OBXPropertyType_Long, 1, 161231572858529631);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_entity_last_property_id(model, 1, 2339563716805116249);
+    obx_model_relation(model, 3, 7259475919510918339, 5, 8274930044578894929);
+    obx_model_entity_last_property_id(model, 1, 161231572858529631);
     
     obx_model_entity(model, "Typeful", 5, 8274930044578894929);
-    obx_model_property(model, "id", OBXPropertyType_Long, 1, 7144924247938981575);
+    obx_model_property(model, "id", OBXPropertyType_Long, 1, 7373105480197164748);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_property(model, "int", OBXPropertyType_Int, 2, 161231572858529631);
-    obx_model_property(model, "int8", OBXPropertyType_Byte, 3, 7259475919510918339);
-    obx_model_property(model, "int16", OBXPropertyType_Short, 4, 7373105480197164748);
-    obx_model_property(model, "int32", OBXPropertyType_Int, 5, 3287288577352441706);
-    obx_model_property(model, "int64", OBXPropertyType_Long, 6, 3930927879439176946);
-    obx_model_property(model, "uint", OBXPropertyType_Int, 7, 4706154865122290029);
+    obx_model_property(model, "int", OBXPropertyType_Int, 2, 3287288577352441706);
+    obx_model_property(model, "int8", OBXPropertyType_Byte, 3, 3930927879439176946);
+    obx_model_property(model, "int16", OBXPropertyType_Short, 4, 4706154865122290029);
+    obx_model_property(model, "int32", OBXPropertyType_Int, 5, 2217592893536642650);
+    obx_model_property(model, "int64", OBXPropertyType_Long, 6, 1929546706668609706);
+    obx_model_property(model, "uint", OBXPropertyType_Int, 7, 6392442863481646880);
     obx_model_property_flags(model, OBXPropertyFlags_UNSIGNED);
-    obx_model_property(model, "uint8", OBXPropertyType_Byte, 8, 2217592893536642650);
+    obx_model_property(model, "uint8", OBXPropertyType_Byte, 8, 3706853784096366226);
     obx_model_property_flags(model, OBXPropertyFlags_UNSIGNED);
-    obx_model_property(model, "uint16", OBXPropertyType_Short, 9, 1929546706668609706);
+    obx_model_property(model, "uint16", OBXPropertyType_Short, 9, 2627038740284806767);
     obx_model_property_flags(model, OBXPropertyFlags_UNSIGNED);
-    obx_model_property(model, "uint32", OBXPropertyType_Int, 10, 6392442863481646880);
+    obx_model_property(model, "uint32", OBXPropertyType_Int, 10, 6303220950515014660);
     obx_model_property_flags(model, OBXPropertyFlags_UNSIGNED);
-    obx_model_property(model, "uint64", OBXPropertyType_Long, 11, 3706853784096366226);
+    obx_model_property(model, "uint64", OBXPropertyType_Long, 11, 4035568504096476779);
     obx_model_property_flags(model, OBXPropertyFlags_UNSIGNED);
-    obx_model_property(model, "bool", OBXPropertyType_Bool, 12, 2627038740284806767);
-    obx_model_property(model, "string", OBXPropertyType_String, 13, 6303220950515014660);
-    obx_model_property(model, "stringvector", OBXPropertyType_StringVector, 14, 4035568504096476779);
-    obx_model_property(model, "byte", OBXPropertyType_Byte, 15, 959367522974354090);
-    obx_model_property(model, "ubyte", OBXPropertyType_Byte, 16, 2914295034816259174);
+    obx_model_property(model, "bool", OBXPropertyType_Bool, 12, 959367522974354090);
+    obx_model_property(model, "string", OBXPropertyType_String, 13, 2914295034816259174);
+    obx_model_property(model, "stringvector", OBXPropertyType_StringVector, 14, 1395437218309923052);
+    obx_model_property(model, "byte", OBXPropertyType_Byte, 15, 6745438398739480977);
+    obx_model_property(model, "ubyte", OBXPropertyType_Byte, 16, 2897681629866238117);
     obx_model_property_flags(model, OBXPropertyFlags_UNSIGNED);
-    obx_model_property(model, "bytevector", OBXPropertyType_ByteVector, 17, 1395437218309923052);
-    obx_model_property(model, "ubytevector", OBXPropertyType_ByteVector, 18, 6745438398739480977);
-    obx_model_property(model, "float32", OBXPropertyType_Float, 19, 2897681629866238117);
-    obx_model_property(model, "float64", OBXPropertyType_Double, 20, 3398579248012586914);
-    obx_model_property(model, "float", OBXPropertyType_Float, 21, 5974317550424871033);
-    obx_model_property(model, "double", OBXPropertyType_Double, 22, 3317123977833389635);
-    obx_model_entity_last_property_id(model, 22, 3317123977833389635);
+    obx_model_property(model, "bytevector", OBXPropertyType_ByteVector, 17, 3398579248012586914);
+    obx_model_property(model, "ubytevector", OBXPropertyType_ByteVector, 18, 5974317550424871033);
+    obx_model_property(model, "float32", OBXPropertyType_Float, 19, 3317123977833389635);
+    obx_model_property(model, "float64", OBXPropertyType_Double, 20, 5001958211167890979);
+    obx_model_property(model, "float", OBXPropertyType_Float, 21, 167566062957544642);
+    obx_model_property(model, "double", OBXPropertyType_Double, 22, 4778690082005258714);
+    obx_model_entity_last_property_id(model, 22, 4778690082005258714);
     
     obx_model_last_entity_id(model, 5, 8274930044578894929);
     obx_model_last_index_id(model, 2, 5617773211005988520);
+    obx_model_last_relation_id(model, 3, 7259475919510918339);
     return model; // NOTE: the returned model will contain error information if an error occurred.
 }
 

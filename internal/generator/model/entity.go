@@ -32,7 +32,7 @@ type Entity struct {
 	Name           string                `json:"name"`
 	Properties     []*Property           `json:"properties"`
 	Relations      []*StandaloneRelation `json:"relations,omitempty"`
-	UidRequest     bool                  `json:"-"`
+	UidRequest     bool                  `json:"-"` // used when the user gives an empty uid annotation
 	Meta           EntityMeta            `json:"-"`
 	Comments       []string              `json:"-"`
 

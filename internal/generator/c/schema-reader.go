@@ -34,6 +34,7 @@ var supportedEntityAnnotations = map[string]bool{
 	"transient": true,
 	"name":      true,
 	"uid":       true,
+	"relation":  true, // to-many, standalone
 }
 
 var supportedPropertyAnnotations = map[string]bool{
@@ -41,7 +42,7 @@ var supportedPropertyAnnotations = map[string]bool{
 	"date":         true,
 	"id":           true,
 	"index":        true,
-	"link":         true,
+	"relation":     true, // to-one
 	"name":         true,
 	"uid":          true,
 	"unique":       true,
@@ -81,7 +82,7 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 	var annotations = make(map[string]*binding.Annotation)
 	for i := 0; i < object.DocumentationLength(); i++ {
 		var comment = strings.TrimSpace(string(object.Documentation(i)))
-		if isAnnotation, err := parseAnnotations(comment, &annotations, supportedEntityAnnotations); err != nil {
+		if isAnnotation, err := parseCommentAsAnnotations(comment, &annotations, supportedEntityAnnotations); err != nil {
 			return err
 		} else if !isAnnotation {
 			entity.Comments = append(entity.Comments, comment)
@@ -94,6 +95,11 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 
 	if metaEntity.IsSkipped {
 		return nil
+	}
+
+	// attach "meta" objects to relations
+	for _, rel := range entity.Relations {
+		rel.Meta = &standaloneRel{ModelRelation: rel}
 	}
 
 	for i := 0; i < object.FieldsLength(); i++ {
@@ -128,7 +134,7 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 	var annotations = make(map[string]*binding.Annotation)
 	for i := 0; i < field.DocumentationLength(); i++ {
 		var comment = strings.TrimSpace(string(field.Documentation(i)))
-		if isAnnotation, err := parseAnnotations(comment, &annotations, supportedPropertyAnnotations); err != nil {
+		if isAnnotation, err := parseCommentAsAnnotations(comment, &annotations, supportedPropertyAnnotations); err != nil {
 			return err
 		} else if !isAnnotation {
 			property.Comments = append(property.Comments, comment)
@@ -179,57 +185,114 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 	return nil
 }
 
-// NOTE this is a copy of gogenerator.parseAnnotations with changes to accommodate a different format (not
-func parseAnnotations(comment string, annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) (bool, error) {
+// NOTE this is a copy of gogenerator.parseAnnotations with changes to accommodate a different format
+func parseCommentAsAnnotations(comment string, annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) (bool, error) {
 	if strings.HasPrefix(comment, "objectbox:") || strings.HasPrefix(comment, "ObjectBox:") {
 		comment = strings.TrimSpace(comment[len("objectbox:"):])
 		if len(comment) == 0 {
 			return true, nil
 		}
-	} else {
-		return false, nil
+		return true, parseAnnotations(comment, annotations, supportedAnnotations)
 	}
+	return false, nil
+}
 
-	// sample content at this point:
-	// name="name",index
-	// id
+type annotationInProgress struct {
+	name          string
+	key           string
+	value         *binding.Annotation
+	valueQuoted   bool
+	valueFinished bool
+}
 
-	type state struct {
-		name          string
-		value         *binding.Annotation
-		valueQuoted   bool
-		valueFinished bool
-	}
-	var s state
-
-	var finishAnnotation = func() error {
-		s.name = strings.TrimSpace(s.name)
-		if s.value == nil {
-			s.value = &binding.Annotation{} // empty value
-		} else {
-			s.value.Value = strings.TrimSpace(s.value.Value)
-		}
-		if (*annotations)[s.name] != nil {
-			return fmt.Errorf("duplicate annotation %s", s.name)
-		} else if !supportedAnnotations[s.name] {
-			return fmt.Errorf("unknown annotation %s", s.name)
-		} else {
-			(*annotations)[s.name] = s.value
-		}
-		s = state{}
+func (s *annotationInProgress) finishAnnotation(annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) error {
+	s.name = strings.TrimSpace(s.name)
+	if len(s.name) == 0 {
 		return nil
 	}
+	if s.value == nil {
+		s.value = &binding.Annotation{} // empty value
+	} else {
+		s.value.Value = strings.TrimSpace(s.value.Value)
+	}
+	var key = s.key
+	if len(key) == 0 {
+		key = s.name
+	}
+	if (*annotations)[key] != nil {
+		return fmt.Errorf("duplicate annotation %s", key)
+	} else if !supportedAnnotations[s.name] {
+		return fmt.Errorf("unknown annotation %s", s.name)
+	} else {
+		(*annotations)[key] = s.value
+	}
+	return nil
+}
 
-	for i, char := range comment {
-		if char == '=' && !s.valueQuoted { // start a value
+// counts all "relation-" prefixed annotations (standalone relations) - used to ensure consistent processing order
+func relationsCount(annotations map[string]*binding.Annotation) uint {
+	var count uint
+	for key := range annotations {
+		if strings.HasPrefix(key, "relation-") {
+			count++
+		}
+	}
+	return count
+}
+
+// parseAnnotations parses annotations in any of the following formats.
+// name="name",index - creates two annotations, name and index, the former having a non-empty value
+// relation(name=manyToManyRelName,to=TargetEntity) - creates a single annotation relation with two items as details
+// id - creates a single annotation
+// NOTE: this started as a very simple parser but it seems like the requirements are ever-increasing... maybe some form
+//       of recursive tokenization would be better in case we decided to rework.
+func parseAnnotations(str string, annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) error {
+	var s annotationInProgress
+	for i := 0; i < len(str); i++ {
+		var char = str[i]
+
+		if (char == '=' || char == '(') && !s.valueQuoted { // start a value
 			if len(s.name) == 0 {
-				return true, fmt.Errorf("invalid annotation format: name must precede equal sign at position %d in `%s` ", i, comment)
+				return fmt.Errorf("invalid annotation format: name expected before '%s' at position %d in `%s` ", string(char), i, str)
 			}
 			s.value = &binding.Annotation{}
-		} else if char == ',' && !s.valueQuoted { // finish an annotation
-			if err := finishAnnotation(); err != nil {
-				return true, err
+
+			// special handling for "recursive" details (many-to-many relation)
+			if char == '(' {
+				// find the closing bracket
+				var detailsStr string
+				for j := i + 1; j < len(str); j++ {
+					if str[j] == ')' { // NOTE we're ignoring potential closing brackets in quotes
+						detailsStr += str[i+1 : j]
+						i = j // skip up to this character in the parent loop
+						break
+					}
+				}
+				if len(detailsStr) == 0 {
+					return fmt.Errorf("invalid annotation details format, closing bracket ')' not found in `%s`", str[i+1:])
+				}
+				if s.name != "relation" {
+					return fmt.Errorf("invalid annotation format: details only supported for `relation` annotations, found `%s`", s.name)
+				}
+				s.value.Details = make(map[string]*binding.Annotation)
+				if err := parseAnnotations(detailsStr, &s.value.Details, map[string]bool{"to": true, "name": true, "uid": true}); err != nil {
+					return err
+				}
+				if s.value.Details["name"] == nil {
+					return fmt.Errorf("invalid annotation format: relation name missing in `%s`", str)
+				}
+				s.key = fmt.Sprintf("relation-%10d-%s", relationsCount(*annotations), s.value.Details["name"].Value)
+				if err := s.finishAnnotation(annotations, supportedAnnotations); err != nil {
+					return err
+				}
+				s = annotationInProgress{} // reset
 			}
+
+		} else if char == ',' && !s.valueQuoted { // finish an annotation
+			if err := s.finishAnnotation(annotations, supportedAnnotations); err != nil {
+				return err
+			}
+			s = annotationInProgress{} // reset
 		} else if s.value != nil { // continue a value (set contents)
 			if char == '"' {
 				if len(s.value.Value) == 0 {
@@ -239,7 +302,7 @@ func parseAnnotations(comment string, annotations *map[string]*binding.Annotatio
 					s.valueFinished = true
 				}
 			} else if s.valueFinished {
-				return true, fmt.Errorf("invalid annotation format: no more characters may follow after a quoted value at position %d in `%s`", i, comment)
+				return fmt.Errorf("invalid annotation format: no more characters may follow after a quoted value at position %d in `%s`", i, str)
 			} else {
 				s.value.Value += string(char)
 			}
@@ -248,9 +311,5 @@ func parseAnnotations(comment string, annotations *map[string]*binding.Annotatio
 		}
 	}
 
-	if err := finishAnnotation(); err != nil {
-		return true, err
-	}
-
-	return true, nil
+	return s.finishAnnotation(annotations, supportedAnnotations)
 }

@@ -141,16 +141,19 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 	}
 
-	// To-one relation
-	if a["link"] != nil && field.ModelProperty.Type != model.PropertyTypeRelation {
+	var toOneRelation = a["relation"]
+	if toOneRelation == nil {
+		toOneRelation = a["link"]
+	}
+	if toOneRelation != nil && field.ModelProperty.Type != model.PropertyTypeRelation {
 		if field.ModelProperty.Type != model.PropertyTypeLong {
 			return fmt.Errorf("invalid underlying type (PropertyType %v) for relation field; expecting long", model.PropertyTypeNames[field.ModelProperty.Type])
 		}
-		if len(a["link"].Value) == 0 {
+		if len(toOneRelation.Value) == 0 {
 			return errors.New("unknown link target entity, define by changing the `link` annotation to the `link=Entity` format")
 		}
 		field.ModelProperty.Type = model.PropertyTypeRelation
-		field.ModelProperty.RelationTarget = a["link"].Value
+		field.ModelProperty.RelationTarget = toOneRelation.Value
 		field.ModelProperty.AddFlag(model.PropertyFlagIndexed)
 		field.ModelProperty.AddFlag(model.PropertyFlagIndexPartialSkipZero)
 

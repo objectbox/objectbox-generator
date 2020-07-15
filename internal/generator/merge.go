@@ -319,6 +319,12 @@ func getModelRelation(currentRelation *model.StandaloneRelation, storedEntity *m
 func mergeModelRelation(currentRelation *model.StandaloneRelation, storedRelation *model.StandaloneRelation, storedModel *model.ModelInfo) (err error) {
 	storedRelation.Name = currentRelation.Name
 
+	if currentRelation.Meta != nil {
+		storedRelation.Meta = currentRelation.Meta.Merge(storedRelation)
+	} else {
+		storedRelation.Meta = nil
+	}
+
 	if _, _, err = storedRelation.Id.Get(); err != nil {
 		return err
 	} else {

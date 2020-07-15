@@ -30,3 +30,9 @@ type PropertyMeta interface {
 	// Merge produces new PropertyMeta based on its internal state and given property
 	Merge(property *Property) PropertyMeta
 }
+
+// StandaloneRelationMeta provides a way for bindings to provide additional information to other users of StandaloneRelation
+type StandaloneRelationMeta interface {
+	// Merge produces new StandaloneRelationMeta based on its internal state and given standalone relation
+	Merge(relation *StandaloneRelation) StandaloneRelationMeta
+}

@@ -30,7 +30,7 @@ type Property struct {
 	Flags          PropertyFlags `json:"flags,omitempty"`
 	RelationTarget string        `json:"relationTarget,omitempty"`
 	Entity         *Entity       `json:"-"`
-	UidRequest     bool          `json:"-"`
+	UidRequest     bool          `json:"-"` // used when the user gives an empty uid annotation
 	Meta           PropertyMeta  `json:"-"`
 	Comments       []string      `json:"-"`
 }
