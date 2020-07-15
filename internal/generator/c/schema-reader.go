@@ -42,7 +42,7 @@ var supportedPropertyAnnotations = map[string]bool{
 	"date":         true,
 	"id":           true,
 	"index":        true,
-	"link":         true, // to-one
+	"relation":     true, // to-one
 	"name":         true,
 	"uid":          true,
 	"unique":       true,

@@ -124,7 +124,7 @@ table Annotated {
     /// objectbox:transient
     skippedField:[uint64];
 
-    /// objectbox:link=Simple
+    /// objectbox:relation=Simple
     relId:ulong;
 }
 ```
