@@ -25,10 +25,7 @@ table Typeful  {
 	double       : double	;
 }
 
-/// objectbox: relation(to=Typeful, name=many)
-table Simple {
-	id:ulong;
-}
+namespace ns;
 
 /// objectbox: relation(to=Typeful, name=typefuls), name=AnnotatedEntity
 /// objectbox:relation(to = Typeful, name = m2m)

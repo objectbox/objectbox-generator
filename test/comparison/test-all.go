@@ -106,6 +106,10 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 				errorTransformer = errTrans
 			}
 		}
+	} else if !fileExists(genDir) {
+		// if updating existing code and the directory for this type doesn't exist
+		expDir = srcDir
+		genDir = srcDir
 	}
 
 	modelInfoFile := generator.ModelInfoFile(genDir)
@@ -129,10 +133,10 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 		setupInitialFiles(t, srcDir, genDir)
 		setupInitialFiles(t, expDir, genDir)
 
-		generateAllFiles(t, overwriteExpected, conf, srcDir, expDir, genDir, modelInfoFile, errorTransformer)
-
-		assertSameFile(t, modelInfoFile, modelInfoExpectedFile, overwriteExpected)
-		assertSameFile(t, modelCodeFile, modelCodeExpectedFile, overwriteExpected)
+		if 0 != generateAllFiles(t, overwriteExpected, conf, srcDir, expDir, genDir, modelInfoFile, errorTransformer) {
+			assertSameFile(t, modelInfoFile, modelInfoExpectedFile, overwriteExpected)
+			assertSameFile(t, modelCodeFile, modelCodeExpectedFile, overwriteExpected)
+		}
 	}
 
 	// verify the result can be built
@@ -191,7 +195,7 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 	}
 }
 
-func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDir, expDir, genDir string, modelInfoFile string, errorTransformer func(error) error) {
+func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDir, expDir, genDir string, modelInfoFile string, errorTransformer func(error) error) int {
 	var modelFile = conf.generator.ModelFile(modelInfoFile)
 
 	// remove generated files during development (they might be syntactically wrong)
@@ -203,6 +207,8 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 			assert.NoErr(t, os.Remove(file))
 		}
 	}
+
+	var positiveTestsCount = 0
 
 	// process all source files in the directory
 	inputFiles, err := filepath.Glob(filepath.Join(srcDir, "*"+conf.sourceExt))
@@ -237,6 +243,8 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 				assert.Eq(t, getExpectedError(t, sourceFile).Error(), errPlatformIndependent)
 				continue
 			}
+		} else {
+			positiveTestsCount++
 		}
 
 		assert.NoErr(t, err)
@@ -245,6 +253,7 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 		var expectedFile = strings.Replace(bindingFile, genDir, expDir, 1) + ".expected"
 		assertSameFile(t, bindingFile, expectedFile, overwriteExpected)
 	}
+	return positiveTestsCount
 }
 
 var expectedErrorRegexp = regexp.MustCompile(`// *ERROR *=(.+)[\n|\r]`)

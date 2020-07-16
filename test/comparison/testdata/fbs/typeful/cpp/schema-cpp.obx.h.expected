@@ -8,73 +8,6 @@
 #include "flatbuffers/flatbuffers.h"
 #include "objectbox.h"
 
-struct Annotated_;
-
-struct Annotated {
-    using _OBX_MetaInfo = Annotated_;
-    
-    /// Objectbox requires an ID property.
-    /// It is recognized automatically if it has a right name ("id") or needs to be annotated otherwise.
-    uint64_t identifier;
-    std::string fullName;
-    int64_t time;
-    uint64_t relId;
-};
-
-struct Annotated_ {
-    static const obx_schema_id identifier = 1;
-    static const obx_schema_id fullName = 2;
-    static const obx_schema_id time = 3;
-    static const obx_schema_id relId = 4;
-    static const obx_schema_id typefuls = 1;
-    static const obx_schema_id m2m = 2;
-
-    static constexpr obx_schema_id entityId() { return 3; }
-
-    static void setObjectId(Annotated& object, obx_id newId) { object.identifier = newId; }
-
-    /// Write given object to the FlatBufferBuilder
-    static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Annotated& object);
-
-    /// Read an object from a valid FlatBuffer
-    static Annotated fromFlatBuffer(const void* data, size_t size);
-
-    /// Read an object from a valid FlatBuffer
-    static std::unique_ptr<Annotated> newFromFlatBuffer(const void* data, size_t size);
-
-    /// Read an object from a valid FlatBuffer
-    static void fromFlatBuffer(const void* data, size_t size, Annotated& outObject);
-};
-
-struct Simple_;
-
-struct Simple {
-    using _OBX_MetaInfo = Simple_;
-    
-    uint64_t id;
-};
-
-struct Simple_ {
-    static const obx_schema_id id = 1;
-    static const obx_schema_id many = 3;
-
-    static constexpr obx_schema_id entityId() { return 4; }
-
-    static void setObjectId(Simple& object, obx_id newId) { object.id = newId; }
-
-    /// Write given object to the FlatBufferBuilder
-    static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Simple& object);
-
-    /// Read an object from a valid FlatBuffer
-    static Simple fromFlatBuffer(const void* data, size_t size);
-
-    /// Read an object from a valid FlatBuffer
-    static std::unique_ptr<Simple> newFromFlatBuffer(const void* data, size_t size);
-
-    /// Read an object from a valid FlatBuffer
-    static void fromFlatBuffer(const void* data, size_t size, Simple& outObject);
-};
-
 struct Typeful_;
 
 /// Entity documentation is copied
@@ -130,7 +63,7 @@ struct Typeful_ {
     static const obx_schema_id float_ = 21;
     static const obx_schema_id double_ = 22;
 
-    static constexpr obx_schema_id entityId() { return 5; }
+    static constexpr obx_schema_id entityId() { return 1; }
 
     static void setObjectId(Typeful& object, obx_id newId) { object.id = newId; }
 
@@ -147,71 +80,45 @@ struct Typeful_ {
     static void fromFlatBuffer(const void* data, size_t size, Typeful& outObject);
 };
 
-inline void Annotated_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Annotated& object) {
-    fbb.Clear();
-    auto offsetfullName = fbb.CreateString(object.fullName);
-    flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.identifier));
-    fbb.AddOffset(6, offsetfullName);
-    fbb.TrackField(8, fbb.PushElement<int64_t>(object.time));
-    fbb.TrackField(10, fbb.PushElement<uint64_t>(object.relId));
-    flatbuffers::Offset<flatbuffers::Table> offset;
-    offset.o = fbb.EndTable(fbStart);
-    fbb.Finish(offset);
-}
+namespace ns {
+struct Annotated_;
 
-inline Annotated Annotated_::fromFlatBuffer(const void* data, size_t size) {
-    Annotated object;
-    fromFlatBuffer(data, size, object);
-    return object;
-}
-
-inline std::unique_ptr<Annotated> Annotated_::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::unique_ptr<Annotated>(new Annotated());
-    fromFlatBuffer(data, size, *object);
-    return object;
-}
-
-inline void Annotated_::fromFlatBuffer(const void* data, size_t size, Annotated& outObject) {
-    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
-    assert(table);
-    outObject.identifier = table->GetField<uint64_t>(4, 0);
-    {
-        auto* ptr = table->GetPointer<const flatbuffers::String*>(6);
-        if (ptr) outObject.fullName.assign(ptr->c_str());
-    }
-    outObject.time = table->GetField<int64_t>(8, 0);
-    outObject.relId = table->GetField<uint64_t>(10, 0);
+struct Annotated {
+    using _OBX_MetaInfo = Annotated_;
     
-}
+    /// Objectbox requires an ID property.
+    /// It is recognized automatically if it has a right name ("id") or needs to be annotated otherwise.
+    uint64_t identifier;
+    std::string fullName;
+    int64_t time;
+    uint64_t relId;
+};
 
-inline void Simple_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Simple& object) {
-    fbb.Clear();
-    flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.id));
-    flatbuffers::Offset<flatbuffers::Table> offset;
-    offset.o = fbb.EndTable(fbStart);
-    fbb.Finish(offset);
-}
+struct Annotated_ {
+    static const obx_schema_id identifier = 1;
+    static const obx_schema_id fullName = 2;
+    static const obx_schema_id time = 3;
+    static const obx_schema_id relId = 4;
+    static const obx_schema_id typefuls = 1;
+    static const obx_schema_id m2m = 2;
 
-inline Simple Simple_::fromFlatBuffer(const void* data, size_t size) {
-    Simple object;
-    fromFlatBuffer(data, size, object);
-    return object;
-}
+    static constexpr obx_schema_id entityId() { return 2; }
 
-inline std::unique_ptr<Simple> Simple_::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::unique_ptr<Simple>(new Simple());
-    fromFlatBuffer(data, size, *object);
-    return object;
-}
+    static void setObjectId(Annotated& object, obx_id newId) { object.identifier = newId; }
 
-inline void Simple_::fromFlatBuffer(const void* data, size_t size, Simple& outObject) {
-    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
-    assert(table);
-    outObject.id = table->GetField<uint64_t>(4, 0);
-    
-}
+    /// Write given object to the FlatBufferBuilder
+    static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Annotated& object);
+
+    /// Read an object from a valid FlatBuffer
+    static Annotated fromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static std::unique_ptr<Annotated> newFromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static void fromFlatBuffer(const void* data, size_t size, Annotated& outObject);
+};
+}  // namespace ns
 
 inline void Typeful_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& object) {
     fbb.Clear();
@@ -302,6 +209,44 @@ inline void Typeful_::fromFlatBuffer(const void* data, size_t size, Typeful& out
     outObject.float64 = table->GetField<double>(42, 0.0);
     outObject.float_ = table->GetField<float>(44, 0.0f);
     outObject.double_ = table->GetField<double>(46, 0.0);
+    
+}
+
+inline void ns::Annotated_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::Annotated& object) {
+    fbb.Clear();
+    auto offsetfullName = fbb.CreateString(object.fullName);
+    flatbuffers::uoffset_t fbStart = fbb.StartTable();
+    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.identifier));
+    fbb.AddOffset(6, offsetfullName);
+    fbb.TrackField(8, fbb.PushElement<int64_t>(object.time));
+    fbb.TrackField(10, fbb.PushElement<uint64_t>(object.relId));
+    flatbuffers::Offset<flatbuffers::Table> offset;
+    offset.o = fbb.EndTable(fbStart);
+    fbb.Finish(offset);
+}
+
+inline ns::Annotated ns::Annotated_::fromFlatBuffer(const void* data, size_t size) {
+    ns::Annotated object;
+    fromFlatBuffer(data, size, object);
+    return object;
+}
+
+inline std::unique_ptr<ns::Annotated> ns::Annotated_::newFromFlatBuffer(const void* data, size_t size) {
+    auto object = std::unique_ptr<ns::Annotated>(new ns::Annotated());
+    fromFlatBuffer(data, size, *object);
+    return object;
+}
+
+inline void ns::Annotated_::fromFlatBuffer(const void* data, size_t size, ns::Annotated& outObject) {
+    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
+    assert(table);
+    outObject.identifier = table->GetField<uint64_t>(4, 0);
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::String*>(6);
+        if (ptr) outObject.fullName.assign(ptr->c_str());
+    }
+    outObject.time = table->GetField<int64_t>(8, 0);
+    outObject.relId = table->GetField<uint64_t>(10, 0);
     
 }
 
