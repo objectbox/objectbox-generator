@@ -2,7 +2,8 @@
 
 #include "catch2/catch.hpp"
 #include "objectbox-cpp.h"
-#include "shared.h"
+#include "schema-cpp.obx.h"
+#include "shared/store-init.h"
 using namespace obx;
 
 TEST_CASE("Prepare DB with old property", "") {

@@ -124,7 +124,7 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, cpp bool, mainFile string) {
 			Name:        t.Name(),
 			IsCpp:       true,
 			Standard:    11,
-			IncludeDirs: append(build.IncludeDirs(repoRoot(t)), testSrcDir),
+			IncludeDirs: append(build.IncludeDirs(repoRoot(t)), testSrcDir, filepath.Join(repoRoot(t), "test", "integration")),
 			LinkDirs:    build.LibDirs(repoRoot(t)),
 			LinkLibs:    []string{"objectbox"},
 		}
