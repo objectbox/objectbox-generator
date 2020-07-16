@@ -6,9 +6,9 @@
 using namespace obx;
 
 TEST_CASE("Check DB with new names", "") {
-  Store store = testStore(false);
-  Box<NewEntityName> box(store); // one way
-  REQUIRE(box.count() == 2);
-  REQUIRE(box.get(1)->newPropertyName == 11);
-  REQUIRE(box.get(2)->newPropertyName == 22);
+    Store store = testStore(false);
+    Box<NewEntityName> box(store);  // one way
+    REQUIRE(box.count() == 2);
+    REQUIRE(box.get(1)->newPropertyName == 11);
+    REQUIRE(box.get(2)->newPropertyName == 22);
 }
