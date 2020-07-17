@@ -26,5 +26,7 @@ import (
 )
 
 func TestCpp(t *testing.T) {
-	integration.TestCCpp(t, true)
+	conf := &integration.CCppTestConf{}
+	defer conf.Cleanup()
+	conf.CommonExecute(t, true)
 }

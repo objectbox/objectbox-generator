@@ -20,6 +20,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -274,8 +275,11 @@ func (model *ModelInfo) CreateEntity(name string) (*Entity, error) {
 
 // GenerateUid generates a unique UID
 func (model *ModelInfo) GenerateUid() (result Uid, err error) {
-	result = 0
+	if model.Rand == nil {
+		return 0, errors.New("modelInfo.Rand not initialized")
+	}
 
+	result = 0
 	for i := 0; i < 1000; i++ {
 		t := Uid(model.Rand.Int63())
 		if !model.containsUid(t) {

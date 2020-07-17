@@ -1,6 +1,0 @@
-// change UID on an existing property that had an explicitly specified uid before
-table ChangeUid {
-	Id		: uint64	;
-	/// objectbox: uid=501233450539197794
-	Value	: string	;
-}

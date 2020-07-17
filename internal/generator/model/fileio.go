@@ -30,7 +30,7 @@ import (
 // LoadOrCreateModel reads a model file or creates a new one if it doesn't exist
 func LoadOrCreateModel(path string) (model *ModelInfo, err error) {
 	if fileExists(path) {
-		return loadModelFromJSONFile(path)
+		return LoadModelFromJSONFile(path)
 	}
 	return createModelJSONFile(path)
 }
@@ -67,7 +67,7 @@ func fileExists(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-func loadModelFromJSONFile(path string) (model *ModelInfo, err error) {
+func LoadModelFromJSONFile(path string) (model *ModelInfo, err error) {
 	model = &ModelInfo{}
 
 	if model.file, err = os.OpenFile(path, os.O_RDWR, 0); err != nil {

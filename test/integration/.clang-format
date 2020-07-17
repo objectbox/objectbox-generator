@@ -1,0 +1,19 @@
+﻿---
+AccessModifierOffset: -4
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
+BasedOnStyle: Google
+ColumnLimit: '120'
+Cpp11BracedListStyle: 'true'
+DerivePointerAlignment: false
+IndentWidth: '4'
+PointerAlignment: Left
+SpaceAfterCStyleCast: 'true'
+SpaceBeforeAssignmentOperators: 'true'
+Standard: Cpp11
+UseTab: Never
+
+...

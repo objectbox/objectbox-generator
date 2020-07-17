@@ -1,6 +1,0 @@
-// rename an existing property
-table EntityB {
-	Id		: uint64	;
-	/// objectbox: uid=2669985732393126063
-	New		: string	;
-}
