@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstdbool>
+#include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"
+#include "objectbox-cpp.h"
 #include "objectbox.h"
 
 struct Typeful_;
@@ -40,28 +41,28 @@ struct Typeful {
 };
 
 struct Typeful_ {
-    static const obx_schema_id id = 1;
-    static const obx_schema_id int_ = 2;
-    static const obx_schema_id int8 = 3;
-    static const obx_schema_id int16 = 4;
-    static const obx_schema_id int32 = 5;
-    static const obx_schema_id int64 = 6;
-    static const obx_schema_id uint = 7;
-    static const obx_schema_id uint8 = 8;
-    static const obx_schema_id uint16 = 9;
-    static const obx_schema_id uint32 = 10;
-    static const obx_schema_id uint64 = 11;
-    static const obx_schema_id bool_ = 12;
-    static const obx_schema_id string = 13;
-    static const obx_schema_id stringvector = 14;
-    static const obx_schema_id byte = 15;
-    static const obx_schema_id ubyte = 16;
-    static const obx_schema_id bytevector = 17;
-    static const obx_schema_id ubytevector = 18;
-    static const obx_schema_id float32 = 19;
-    static const obx_schema_id float64 = 20;
-    static const obx_schema_id float_ = 21;
-    static const obx_schema_id double_ = 22;
+    static constexpr obx::Property<Typeful, OBXPropertyType_Long, 1> id{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Int, 2> int_{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Byte, 3> int8{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Short, 4> int16{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Int, 5> int32{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Long, 6> int64{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Int, 7> uint{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Byte, 8> uint8{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Short, 9> uint16{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Int, 10> uint32{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Long, 11> uint64{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Bool, 12> bool_{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_String, 13> string{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_StringVector, 14> stringvector{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Byte, 15> byte{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Byte, 16> ubyte{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_ByteVector, 17> bytevector{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_ByteVector, 18> ubytevector{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Float, 19> float32{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Double, 20> float64{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Float, 21> float_{};
+    static constexpr obx::Property<Typeful, OBXPropertyType_Double, 22> double_{};
 
     static constexpr obx_schema_id entityId() { return 1; }
 
@@ -95,12 +96,12 @@ struct Annotated {
 };
 
 struct Annotated_ {
-    static const obx_schema_id identifier = 1;
-    static const obx_schema_id fullName = 2;
-    static const obx_schema_id time = 3;
-    static const obx_schema_id relId = 4;
-    static const obx_schema_id typefuls = 1;
-    static const obx_schema_id m2m = 2;
+    static constexpr obx::Property<Annotated, OBXPropertyType_Long, 1> identifier{};
+    static constexpr obx::Property<Annotated, OBXPropertyType_String, 2> fullName{};
+    static constexpr obx::Property<Annotated, OBXPropertyType_Date, 3> time{};
+    static constexpr obx::RelationProperty<Annotated, Typeful, 4> relId{};
+    static constexpr obx::RelationStandalone<Annotated, Typeful, 1> typefuls{};
+    static constexpr obx::RelationStandalone<Annotated, Typeful, 2> m2m{};
 
     static constexpr obx_schema_id entityId() { return 2; }
 

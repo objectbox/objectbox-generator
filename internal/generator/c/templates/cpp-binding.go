@@ -29,10 +29,11 @@ var CppBindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Pa
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstdbool>
+#include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"
+#include "objectbox-cpp.h"
 #include "objectbox.h"
 {{range $entity := .Model.EntitiesWithMeta}}{{with $entity.Meta.CppNamespaceStart}}
 {{.}}{{end}}
@@ -47,10 +48,13 @@ struct {{$entity.Meta.CppName}}_;
 
 struct {{$entity.Meta.CppName}}_ {
 {{- range $property := $entity.Properties}}
-	static const obx_schema_id {{$property.Meta.CppName}} = {{$property.Id.GetId}};
+	static constexpr 
+	{{- if $property.RelationTarget}} obx::RelationProperty<{{$entity.Meta.CppName}}, {{$property.RelationTarget}}, {{$property.Id.GetId}}> {{$property.Meta.CppName}}{};
+	{{- else}} obx::Property<{{$entity.Meta.CppName}}, OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}> {{$property.Meta.CppName}}{};
+	{{- end}}
 {{- end}}
 {{- range $relation := $entity.Relations}}
-	static const obx_schema_id {{$relation.Meta.CppName}} = {{$relation.Id.GetId}};
+	static constexpr obx::RelationStandalone<{{$entity.Meta.CppName}}, {{$relation.Target.Meta.CppName}}, {{$relation.Id.GetId}}> {{$relation.Meta.CppName}}{};
 {{- end}}
 
     static constexpr obx_schema_id entityId() { return {{$entity.Id.GetId}}; }
