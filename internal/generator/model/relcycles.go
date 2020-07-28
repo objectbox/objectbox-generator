@@ -50,7 +50,7 @@ func (entity *Entity) checkRelationCycles(recursionStack *map[*Entity]bool, path
 			continue
 		}
 
-		relTarget, _ := entity.model.FindEntityByName(prop.RelationTarget)
+		relTarget, _ := entity.Model.FindEntityByName(prop.RelationTarget)
 
 		if err := checkRelationCycle(recursionStack, path+"."+prop.Name, relTarget); err != nil {
 			return err

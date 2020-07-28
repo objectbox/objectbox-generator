@@ -56,7 +56,7 @@ func (relation *StandaloneRelation) Validate() error {
 			return err
 		}
 
-		for _, entity := range relation.entity.model.Entities {
+		for _, entity := range relation.entity.Model.Entities {
 			if entity.Id == relation.TargetId {
 				relation.Target = entity
 			}

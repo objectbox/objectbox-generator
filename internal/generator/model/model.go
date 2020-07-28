@@ -110,9 +110,9 @@ func (model *ModelInfo) Validate() (err error) {
 	}
 
 	for _, entity := range model.Entities {
-		if entity.model == nil {
-			entity.model = model
-		} else if entity.model != model {
+		if entity.Model == nil {
+			entity.Model = model
+		} else if entity.Model != model {
 			return fmt.Errorf("entity %s %s has incorrect parent model reference", entity.Name, entity.Id)
 		}
 
