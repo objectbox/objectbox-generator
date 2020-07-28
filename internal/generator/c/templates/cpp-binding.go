@@ -35,7 +35,9 @@ var CppBindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Pa
 #include "flatbuffers/flatbuffers.h"
 #include "objectbox-cpp.h"
 #include "objectbox.h"
-{{range $entity := .Model.EntitiesWithMeta}}{{with $entity.Meta.CppNamespaceStart}}
+{{range $entity := .Model.EntitiesWithMeta}}
+{{$entity.Meta.PreDeclareCppRelTargets -}}
+{{with $entity.Meta.CppNamespaceStart}}
 {{.}}{{end}}
 struct {{$entity.Meta.CppName}}_;
 
@@ -49,7 +51,7 @@ struct {{$entity.Meta.CppName}}_;
 struct {{$entity.Meta.CppName}}_ {
 {{- range $property := $entity.Properties}}
 	static constexpr 
-	{{- if $property.RelationTarget}} obx::RelationProperty<{{$entity.Meta.CppName}}, {{$property.RelationTarget}}, {{$property.Id.GetId}}> {{$property.Meta.CppName}}{};
+	{{- if $property.RelationTarget}} obx::RelationProperty<{{$entity.Meta.CppName}}, {{$property.Meta.CppNameRelationTarget}}, {{$property.Id.GetId}}> {{$property.Meta.CppName}}{};
 	{{- else}} obx::Property<{{$entity.Meta.CppName}}, OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}> {{$property.Meta.CppName}}{};
 	{{- end}}
 {{- end}}

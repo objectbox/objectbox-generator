@@ -9,6 +9,8 @@
 #include "objectbox-cpp.h"
 #include "objectbox.h"
 
+namespace ns { struct AnnotatedEntity; }
+
 struct Typeful_;
 
 /// Entity documentation is copied
@@ -38,6 +40,8 @@ struct Typeful {
     double float64;
     float float_;
     double double_;
+    /// Relation to an entity declared later in the same file
+    uint64_t relId;
 };
 
 struct Typeful_ {
@@ -63,6 +67,7 @@ struct Typeful_ {
     static constexpr obx::Property<Typeful, OBXPropertyType_Double, 20> float64{};
     static constexpr obx::Property<Typeful, OBXPropertyType_Float, 21> float_{};
     static constexpr obx::Property<Typeful, OBXPropertyType_Double, 22> double_{};
+    static constexpr obx::RelationProperty<Typeful, ns::AnnotatedEntity, 23> relId{};
 
     static constexpr obx_schema_id entityId() { return 1; }
 
@@ -80,6 +85,8 @@ struct Typeful_ {
     /// Read an object from a valid FlatBuffer
     static void fromFlatBuffer(const void* data, size_t size, Typeful& outObject);
 };
+
+struct Typeful; 
 
 namespace ns {
 struct Annotated_;
@@ -150,6 +157,7 @@ inline void Typeful_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Ty
     fbb.TrackField(42, fbb.PushElement<double>(object.float64));
     fbb.TrackField(44, fbb.PushElement<float>(object.float_));
     fbb.TrackField(46, fbb.PushElement<double>(object.double_));
+    fbb.TrackField(48, fbb.PushElement<uint64_t>(object.relId));
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
     fbb.Finish(offset);
@@ -210,6 +218,7 @@ inline void Typeful_::fromFlatBuffer(const void* data, size_t size, Typeful& out
     outObject.float64 = table->GetField<double>(42, 0.0);
     outObject.float_ = table->GetField<float>(44, 0.0f);
     outObject.double_ = table->GetField<double>(46, 0.0);
+    outObject.relId = table->GetField<uint64_t>(48, 0);
     
 }
 

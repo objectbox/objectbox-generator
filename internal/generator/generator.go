@@ -134,9 +134,10 @@ func createBinding(options Options, sourceFile string, storedModel *model.ModelI
 		return fmt.Errorf("can't merge model information: %s", err)
 	}
 
-	if err = storedModel.CheckRelationCycles(); err != nil {
-		return err
-	}
+	// TODO check relation cycles for Go, not other languages
+	// if err = storedModel.CheckRelationCycles(); err != nil {
+	// 	return err
+	// }
 
 	if err = storedModel.Finalize(); err != nil {
 		return fmt.Errorf("model finalization failed: %s", err)

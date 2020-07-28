@@ -46,6 +46,8 @@ typedef struct Typeful {
     double float64;
     float float_;
     double double_;
+    /// Relation to an entity declared later in the same file
+    uint64_t relId;
     
 } Typeful;
 
@@ -73,6 +75,7 @@ enum Typeful_ {
     Typeful_PROP_ID_float64 = 20,
     Typeful_PROP_ID_float_ = 21,
     Typeful_PROP_ID_double_ = 22,
+    Typeful_PROP_ID_relId = 23,
 };
 
 /// Write given object to the FlatBufferBuilder
@@ -159,7 +162,7 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
     flatcc_builder_ref_t offset_bytevector = !object->bytevector ? 0 : flatcc_builder_create_vector(B, object->bytevector, object->bytevector_len, sizeof(int8_t), sizeof(int8_t), FLATBUFFERS_COUNT_MAX(sizeof(int8_t)));
     flatcc_builder_ref_t offset_ubytevector = !object->ubytevector ? 0 : flatcc_builder_create_vector(B, object->ubytevector, object->ubytevector_len, sizeof(uint8_t), sizeof(uint8_t), FLATBUFFERS_COUNT_MAX(sizeof(uint8_t)));
 
-    if (flatcc_builder_start_table(B, 22) != 0) return false;
+    if (flatcc_builder_start_table(B, 23) != 0) return false;
 
     void* p;
     flatcc_builder_ref_t* _p;
@@ -237,6 +240,9 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
     
     if (!(p = flatcc_builder_table_add(B, 21, 8, 8))) return false;
     flatbuffers_double_write_to_pe(p, object->double_);
+    
+    if (!(p = flatcc_builder_table_add(B, 22, 8, 8))) return false;
+    flatbuffers_uint64_write_to_pe(p, object->relId);
     
     flatcc_builder_ref_t ref;
     if (!(ref = flatcc_builder_end_table(B))) return false;
@@ -350,6 +356,7 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
     out_object->float64 = (vs < sizeof(vt[0]) * (19 + 3)) ? 0.0 : flatbuffers_double_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 19 + 2));
     out_object->float_ = (vs < sizeof(vt[0]) * (20 + 3)) ? 0.0f : flatbuffers_float_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 20 + 2));
     out_object->double_ = (vs < sizeof(vt[0]) * (21 + 3)) ? 0.0 : flatbuffers_double_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 21 + 2));
+    out_object->relId = (vs < sizeof(vt[0]) * (22 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 22 + 2));
     return true;
 }
 
