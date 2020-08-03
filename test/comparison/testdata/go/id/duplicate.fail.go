@@ -1,6 +1,6 @@
 package object
 
-// ERROR = can't prepare bindings for testdata/id/duplicate.fail.go: duplicate name (note that property names are case insensitive) on property id found in Duplicate
+// ERROR = can't prepare bindings for testdata/go/id/duplicate.fail.go: multiple properties recognized as an ID: Id (0:0) and id (0:0) on entity Duplicate
 
 type Duplicate struct {
 	Id uint64

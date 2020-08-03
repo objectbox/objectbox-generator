@@ -6,9 +6,9 @@ package object
 import (
 	"errors"
 	"github.com/google/flatbuffers/go"
+	"github.com/objectbox/objectbox-generator/test/comparison/testdata/go/embedding/other"
 	"github.com/objectbox/objectbox-go/objectbox"
 	"github.com/objectbox/objectbox-go/objectbox/fbutils"
-	"github.com/objectbox/objectbox-generator/test/comparison/go/embedding/other"
 )
 
 type e_EntityInfo struct {

@@ -34,16 +34,24 @@ import (
 
 type GoGenerator struct {
 	binding *astReader
+	OutPath string
+	ByValue bool
 }
 
 // BindingFiles returns names of binding files for the given entity file.
-func (GoGenerator) BindingFiles(forFile string) []string {
+func (gen *GoGenerator) BindingFiles(forFile string) []string {
+	if len(gen.OutPath) > 0 {
+		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
+	}
 	var extension = filepath.Ext(forFile)
 	return []string{forFile[0:len(forFile)-len(extension)] + ".obx" + extension}
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
-func (GoGenerator) ModelFile(forFile string) string {
+func (gen *GoGenerator) ModelFile(forFile string) string {
+	if len(gen.OutPath) > 0 {
+		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
+	}
 	var extension = filepath.Ext(forFile)
 	return forFile[0:len(forFile)-len(extension)] + ".go"
 }
@@ -73,6 +81,12 @@ func (goGen *GoGenerator) ParseSource(sourceFile string) (*model.ModelInfo, erro
 }
 
 func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
+	// NOTE: find a better place for this check - we only want to do it for some languages
+	// should be called after generator calls storedMode.Finalize()
+	if err := mergedModel.CheckRelationCycles(); err != nil {
+		return err
+	}
+
 	var err, err2 error
 
 	var bindingSource []byte
@@ -108,9 +122,10 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options, m *mode
 	var tplArguments = struct {
 		Model            *model.ModelInfo
 		Binding          *astReader
+		ByValue          bool
 		GeneratorVersion int
 		Options          generator.Options
-	}{m, goGen.binding, generator.VersionId, options}
+	}{m, goGen.binding, goGen.ByValue, generator.VersionId, options}
 
 	if err = templates.BindingTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)

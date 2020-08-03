@@ -29,7 +29,8 @@
         {
           "id": "1:6044372234677422456",
           "name": "Id",
-          "type": 0
+          "type": 6,
+          "flags": 1
         }
       ]
     }
@@ -42,6 +43,6 @@
   "retiredEntityUids": [],
   "retiredIndexUids": [],
   "retiredPropertyUids": [],
-  "retiredRelationUids": null,
+  "retiredRelationUids": [],
   "version": 1
 }

@@ -47,7 +47,7 @@ func CreateEntity(model *ModelInfo, id Id, uid Uid) *Entity {
 	}
 }
 
-// Validate performs initial validation of loaded data so that it doesn't have to be checked in each function
+// Validate performs validation of the entity model
 func (entity *Entity) Validate() (err error) {
 	if entity.Model == nil {
 		return fmt.Errorf("undefined parent model")

@@ -31,12 +31,12 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
-	gogenerator "github.com/objectbox/objectbox-generator/internal/generator/go"
+	"github.com/objectbox/objectbox-generator/internal/generator/go"
 	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
 // this containing module name - used for test case modules
-const goModuleName = "github.com/objectbox/objectbox-go"
+const goModuleName = "github.com/objectbox/objectbox-generator"
 
 var goGeneratorArgsRegexp = regexp.MustCompile("//go:generate go run github.com/objectbox/objectbox-go/cmd/objectbox-gogen (.+)[\n|\r]")
 
@@ -50,6 +50,7 @@ func (h goTestHelper) generatorFor(t *testing.T, conf testSpec, sourceFile strin
 
 	// make a copy of the default generator
 	var gen = *conf.generator.(*gogenerator.GoGenerator)
+	gen.OutPath = genDir
 
 	if match := goGeneratorArgsRegexp.FindSubmatch(source); len(match) > 1 {
 		var args = argsToMap(string(match[1]))
@@ -58,7 +59,7 @@ func (h goTestHelper) generatorFor(t *testing.T, conf testSpec, sourceFile strin
 
 			switch name {
 			case "byValue":
-				// TODO gen.ByValue = true
+				gen.ByValue = true
 			default:
 				t.Fatalf("unknown option '%s'", name)
 			}
@@ -93,10 +94,10 @@ func (goTestHelper) prepareTempDir(t *testing.T, conf testSpec, srcDir, tempDir,
 	assert.NoErr(t, copyDirectory(srcDir, tempDir, 0700, 0600))
 
 	// When outside of the project's directory, we need to set up the whole temp dir as its own module, otherwise
-	// it won't find this `objectbox-go`. Therefore, we create a go.mod file pointing it to the right path.
+	// imports won't work correctly. To do that we create a go.mod file pointing it to this repo.
 	cwd, err := os.Getwd()
 	assert.NoErr(t, err)
-	var modulePath = "example.com/virtual/objectbox-generator/test/comparison/" + srcDir
+	var modulePath = "example.com/virtual/objectbox-generator/test/comparison/testdata/go/" + srcDir
 	var goMod = "module " + modulePath + "\n" +
 		"replace " + goModuleName + " => " + filepath.Join(cwd, "/../../") + "\n" +
 		"require " + goModuleName + " v0.0.0"
@@ -122,7 +123,7 @@ func (goTestHelper) build(t *testing.T, conf testSpec, dir string, expectedError
 	}
 
 	// On Windows, we're getting a `go finding` message during the build - remove it to be consistent.
-	var reg = regexp.MustCompile("go: finding " + goModuleName + " v0.0.0[ \r\n]+")
+	var reg = regexp.MustCompile("go: finding " + goModuleName + " v[0-9.]+[ \r\n]+")
 	stdErr = reg.ReplaceAll(stdErr, nil)
 
 	checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)

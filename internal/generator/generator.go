@@ -38,7 +38,7 @@ const Version = "0.9.1"
 // VersionId specifies the current generator version identifier.
 // It is used to validate generated code compatibility and is increased when there are changes in the generated code.
 // Internal generator changes that don't change the output do not cause an increase.
-const VersionId = 6
+const VersionId = 5
 
 // ModelInfoFile returns the model info JSON file name in the given directory
 func ModelInfoFile(dir string) string {
@@ -133,11 +133,6 @@ func createBinding(options Options, sourceFile string, storedModel *model.ModelI
 	if err = mergeBindingWithModelInfo(currentModel, storedModel); err != nil {
 		return fmt.Errorf("can't merge model information: %s", err)
 	}
-
-	// TODO check relation cycles for Go, not other languages
-	// if err = storedModel.CheckRelationCycles(); err != nil {
-	// 	return err
-	// }
 
 	if err = storedModel.Finalize(); err != nil {
 		return fmt.Errorf("model finalization failed: %s", err)

@@ -1,7 +1,7 @@
 package object
 
 /* ERROR:
-can't merge binding model information: uid annotation value must not be empty on property Group, entity NegTaskRelValue:
+can't merge model information: merging entity NegTaskRelValue: property Group: uid annotation value must not be empty:
     [rename] apply the current UID 167566062957544642
     [change/reset] apply a new UID 3959279844101328186
 */

@@ -35,16 +35,16 @@ var BindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Parse
 {{- end -}}
 {{define "property-getter"}}{{/* used in Load*/}}
 	{{- if .CastOnWrite}}{{.CastOnWrite}}({{end}}
-		{{- if eq .FbType "UOffsetT"}} fbutils.Get{{.ObTypeString}}{{if .IsPointer}}Ptr{{end}}Slot(table, {{.FbvTableOffset}})
-    	{{- else}} fbutils.Get{{.GoType | StringTitle}}{{if .IsPointer}}Ptr{{end}}Slot(table, {{.FbvTableOffset}})
+		{{- if eq .FbType "UOffsetT"}} fbutils.Get{{.ObTypeString}}{{if .GoField.IsPointer}}Ptr{{end}}Slot(table, {{.ModelProperty.FbvTableOffset}})
+    	{{- else}} fbutils.Get{{.GoType | StringTitle}}{{if .GoField.IsPointer}}Ptr{{end}}Slot(table, {{.ModelProperty.FbvTableOffset}})
     	{{- end}}
 	{{- if .CastOnWrite}}){{end}}
 {{- end -}}
 
 {{define "property-access"}}{{/* used in Flatten*/ -}}
-	{{- if .Converter}} {{if .IsPointer}}*{{end}}prop{{.Name}}
-	{{- else if .CastOnRead}}{{.Meta.CastOnRead}}({{if .IsPointer}}*{{end}}obj.{{.Path}})
-	{{- else}}{{if .IsPointer}}*{{end}}obj.{{.Path}}{{end}}
+	{{- if .Converter}} {{if .GoField.IsPointer}}*{{end}}prop{{.Name}}
+	{{- else if .CastOnRead}}{{.CastOnRead}}({{if .GoField.IsPointer}}*{{end}}obj.{{.Path}})
+	{{- else}}{{if .GoField.IsPointer}}*{{end}}obj.{{.Path}}{{end}}
 {{- end -}}
 
 
@@ -60,7 +60,7 @@ import (
 	{{end}}
 )
 
-{{range $entity := .Model.Entities -}}
+{{range $entity := .Model.EntitiesWithMeta -}}
 {{$entityNameCamel := $entity.Name | StringCamel -}}
 type {{$entityNameCamel}}_EntityInfo struct {
 	objectbox.Entity
@@ -84,7 +84,7 @@ var {{$entity.Name}}_ = struct {
 	{{end -}}
 }{
 	{{range $property := $entity.Properties -}}
-    {{$property.Name}}: &objectbox.
+    {{$property.Meta.Name}}: &objectbox.
 		{{- with $property.RelationTarget}}RelationToOne{
 			Property:
 		{{- else}}Property{{$property.Meta.GoType | TypeIdentifier}}{
@@ -99,7 +99,7 @@ var {{$entity.Name}}_ = struct {
     {{end -}}
 	{{range $relation := $entity.Relations -}}
     	{{$relation.Name}}: &objectbox.RelationToMany{
-			Id: {{$relation.Id}},
+			Id: {{$relation.Id.GetId}},
 			Source: &{{$entity.Name}}Binding.Entity,
 			Target: &{{$relation.Target.Name}}Binding.Entity,
 		},
@@ -125,13 +125,13 @@ func ({{$entityNameCamel}}_EntityInfo) AddToModel(model *objectbox.Model) {
     {{end -}}
     model.EntityLastPropertyId({{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}})
 	{{range $relation := $entity.Relations -}}
-    model.Relation({{$relation.Id}}, {{$relation.Uid}}, {{$relation.Target.Name}}Binding.Id, {{$relation.Target.Name}}Binding.Uid)
+    model.Relation({{$relation.Id.GetId}}, {{$relation.Id.GetUid}}, {{$relation.Target.Name}}Binding.Id, {{$relation.Target.Name}}Binding.Uid)
     {{end -}}
 }
 
 // GetId is called by ObjectBox during Put operations to check for existing ID on an object
 func ({{$entityNameCamel}}_EntityInfo) GetId(object interface{}) (uint64, error) {
-	{{- if $.Options.ByValue}}
+	{{- if $.ByValue}}
 		if obj, ok := object.(*{{$entity.Name}}); ok {
 			return {{$entity.IdProperty.Meta.TplReadValue "obj" ""}}
 		} else {
@@ -144,7 +144,7 @@ func ({{$entityNameCamel}}_EntityInfo) GetId(object interface{}) (uint64, error)
 
 // SetId is called by ObjectBox during Put to update an ID on an object that has just been inserted
 func ({{$entityNameCamel}}_EntityInfo) SetId(object interface{}, id uint64) error {
-	{{- if $.Options.ByValue}}
+	{{- if $.ByValue}}
 		if obj, ok := object.(*{{$entity.Name}}); ok {
 			{{$entity.IdProperty.Meta.TplSetAndReturn "obj" "" "id"}}
 		} else {
@@ -161,23 +161,25 @@ func ({{$entityNameCamel}}_EntityInfo) SetId(object interface{}, id uint64) erro
 func ({{$entityNameCamel}}_EntityInfo) PutRelated(ob *objectbox.ObjectBox, object interface{}, id uint64) error {
 	{{- block "put-relations" $entity}}
 	{{- range $field := .Meta.Fields}}
-		{{- if $field.SimpleRelation}}
-			if rel := {{if not $field.IsPointer}}&{{end}}object.(*{{$field.Entity.Name}}).{{$field.Path}}; rel != nil {
-				if rId, err := {{$field.SimpleRelation}}Binding.GetId(rel); err != nil {
-					return err
-				} else if rId == 0 {
-					// NOTE Put/PutAsync() has a side-effect of setting the rel.ID
-					if _, err := BoxFor{{$field.SimpleRelation}}(ob).Put(rel); err != nil {
-						return err
-					}
-				}
-			}
-		{{- else if $field.StandaloneRelation}}
+		{{- if $field.StandaloneRelation}}
 			{{- if $field.IsLazyLoaded}} if object.(*{{$field.Entity.Name}}).{{$field.Path}} != nil { // lazy-loaded relations without {{$field.Entity.Name}}Box::Fetch{{$field.Name}}() called are nil {{end}}  
 			if err := BoxFor{{$field.Entity.Name}}(ob).RelationReplace({{.Entity.Name}}_.{{$field.Name}}, id, object, object.(*{{$field.Entity.Name}}).{{$field.Path}}); err != nil {
 				return err
 			}
 			{{if $field.IsLazyLoaded}} } {{end}}
+		{{- else if $field.Property}}
+			{{- if and (not $field.Property.IsBasicType) $field.Property.ModelProperty.RelationTarget}}
+			if rel := {{if not $field.IsPointer}}&{{end}}object.(*{{$field.Entity.Name}}).{{$field.Path}}; rel != nil {
+				if rId, err := {{$field.Property.ModelProperty.RelationTarget}}Binding.GetId(rel); err != nil {
+					return err
+				} else if rId == 0 {
+					// NOTE Put/PutAsync() has a side-effect of setting the rel.ID
+					if _, err := BoxFor{{$field.Property.ModelProperty.RelationTarget}}(ob).Put(rel); err != nil {
+						return err
+					}
+				}
+			}
+			{{- end}}
 		{{- else}}{{/* recursively visit fields in embedded structs */}}{{template "put-relations" $field}}
 		{{- end}}
 	{{- end}}{{end}}
@@ -187,7 +189,7 @@ func ({{$entityNameCamel}}_EntityInfo) PutRelated(ob *objectbox.ObjectBox, objec
 // Flatten is called by ObjectBox to transform an object to a FlatBuffer
 func ({{$entityNameCamel}}_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id uint64) error {
     {{if $entity.Meta.HasNonIdProperty -}}
-		{{- if not $.Options.ByValue}}obj := object.(*{{$entity.Name}}) 
+		{{- if not $.ByValue}}obj := object.(*{{$entity.Name}}) 
 		{{- else -}}
 		var obj *{{$entity.Name}}
 		if objPtr, ok := object.(*{{$entity.Name}}); ok {
@@ -200,38 +202,42 @@ func ({{$entityNameCamel}}_EntityInfo) Flatten(object interface{}, fbb *flatbuff
 	{{- end -}}
 	
 	{{- range $property := $entity.Properties}}{{if and $property.Meta.Converter (not (eq $property.Name $entity.IdProperty.Name))}}
-	var prop{{$property.Name}} {{$property.AnnotatedType}}
-	{{if $property.Meta.IsPointer}}if obj.{{$property.Path}} != nil {{end}} { 
+	var prop{{$property.Name}} {{$property.Meta.AnnotatedType}}
+	{{if $property.Meta.GoField.IsPointer}}if obj.{{$property.Meta.Path}} != nil {{end}} { 
 		var err error
-		prop{{$property.Name}}, err = {{$property.Meta.Converter}}ToDatabaseValue(obj.{{$property.Path}})
+		prop{{$property.Name}}, err = {{$property.Meta.Converter}}ToDatabaseValue(obj.{{$property.Meta.Path}})
 		if err != nil {
-			return errors.New("converter {{$property.Meta.Converter}}ToDatabaseValue() failed on {{$entity.Name}}.{{$property.Path}}: " + err.Error())
+			return errors.New("converter {{$property.Meta.Converter}}ToDatabaseValue() failed on {{$entity.Name}}.{{$property.Meta.Path}}: " + err.Error())
 		}
 	}
 	{{end}}{{end}}
 
     {{- range $property := $entity.Properties}}{{if eq $property.Meta.FbType "UOffsetT"}}
-	{{if $property.Meta.IsPointer}}
-	var offset{{$property.Name}} flatbuffers.UOffsetT
-	if obj.{{$property.Path}} != nil {
+	{{if $property.Meta.GoField.IsPointer}}
+	var offset{{$property.Meta.Name}} flatbuffers.UOffsetT
+	if obj.{{$property.Meta.Path}} != nil {
 	{{else}}var {{end -}}
-	offset{{$property.Name}} = fbutils.Create{{$property.Meta.ObTypeString}}Offset(fbb, {{template "property-access" $property.Meta}})
-	{{- if $property.Meta.IsPointer -}} } {{- end}}
+	offset{{$property.Meta.Name}} = fbutils.Create{{$property.Meta.ObTypeString}}Offset(fbb, {{template "property-access" $property.Meta}})
+	{{- if $property.Meta.GoField.IsPointer -}} } {{- end}}
 	{{- end}}{{end}}
 
 	{{- block "store-relations" $entity}}
 	{{- range $field := .Meta.Fields}}
-		{{if $field.SimpleRelation}}
-			var rId{{$field.Property.Name}} uint64
-			if rel := {{if not $field.IsPointer}}&{{end}}obj.{{$field.Path}}; rel != nil {
-				if rId, err := {{$field.SimpleRelation}}Binding.GetId(rel); err != nil {
-					return err
-				} else {
-					rId{{$field.Property.Name}} = rId
-				}
-			}
-		{{- else if $field.Property}}{{if $field.Property.ModelProperty.RelationTarget}}{{/* manual relation links (just ID) */}}
-			var rId{{$field.Property.Name}} = {{template "property-access" $field.Property}}{{- end}}
+		{{if $field.Property}}
+			{{- if $field.Property.ModelProperty.RelationTarget}}
+				{{- if $field.Property.IsBasicType}}{{/* manual relation links (just ID) */}}
+					var rId{{$field.Name}} = {{template "property-access" $field.Property}}
+				{{- else}}
+					var rId{{$field.Name}} uint64
+					if rel := {{if not $field.IsPointer}}&{{end}}obj.{{$field.Path}}; rel != nil {
+						if rId, err := {{$field.Property.ModelProperty.RelationTarget}}Binding.GetId(rel); err != nil {
+							return err
+						} else {
+							rId{{$field.Name}} = rId
+						}
+					}
+				{{- end}}
+			{{- end}}
 		{{- else}}{{/* recursively visit fields in embedded structs */}}{{template "store-relations" $field}}
 		{{end}}
 	{{end}}{{end}}
@@ -246,7 +252,7 @@ func ({{$entityNameCamel}}_EntityInfo) Flatten(object interface{}, fbb *flatbuff
 			{{- if $field.IsPointer}}
 			if obj.{{$field.Path}} != nil { {{- end -}}
 			{{with $field.Property}}{{if or (not .ModelProperty.IsIdProperty) (not .GoField.HasPointersInPath) }} 
-				fbutils.Set{{.FbType}}Slot(fbb, {{.FbSlot}},
+				fbutils.Set{{.FbType}}Slot(fbb, {{.ModelProperty.FbSlot}},
 				{{- if .ModelProperty.RelationTarget}}rId{{.Name}})
 				{{- else if eq .FbType "UOffsetT"}} offset{{.Name}})
 				{{- else if .ModelProperty.IsIdProperty}} id)
@@ -280,16 +286,28 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 	{{range $property := $entity.Properties}}{{if $property.Meta.Converter}}
 	prop{{$property.Name}}, err := {{$property.Meta.Converter}}ToEntityProperty({{template "property-getter" $property.Meta}})
 	if err != nil {
-		return nil, errors.New("converter {{$property.Meta.Converter}}ToEntityProperty() failed on {{$entity.Name}}.{{$property.Path}}: " + err.Error())
+		return nil, errors.New("converter {{$property.Meta.Converter}}ToEntityProperty() failed on {{$entity.Name}}.{{$property.Meta.Path}}: " + err.Error())
 	}
 	{{end}}{{end}}
 	
 	{{- block "load-relations" $entity}}
 	{{- range $field := .Meta.Fields}}
-		{{if $field.SimpleRelation -}}
+		{{if $field.StandaloneRelation -}}
+			{{if not $field.IsLazyLoaded -}}
+			var rel{{$field.Name}} {{$field.Type}} 
+			if rIds, err := BoxFor{{$field.Entity.Name}}(ob).RelationIds({{.Entity.Name}}_.{{$field.Name}}, prop{{.Entity.ModelEntity.IdProperty.Name}}); err != nil {
+				return nil, err
+			} else if rSlice, err := BoxFor{{$field.StandaloneRelation.Target.Name}}(ob).GetManyExisting(rIds...); err != nil {
+				return nil, err
+			} else {
+				rel{{$field.Name}} = rSlice
+			}
+			{{- end -}} {{/* see Fetch* for lazy loaded relations */}}
+		{{else if $field.Property -}}
+			{{- if and (not $field.Property.IsBasicType) $field.Property.ModelProperty.RelationTarget }}
 			var rel{{$field.Name}} *{{$field.Type}}
-			if rId := {{template "property-getter-with-converter-val" $field.Property}}; {{if $field.Property.Meta.IsPointer}}rId != nil && *{{end}}rId > 0 {
-				if rObject, err := BoxFor{{$field.SimpleRelation}}(ob).Get({{if $field.Property.Meta.IsPointer}}*{{end}}rId); err != nil {
+			if rId := {{template "property-getter-with-converter-val" $field.Property}}; {{if $field.Property.GoField.IsPointer}}rId != nil && *{{end}}rId > 0 {
+				if rObject, err := BoxFor{{$field.Property.ModelProperty.RelationTarget}}(ob).Get({{if $field.Property.GoField.IsPointer}}*{{end}}rId); err != nil {
 					return nil, err 
 				{{if not $field.IsPointer -}}
 				} else if rObject == nil {
@@ -303,17 +321,7 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 				rel{{$field.Name}} = &{{$field.Type}}{}
 			{{end -}}
 			}
-		{{else if $field.StandaloneRelation -}}
-			{{if not $field.IsLazyLoaded -}}
-			var rel{{$field.Name}} {{$field.Type}} 
-			if rIds, err := BoxFor{{$field.Entity.Name}}(ob).RelationIds({{.Entity.Name}}_.{{$field.Name}}, prop{{.Entity.IdProperty.Name}}); err != nil {
-				return nil, err
-			} else if rSlice, err := BoxFor{{$field.StandaloneRelation.Target.Name}}(ob).GetManyExisting(rIds...); err != nil {
-				return nil, err
-			} else {
-				rel{{$field.Name}} = rSlice
-			}
-			{{- end -}} {{/* see Fetch* for lazy loaded relations */}}
+			{{- end}}
 		{{else}}{{/* recursively visit fields in embedded structs */}}{{template "load-relations" $field}}
 		{{- end}}
 	{{end}}{{end}}
@@ -322,13 +330,15 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 	{{- block "fields-initializer" $entity}}
 		{{- range $field := .Meta.Fields}}
 			{{$field.Name}}: 
-				{{- if $field.SimpleRelation}}{{if not $field.IsPointer}}*{{end}}rel{{$field.Name}}
-				{{- else if $field.StandaloneRelation}}
+				{{- if $field.StandaloneRelation}}
 					{{- if $field.IsLazyLoaded}}nil, // use {{$field.Entity.Name}}Box::Fetch{{$field.Name}}() to fetch this lazy-loaded relation
 					{{- else}}rel{{$field.Name}}
 					{{- end}}
-				{{- else if $field.Property.ModelProperty.IsIdProperty}} prop{{$field.Property.Name}}
-        		{{- else if $field.Property}}{{template "property-getter-with-converter-val" $field.Property}}
+				{{- else if $field.Property}}
+					{{- if and (not $field.Property.IsBasicType) $field.Property.ModelProperty.RelationTarget}}{{if not $field.IsPointer}}*{{end}}rel{{$field.Name}}
+					{{- else if $field.Property.ModelProperty.IsIdProperty}} prop{{$field.Property.Name}}
+					{{- else}}{{template "property-getter-with-converter-val" $field.Property}}
+					{{- end}}
 				{{- else}}{{if $field.IsPointer}}&{{end}}{{$field.Type}}{ {{template "fields-initializer" $field}} }
 				{{- end}},
 		{{- end}}
@@ -338,15 +348,15 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 
 // MakeSlice is called by ObjectBox to construct a new slice to hold the read objects  
 func ({{$entityNameCamel}}_EntityInfo) MakeSlice(capacity int) interface{} {
-	return make([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}, 0, capacity)
+	return make([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}, 0, capacity)
 }
 
 // AppendToSlice is called by ObjectBox to fill the slice of the read objects
 func ({{$entityNameCamel}}_EntityInfo) AppendToSlice(slice interface{}, object interface{}) interface{} {
 	if object == nil {
-		return append(slice.([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}), {{if $.Options.ByValue}}{{$entity.Name}}{}{{else}}nil{{end}})
+		return append(slice.([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}), {{if $.ByValue}}{{$entity.Name}}{}{{else}}nil{{end}})
 	}
-	return append(slice.([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}), {{if $.Options.ByValue}}*{{end}}object.(*{{$entity.Name}}))
+	return append(slice.([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}), {{if $.ByValue}}*{{end}}object.(*{{$entity.Name}}))
 }
 
 // Box provides CRUD access to {{$entity.Name}} objects
@@ -397,7 +407,7 @@ func (box *{{$entity.Name}}Box) PutAsync(object *{{$entity.Name}}) (uint64, erro
 // even though the transaction has been rolled back and the objects are not stored under those IDs.
 //
 // Note: The slice may be empty or even nil; in both cases, an empty IDs slice and no error is returned.
-func (box *{{$entity.Name}}Box) PutMany(objects []{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}) ([]uint64, error) {
+func (box *{{$entity.Name}}Box) PutMany(objects []{{if not $.ByValue}}*{{end}}{{$entity.Name}}) ([]uint64, error) {
 	return box.Box.PutMany(objects)
 }
 
@@ -415,38 +425,36 @@ func (box *{{$entity.Name}}Box) Get(id uint64) (*{{$entity.Name}}, error) {
 }
 
 // GetMany reads multiple objects at once.
-// If any of the objects doesn't exist, its position in the return slice is {{if $.Options.ByValue}}an empty object{{else}}nil{{end}}
-func (box *{{$entity.Name}}Box) GetMany(ids ...uint64) ([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}, error) {
+// If any of the objects doesn't exist, its position in the return slice is {{if $.ByValue}}an empty object{{else}}nil{{end}}
+func (box *{{$entity.Name}}Box) GetMany(ids ...uint64) ([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}, error) {
 	objects, err := box.Box.GetMany(ids...)
 	if err != nil {
 		return nil, err
 	}
-	return objects.([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}), nil
+	return objects.([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}), nil
 }
 
 // GetManyExisting reads multiple objects at once, skipping those that do not exist.
-func (box *{{$entity.Name}}Box) GetManyExisting(ids ...uint64) ([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}, error) {
+func (box *{{$entity.Name}}Box) GetManyExisting(ids ...uint64) ([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}, error) {
 	objects, err := box.Box.GetManyExisting(ids...)
 	if err != nil {
 		return nil, err
 	}
-	return objects.([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}), nil
+	return objects.([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}), nil
 }
 
 // GetAll reads all stored objects
-func (box *{{$entity.Name}}Box) GetAll() ([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}, error) {
+func (box *{{$entity.Name}}Box) GetAll() ([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}, error) {
 	objects, err := box.Box.GetAll()
 	if err != nil {
 		return nil, err
 	}
-	return objects.([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}), nil
+	return objects.([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}), nil
 }
 
 {{- block "fetch-related" $entity}}
 {{- range $field := .Meta.Fields}}
-	{{/* NOTE, we keep the IF-ELSE branching this way to correctly process embedded structs in the last ELSE */}}
-	{{- if .SimpleRelation -}}
-	{{- else if .StandaloneRelation}}
+	{{if .StandaloneRelation}}
 		{{- if .IsLazyLoaded -}}
 			// Fetch{{.Name}} reads target objects for relation {{.Entity.Name}}::{{.Name}}.
 			// It will "GetManyExisting()" all related {{.StandaloneRelation.Target.Name}} objects for each source object
@@ -457,13 +465,13 @@ func (box *{{$entity.Name}}Box) GetAll() ([]{{if not $.Options.ByValue}}*{{end}}
 					// collect slices before setting the source objects' fields
 					// this keeps all the sourceObjects untouched in case there's an error during any of the requests
 					for k, object := range sourceObjects {
-						{{if .Entity.IdProperty.Meta.Converter -}}
-						sourceId, err := {{.Entity.IdProperty.Meta.Converter}}ToDatabaseValue(object.{{.Entity.IdProperty.Meta.Path}})
+						{{if .Entity.ModelEntity.IdProperty.Meta.Converter -}}
+						sourceId, err := {{.Entity.ModelEntity.IdProperty.Meta.Converter}}ToDatabaseValue(object.{{.Entity.ModelEntity.IdProperty.Meta.Path}})
 						if err != nil {
 							return err
 						}
 						{{end -}}
-						rIds, err := box.RelationIds({{.Entity.Name}}_.{{.Name}}, {{with .Entity.IdProperty}} {{if .Meta.Converter}}sourceId{{else}}object.{{.Meta.Path}}{{end}}{{end}})
+						rIds, err := box.RelationIds({{.Entity.Name}}_.{{.Name}}, {{with .Entity.ModelEntity.IdProperty}} {{if .Meta.Converter}}sourceId{{else}}object.{{.Meta.Path}}{{end}}{{end}})
 						if err == nil {
 						    slices[k], err = BoxFor{{.StandaloneRelation.Target.Name}}(box.ObjectBox).GetManyExisting(rIds...)
 						}
@@ -482,7 +490,7 @@ func (box *{{$entity.Name}}Box) GetAll() ([]{{if not $.Options.ByValue}}*{{end}}
 				return err
 			}
 		{{end}}
-	{{- else}}{{/* recursively visit fields in embedded structs */}}{{template "fetch-related" $field}}
+	{{- else if not .Property}}{{/* recursively visit fields in embedded structs */}}{{template "fetch-related" $field}}
 	{{- end}}
 {{- end}}{{end}}
 
@@ -601,19 +609,19 @@ func (asyncBox *{{$entity.Name}}AsyncBox) Remove(object *{{$entity.Name}}) error
 
 // Query provides a way to search stored objects
 //
-// For example, you can find all {{$entity.Name}} which {{$entity.IdProperty.Name}} is either 42 or 47:
-// 		box.Query({{$entity.Name}}_.{{$entity.IdProperty.Name}}.In(42, 47)).Find()
+// For example, you can find all {{$entity.Name}} which {{$entity.IdProperty.Meta.Name}} is either 42 or 47:
+// 		box.Query({{$entity.Name}}_.{{$entity.IdProperty.Meta.Name}}.In(42, 47)).Find()
 type {{$entity.Name}}Query struct {
 	*objectbox.Query
 }
 
 // Find returns all objects matching the query
-func (query *{{$entity.Name}}Query) Find() ([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}, error) {
+func (query *{{$entity.Name}}Query) Find() ([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}, error) {
 	objects, err := query.Query.Find()
 	if err != nil {
 		return nil, err
 	}
-	return objects.([]{{if not $.Options.ByValue}}*{{end}}{{$entity.Name}}), nil
+	return objects.([]{{if not $.ByValue}}*{{end}}{{$entity.Name}}), nil
 }
 
 // Offset defines the index of the first object to process (how many objects to skip)

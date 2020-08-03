@@ -1,7 +1,7 @@
 package object
 
 /* ERROR:
-can't merge binding model information: uid annotation value must not be empty on property Old, entity A:
+can't merge model information: merging entity A: property Old: uid annotation value must not be empty:
     [rename] apply the current UID 3390393562759376202
     [change/reset] apply a new UID 6050128673802995827
 */

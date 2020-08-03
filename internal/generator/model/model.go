@@ -213,7 +213,7 @@ func (model *ModelInfo) Finalize() error {
 	model.ModelVersion = ModelVersion
 	for _, entity := range model.Entities {
 		if err := entity.finalize(); err != nil {
-			return err
+			return fmt.Errorf("entity %s %s is invalid: %s", entity.Name, entity.Id, err)
 		}
 	}
 	return model.Validate()

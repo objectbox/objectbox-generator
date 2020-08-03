@@ -196,11 +196,9 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 }
 
 func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDir, expDir, genDir string, modelInfoFile string, errorTransformer func(error) error) int {
-	var modelFile = conf.generator.ModelFile(modelInfoFile)
-
 	// remove generated files during development (they might be syntactically wrong)
 	if overwriteExpected {
-		files, err := filepath.Glob(filepath.Join(genDir, "*."+conf.generatedExt))
+		files, err := filepath.Glob(filepath.Join(genDir, "*"+conf.generatedExt))
 		assert.NoErr(t, err)
 
 		for _, file := range files {
@@ -215,11 +213,10 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 	assert.NoErr(t, err)
 	for _, sourceFile := range inputFiles {
 		// skip generated files & "expected results" files
-		if strings.HasSuffix(sourceFile, conf.generatedExt) ||
+		if conf.generator.IsGeneratedFile(sourceFile) ||
 			strings.HasSuffix(sourceFile, ".skip"+conf.sourceExt) ||
 			strings.HasSuffix(sourceFile, "expected") ||
-			strings.HasSuffix(sourceFile, "initial") ||
-			sourceFile == modelFile {
+			strings.HasSuffix(sourceFile, "initial") {
 			continue
 		}
 
