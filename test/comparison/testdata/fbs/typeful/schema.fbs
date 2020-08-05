@@ -52,8 +52,18 @@ table Annotated {
 	relId:ulong;
 }
 
-
 /// objectbox: transient
 table SkippedEntity {
 }
 
+table TSDate {
+	id           : uint64	;
+	/// objectbox:id-companion,date
+	timestamp    : int64	;
+}
+
+table TSDateNano {
+	id           : uint64	;
+	/// objectbox:id-companion,date-nano
+	timestamp    : int64	;
+}

@@ -81,16 +81,25 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		field.ModelProperty.Name = a["name"].Value
 	}
 
-	if a["date"] != nil {
-		if field.ModelProperty.Type != model.PropertyTypeLong {
-			return fmt.Errorf("invalid underlying type '%v' for date field; expecting long", model.PropertyTypeNames[field.ModelProperty.Type])
+	if a["date"] != nil || a["date-nano"] != nil {
+		if a["date"] != nil && a["date-nano"] != nil {
+			return errors.New("date and date-nano annotations cannot be used at the same time")
 		}
-		field.ModelProperty.Type = model.PropertyTypeDate
+
+		if field.ModelProperty.Type != model.PropertyTypeLong {
+			return fmt.Errorf("invalid underlying type '%v' for date/date-nano field; expecting long", model.PropertyTypeNames[field.ModelProperty.Type])
+		}
+
+		if a["date"] != nil {
+			field.ModelProperty.Type = model.PropertyTypeDate
+		} else {
+			field.ModelProperty.Type = model.PropertyTypeDateNano
+		}
 	}
 
 	if a["id-companion"] != nil {
-		if field.ModelProperty.Type != model.PropertyTypeDate {
-			return fmt.Errorf("invalid underlying type '%v' for ID companion field; expecting date", model.PropertyTypeNames[field.ModelProperty.Type])
+		if field.ModelProperty.Type != model.PropertyTypeDate && field.ModelProperty.Type != model.PropertyTypeDateNano {
+			return fmt.Errorf("invalid underlying type '%v' for ID companion field; expecting date/date-nano", model.PropertyTypeNames[field.ModelProperty.Type])
 		}
 		field.ModelProperty.AddFlag(model.PropertyFlagIdCompanion)
 	}
