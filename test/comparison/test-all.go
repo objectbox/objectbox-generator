@@ -87,30 +87,27 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 	}()
 
 	// Test in a temporary directory - if tested by an end user, the repo is read-only.
-	// This doesn't apply if overwriteExpected is set, as that's only supposed to be run during this lib's development.
-	if !overwriteExpected {
-		tempRoot, err := ioutil.TempDir("", "objectbox-generator-test")
-		assert.NoErr(t, err)
+	tempRoot, err := ioutil.TempDir("", "objectbox-generator-test")
+	assert.NoErr(t, err)
 
-		// we can't defer directly because compilation step is run in a separate goroutine after this function exits
-		cleanup = func() {
-			assert.NoErr(t, os.RemoveAll(tempRoot))
-		}
-
-		genDir = filepath.Join(tempRoot, testCase)
-		t.Logf("Testing in a temporary directory %s", genDir)
-		assert.NoErr(t, os.MkdirAll(genDir, 0700))
-
-		if conf.helper != nil {
-			if errTrans := conf.helper.prepareTempDir(t, conf, expDir, genDir, tempRoot); errTrans != nil {
-				errorTransformer = errTrans
-			}
-		}
-	} else if !fileExists(genDir) {
-		// if updating existing code and the directory for this type doesn't exist
-		expDir = srcDir
-		genDir = srcDir
+	// we can't defer directly because compilation step is run in a separate goroutine after this function exits
+	cleanup = func() {
+		assert.NoErr(t, os.RemoveAll(tempRoot))
 	}
+
+	genDir = filepath.Join(tempRoot, testCase)
+	t.Logf("Testing in a temporary directory %s", genDir)
+	assert.NoErr(t, os.MkdirAll(genDir, 0700))
+
+	if conf.helper != nil {
+		if errTrans := conf.helper.prepareTempDir(t, conf, srcDir, genDir, tempRoot); errTrans != nil {
+			errorTransformer = errTrans
+		}
+	}
+
+	// Go generator updates generator go.mod when loading files (adds the missing objectbox-go import).
+	// Therefore, we'll load files from the temp dir instead
+	srcDir = genDir
 
 	modelInfoFile := generator.ModelInfoFile(genDir)
 	modelInfoExpectedFile := generator.ModelInfoFile(srcDir) + ".expected"

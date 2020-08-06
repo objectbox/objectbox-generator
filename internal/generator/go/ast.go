@@ -130,19 +130,27 @@ func (f *file) analyze() {
 			Uses:  make(map[*ast.Ident]types.Object),
 		}
 
+		var firstHardErr error
 		var conf = types.Config{
 			IgnoreFuncBodies:         true,
 			DisableUnusedImportCheck: true,
 			// NOTE there is importer.ForCompiler() since 1.12 but it breaks our compatibility with 1.11.4
 			// NOTE importer.Default() doesn't seem to work for local files - run the generator tests for more details
 			Importer: importer.For("source", nil),
+			Error: func(err error) {
+				if firstHardErr == nil && !err.(types.Error).Soft {
+					firstHardErr = err
+				}
+			},
 		}
 
 		if _, err := conf.Check(f.dir, f.fileset, f.files, f.info); err != nil {
 			// The type checker tries to go on even in case of an error to find out as much as it can.
 			// Therefore, this may be an error on an unrelated field and we may still be able to get all the info we
 			// need. If the type still can't be determined, we well fail bellow, printing this error as well.
-			f.typeCheckError = err
+			if firstHardErr != nil {
+				f.typeCheckError = firstHardErr // give preference to first hard error over any soft error
+			}
 		}
 
 		// find all non-receiver functions (i.e. not related to any struct)

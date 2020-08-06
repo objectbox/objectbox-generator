@@ -25,7 +25,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -95,12 +94,8 @@ func (goTestHelper) prepareTempDir(t *testing.T, conf testSpec, srcDir, tempDir,
 
 	// When outside of the project's directory, we need to set up the whole temp dir as its own module, otherwise
 	// imports won't work correctly. To do that we create a go.mod file pointing it to this repo.
-	cwd, err := os.Getwd()
-	assert.NoErr(t, err)
-	var modulePath = "example.com/virtual/objectbox-generator/test/comparison/testdata/go/" + srcDir
-	var goMod = "module " + modulePath + "\n" +
-		"replace " + goModuleName + " => " + filepath.Join(cwd, "/../../") + "\n" +
-		"require " + goModuleName + " v0.0.0"
+	var modulePath = goModuleName + "/test/comparison/" + srcDir
+	var goMod = "module " + modulePath + "\n"
 	assert.NoErr(t, ioutil.WriteFile(path.Join(tempDir, "go.mod"), []byte(goMod), 0600))
 
 	// NOTE: we can't change directory using os.Chdir() because it applies to a process/thread, not a goroutine.
@@ -122,8 +117,8 @@ func (goTestHelper) build(t *testing.T, conf testSpec, dir string, expectedError
 		return
 	}
 
-	// On Windows, we're getting a `go finding` message during the build - remove it to be consistent.
-	var reg = regexp.MustCompile("go: finding " + goModuleName + " v[0-9.]+[ \r\n]+")
+	// we're getting a `go finding` message during the build - not interested in those.
+	var reg = regexp.MustCompile("go: (finding module .*|found .* v[0-9.]+)[ \r\n]+")
 	stdErr = reg.ReplaceAll(stdErr, nil)
 
 	checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)
