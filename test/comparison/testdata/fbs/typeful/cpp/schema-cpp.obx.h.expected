@@ -45,29 +45,29 @@ struct Typeful {
 };
 
 struct Typeful_ {
-    static constexpr obx::Property<Typeful, OBXPropertyType_Long, 1> id{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Int, 2> int_{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Byte, 3> int8{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Short, 4> int16{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Int, 5> int32{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Long, 6> int64{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Int, 7> uint{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Byte, 8> uint8{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Short, 9> uint16{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Int, 10> uint32{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Long, 11> uint64{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Bool, 12> bool_{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_String, 13> string{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_StringVector, 14> stringvector{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Byte, 15> byte{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Byte, 16> ubyte{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_ByteVector, 17> bytevector{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_ByteVector, 18> ubytevector{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Float, 19> float32{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Double, 20> float64{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Float, 21> float_{};
-    static constexpr obx::Property<Typeful, OBXPropertyType_Double, 22> double_{};
-    static constexpr obx::RelationProperty<Typeful, ns::AnnotatedEntity, 23> relId{};
+    static const obx::Property<Typeful, OBXPropertyType_Long> id;
+    static const obx::Property<Typeful, OBXPropertyType_Int> int_;
+    static const obx::Property<Typeful, OBXPropertyType_Byte> int8;
+    static const obx::Property<Typeful, OBXPropertyType_Short> int16;
+    static const obx::Property<Typeful, OBXPropertyType_Int> int32;
+    static const obx::Property<Typeful, OBXPropertyType_Long> int64;
+    static const obx::Property<Typeful, OBXPropertyType_Int> uint;
+    static const obx::Property<Typeful, OBXPropertyType_Byte> uint8;
+    static const obx::Property<Typeful, OBXPropertyType_Short> uint16;
+    static const obx::Property<Typeful, OBXPropertyType_Int> uint32;
+    static const obx::Property<Typeful, OBXPropertyType_Long> uint64;
+    static const obx::Property<Typeful, OBXPropertyType_Bool> bool_;
+    static const obx::Property<Typeful, OBXPropertyType_String> string;
+    static const obx::Property<Typeful, OBXPropertyType_StringVector> stringvector;
+    static const obx::Property<Typeful, OBXPropertyType_Byte> byte;
+    static const obx::Property<Typeful, OBXPropertyType_Byte> ubyte;
+    static const obx::Property<Typeful, OBXPropertyType_ByteVector> bytevector;
+    static const obx::Property<Typeful, OBXPropertyType_ByteVector> ubytevector;
+    static const obx::Property<Typeful, OBXPropertyType_Float> float32;
+    static const obx::Property<Typeful, OBXPropertyType_Double> float64;
+    static const obx::Property<Typeful, OBXPropertyType_Float> float_;
+    static const obx::Property<Typeful, OBXPropertyType_Double> double_;
+    static const obx::RelationProperty<Typeful, ns::AnnotatedEntity> relId;
 
     static constexpr obx_schema_id entityId() { return 1; }
 
@@ -103,12 +103,12 @@ struct Annotated {
 };
 
 struct Annotated_ {
-    static constexpr obx::Property<Annotated, OBXPropertyType_Long, 1> identifier{};
-    static constexpr obx::Property<Annotated, OBXPropertyType_String, 2> fullName{};
-    static constexpr obx::Property<Annotated, OBXPropertyType_Date, 3> time{};
-    static constexpr obx::RelationProperty<Annotated, Typeful, 4> relId{};
-    static constexpr obx::RelationStandalone<Annotated, Typeful, 1> typefuls{};
-    static constexpr obx::RelationStandalone<Annotated, Typeful, 2> m2m{};
+    static const obx::Property<Annotated, OBXPropertyType_Long> identifier;
+    static const obx::Property<Annotated, OBXPropertyType_String> fullName;
+    static const obx::Property<Annotated, OBXPropertyType_Date> time;
+    static const obx::RelationProperty<Annotated, Typeful> relId;
+    static const obx::RelationStandalone<Annotated, Typeful> typefuls;
+    static const obx::RelationStandalone<Annotated, Typeful> m2m;
 
     static constexpr obx_schema_id entityId() { return 2; }
 
@@ -140,8 +140,8 @@ struct TSDate {
 };
 
 struct TSDate_ {
-    static constexpr obx::Property<TSDate, OBXPropertyType_Long, 1> id{};
-    static constexpr obx::Property<TSDate, OBXPropertyType_Date, 2> timestamp{};
+    static const obx::Property<TSDate, OBXPropertyType_Long> id;
+    static const obx::Property<TSDate, OBXPropertyType_Date> timestamp;
 
     static constexpr obx_schema_id entityId() { return 3; }
 
@@ -173,8 +173,8 @@ struct TSDateNano {
 };
 
 struct TSDateNano_ {
-    static constexpr obx::Property<TSDateNano, OBXPropertyType_Long, 1> id{};
-    static constexpr obx::Property<TSDateNano, OBXPropertyType_DateNano, 2> timestamp{};
+    static const obx::Property<TSDateNano, OBXPropertyType_Long> id;
+    static const obx::Property<TSDateNano, OBXPropertyType_DateNano> timestamp;
 
     static constexpr obx_schema_id entityId() { return 4; }
 

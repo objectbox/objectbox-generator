@@ -50,13 +50,13 @@ struct {{$entity.Meta.CppName}}_;
 
 struct {{$entity.Meta.CppName}}_ {
 {{- range $property := $entity.Properties}}
-	static constexpr 
-	{{- if $property.RelationTarget}} obx::RelationProperty<{{$entity.Meta.CppName}}, {{$property.Meta.CppNameRelationTarget}}, {{$property.Id.GetId}}> {{$property.Meta.CppName}}{};
-	{{- else}} obx::Property<{{$entity.Meta.CppName}}, OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}> {{$property.Meta.CppName}}{};
-	{{- end}}
+	static const 
+	{{- if $property.RelationTarget}} obx::RelationProperty<{{$entity.Meta.CppName}}, {{$property.Meta.CppNameRelationTarget}}>
+	{{- else}} obx::Property<{{$entity.Meta.CppName}}, OBXPropertyType_{{PropTypeName $property.Type}}>
+	{{- end}} {{$property.Meta.CppName}};
 {{- end}}
 {{- range $relation := $entity.Relations}}
-	static constexpr obx::RelationStandalone<{{$entity.Meta.CppName}}, {{$relation.Target.Meta.CppName}}, {{$relation.Id.GetId}}> {{$relation.Meta.CppName}}{};
+	static const obx::RelationStandalone<{{$entity.Meta.CppName}}, {{$relation.Target.Meta.CppName}}> {{$relation.Meta.CppName}};
 {{- end}}
 
     static constexpr obx_schema_id entityId() { return {{$entity.Id.GetId}}; }

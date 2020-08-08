@@ -29,6 +29,16 @@ var CppBindingTemplate = template.Must(template.New("binding-cpp").Funcs(funcMap
 
 #include "{{.HeaderFile}}"
 {{range $entity := .Model.EntitiesWithMeta}}
+{{- range $property := $entity.Properties}}
+const 
+	{{- if $property.RelationTarget}} obx::RelationProperty<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, {{$property.Meta.CppNameRelationTarget}}>
+	{{- else}} obx::Property<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, OBXPropertyType_{{PropTypeName $property.Type}}>
+	{{- end}} {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::{{$property.Meta.CppName}}({{$property.Id.GetId}});
+{{- end}}
+{{- range $relation := $entity.Relations}}
+const obx::RelationStandalone<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, {{$relation.Target.Meta.CppNamespacePrefix}}{{$relation.Target.Meta.CppName}}> {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::{{$relation.Meta.CppName}}({{$relation.Id.GetId}});
+{{- end}}
+
 void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& object) {
 	fbb.Clear();
 	{{- range $property := $entity.Properties}}{{$factory := $property.Meta.FbOffsetFactory}}{{if $factory}}

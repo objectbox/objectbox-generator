@@ -2,6 +2,30 @@
 
 #include "schema-cpp.obx.h"
 
+const obx::Property<Typeful, OBXPropertyType_Long> Typeful_::id(1);
+const obx::Property<Typeful, OBXPropertyType_Int> Typeful_::int_(2);
+const obx::Property<Typeful, OBXPropertyType_Byte> Typeful_::int8(3);
+const obx::Property<Typeful, OBXPropertyType_Short> Typeful_::int16(4);
+const obx::Property<Typeful, OBXPropertyType_Int> Typeful_::int32(5);
+const obx::Property<Typeful, OBXPropertyType_Long> Typeful_::int64(6);
+const obx::Property<Typeful, OBXPropertyType_Int> Typeful_::uint(7);
+const obx::Property<Typeful, OBXPropertyType_Byte> Typeful_::uint8(8);
+const obx::Property<Typeful, OBXPropertyType_Short> Typeful_::uint16(9);
+const obx::Property<Typeful, OBXPropertyType_Int> Typeful_::uint32(10);
+const obx::Property<Typeful, OBXPropertyType_Long> Typeful_::uint64(11);
+const obx::Property<Typeful, OBXPropertyType_Bool> Typeful_::bool_(12);
+const obx::Property<Typeful, OBXPropertyType_String> Typeful_::string(13);
+const obx::Property<Typeful, OBXPropertyType_StringVector> Typeful_::stringvector(14);
+const obx::Property<Typeful, OBXPropertyType_Byte> Typeful_::byte(15);
+const obx::Property<Typeful, OBXPropertyType_Byte> Typeful_::ubyte(16);
+const obx::Property<Typeful, OBXPropertyType_ByteVector> Typeful_::bytevector(17);
+const obx::Property<Typeful, OBXPropertyType_ByteVector> Typeful_::ubytevector(18);
+const obx::Property<Typeful, OBXPropertyType_Float> Typeful_::float32(19);
+const obx::Property<Typeful, OBXPropertyType_Double> Typeful_::float64(20);
+const obx::Property<Typeful, OBXPropertyType_Float> Typeful_::float_(21);
+const obx::Property<Typeful, OBXPropertyType_Double> Typeful_::double_(22);
+const obx::RelationProperty<Typeful, ns::AnnotatedEntity> Typeful_::relId(23);
+
 void Typeful_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& object) {
     fbb.Clear();
     auto offsetstring = fbb.CreateString(object.string);
@@ -96,6 +120,13 @@ void Typeful_::fromFlatBuffer(const void* data, size_t size, Typeful& outObject)
     
 }
 
+const obx::Property<ns::Annotated, OBXPropertyType_Long> ns::Annotated_::identifier(1);
+const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::fullName(2);
+const obx::Property<ns::Annotated, OBXPropertyType_Date> ns::Annotated_::time(3);
+const obx::RelationProperty<ns::Annotated, Typeful> ns::Annotated_::relId(4);
+const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::typefuls(1);
+const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::m2m(2);
+
 void ns::Annotated_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::Annotated& object) {
     fbb.Clear();
     auto offsetfullName = fbb.CreateString(object.fullName);
@@ -134,6 +165,9 @@ void ns::Annotated_::fromFlatBuffer(const void* data, size_t size, ns::Annotated
     
 }
 
+const obx::Property<ns::TSDate, OBXPropertyType_Long> ns::TSDate_::id(1);
+const obx::Property<ns::TSDate, OBXPropertyType_Date> ns::TSDate_::timestamp(2);
+
 void ns::TSDate_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TSDate& object) {
     fbb.Clear();
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
@@ -163,6 +197,9 @@ void ns::TSDate_::fromFlatBuffer(const void* data, size_t size, ns::TSDate& outO
     outObject.timestamp = table->GetField<int64_t>(6, 0);
     
 }
+
+const obx::Property<ns::TSDateNano, OBXPropertyType_Long> ns::TSDateNano_::id(1);
+const obx::Property<ns::TSDateNano, OBXPropertyType_DateNano> ns::TSDateNano_::timestamp(2);
 
 void ns::TSDateNano_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TSDateNano& object) {
     fbb.Clear();
