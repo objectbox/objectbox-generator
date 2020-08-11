@@ -80,15 +80,18 @@ func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator
 		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
 	}
 
-	var bindingFile = goGen.BindingFiles(sourceFile)[0]
+	var bindingFiles = goGen.BindingFiles(sourceFile)
+	if len(bindingFiles) != 1 {
+		panic("internal error - someone changed GoGenerator::BindingFiles()?")
+	}
 	if formattedSource, err := format.Source(bindingSource); err != nil {
 		// we just store error but still write the file so that we can check it manually
-		err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
+		err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFiles[0], err)
 	} else {
 		bindingSource = formattedSource
 	}
 
-	if err = generator.WriteFile(bindingFile, bindingSource, sourceFile); err != nil {
+	if err = generator.WriteFile(bindingFiles[0], bindingSource, sourceFile); err != nil {
 		return fmt.Errorf("can't write binding file %s: %s", sourceFile, err)
 	} else if err2 != nil {
 		// now when the binding has been written (for debugging purposes), we can return the error
