@@ -249,9 +249,11 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 
 		assert.NoErr(t, err)
 
-		var bindingFile = options.CodeGenerator.BindingFile(sourceFile)
-		var expectedFile = strings.Replace(bindingFile, genDir, expDir, 1) + ".expected"
-		assertSameFile(t, bindingFile, expectedFile, overwriteExpected)
+		var bindingFiles = options.CodeGenerator.BindingFiles(sourceFile)
+		for _, bindingFile := range bindingFiles {
+			var expectedFile = strings.Replace(bindingFile, genDir, expDir, 1) + ".expected"
+			assertSameFile(t, bindingFile, expectedFile, overwriteExpected)
+		}
 	}
 	return positiveTestsCount
 }

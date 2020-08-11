@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
 	"github.com/objectbox/objectbox-generator/internal/generator/c/templates"
@@ -37,17 +38,18 @@ type CGenerator struct {
 	PlainC  bool
 }
 
-// BindingFile returns a name of the binding file for the given entity source file.
-func (gen *CGenerator) BindingFile(forFile string) string {
+// BindingFiles returns names of binding files for the given entity file.
+func (gen *CGenerator) BindingFiles(forFile string) []string {
 	if len(gen.OutPath) > 0 {
 		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
 	}
 	var extension = filepath.Ext(forFile)
-	var suffix string
-	if !gen.PlainC {
-		suffix = "-cpp"
+	var base = forFile[0 : len(forFile)-len(extension)]
+
+	if gen.PlainC {
+		return []string{base + ".obx.h"}
 	}
-	return forFile[0:len(forFile)-len(extension)] + suffix + ".obx.h"
+	return []string{base + "-cpp.obx.h", base + ".obx.cpp"}
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
@@ -81,31 +83,33 @@ func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) 
 func (gen *CGenerator) WriteBindingFiles(sourceFile string, _ generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
-	var bindingFile = gen.BindingFile(sourceFile)
+	var bindingFiles = gen.BindingFiles(sourceFile)
 
-	var bindingSource []byte
-	if bindingSource, err = gen.generateBindingFile(bindingFile, mergedModel); err != nil {
-		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
-	}
+	for _, bindingFile := range bindingFiles {
+		var bindingSource []byte
+		if bindingSource, err = gen.generateBindingFile(bindingFile, bindingFiles[0], mergedModel); err != nil {
+			return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
+		}
 
-	if formattedSource, err := format(bindingSource); err != nil {
-		// we just store error but still write the file so that we can check it manually
-		err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
-	} else {
-		bindingSource = formattedSource
-	}
+		if formattedSource, err := format(bindingSource); err != nil {
+			// we just store error but still write the file so that we can check it manually
+			err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
+		} else {
+			bindingSource = formattedSource
+		}
 
-	if err = generator.WriteFile(bindingFile, bindingSource, sourceFile); err != nil {
-		return fmt.Errorf("can't write binding file %s: %s", sourceFile, err)
-	} else if err2 != nil {
-		// now when the binding has been written (for debugging purposes), we can return the error
-		return err2
+		if err = generator.WriteFile(bindingFile, bindingSource, sourceFile); err != nil {
+			return fmt.Errorf("can't write binding file %s: %s", sourceFile, err)
+		} else if err2 != nil {
+			// now when the binding has been written (for debugging purposes), we can return the error
+			return err2
+		}
 	}
 
 	return nil
 }
 
-func (gen *CGenerator) generateBindingFile(bindingFile string, m *model.ModelInfo) (data []byte, err error) {
+func (gen *CGenerator) generateBindingFile(bindingFile, headerFile string, m *model.ModelInfo) (data []byte, err error) {
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 
@@ -117,11 +121,17 @@ func (gen *CGenerator) generateBindingFile(bindingFile string, m *model.ModelInf
 		Model            *model.ModelInfo
 		GeneratorVersion int
 		FileIdentifier   string
-	}{m, generator.VersionId, fileIdentifier}
+		HeaderFile       string
+	}{m, generator.VersionId, fileIdentifier, filepath.Base(headerFile)}
 
-	var tpl = templates.CppBindingTemplate
+	var tpl *template.Template
+
 	if gen.PlainC {
 		tpl = templates.CBindingTemplate
+	} else if bindingFile == headerFile {
+		tpl = templates.CppBindingTemplateHeader
+	} else {
+		tpl = templates.CppBindingTemplate
 	}
 
 	if err = tpl.Execute(writer, tplArguments); err != nil {

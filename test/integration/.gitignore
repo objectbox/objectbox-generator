@@ -1,8 +1,9 @@
 # Generated files
 CMakeLists.txt
 objectbox-model.json
-objectbox-model.[c|h]
-*.obx.[c|h]
+objectbox-model.[ch]
+*.obx.[ch]
+*.obx.cpp
 
 # IDE
 .idea/

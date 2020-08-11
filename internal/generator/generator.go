@@ -47,8 +47,8 @@ func ModelInfoFile(dir string) string {
 
 // CodeGenerator interface is used to abstract per-language generators, e.g. for Go, C, C++, etc
 type CodeGenerator interface {
-	// BindingFile returns a name of the binding file for the given entity file.
-	BindingFile(forFile string) string
+	// BindingFiles returns names of binding files for the given entity file.
+	BindingFiles(forFile string) []string
 
 	// ModelFile returns the model GO file for the given JSON info file path
 	ModelFile(forFile string) string
