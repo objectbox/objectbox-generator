@@ -25,6 +25,8 @@ import "math/rand"
 type Options struct {
 	ModelInfoFile string
 	Rand          *rand.Rand
+	InPath        string
+	OutPath       string
 
 	// NOTE - currently only supports one
 	CodeGenerator CodeGenerator

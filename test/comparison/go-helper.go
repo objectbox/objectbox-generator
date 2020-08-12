@@ -49,7 +49,6 @@ func (h goTestHelper) generatorFor(t *testing.T, conf testSpec, sourceFile strin
 
 	// make a copy of the default generator
 	var gen = *conf.generator.(*gogenerator.GoGenerator)
-	gen.OutPath = genDir
 
 	if match := goGeneratorArgsRegexp.FindSubmatch(source); len(match) > 1 {
 		var args = argsToMap(string(match[1]))

@@ -34,14 +34,13 @@ import (
 )
 
 type CGenerator struct {
-	OutPath string
-	PlainC  bool
+	PlainC bool
 }
 
 // BindingFiles returns names of binding files for the given entity file.
-func (gen *CGenerator) BindingFiles(forFile string) []string {
-	if len(gen.OutPath) > 0 {
-		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
+func (gen *CGenerator) BindingFiles(forFile string, options generator.Options) []string {
+	if len(options.OutPath) > 0 {
+		forFile = filepath.Join(options.OutPath, filepath.Base(forFile))
 	}
 	var extension = filepath.Ext(forFile)
 	var base = forFile[0 : len(forFile)-len(extension)]
@@ -53,9 +52,9 @@ func (gen *CGenerator) BindingFiles(forFile string) []string {
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
-func (gen *CGenerator) ModelFile(forFile string) string {
-	if len(gen.OutPath) > 0 {
-		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
+func (gen *CGenerator) ModelFile(forFile string, options generator.Options) string {
+	if len(options.OutPath) > 0 {
+		forFile = filepath.Join(options.OutPath, filepath.Base(forFile))
 	}
 	var extension = filepath.Ext(forFile)
 	return forFile[0:len(forFile)-len(extension)] + ".h"
@@ -80,10 +79,10 @@ func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) 
 	return reader.model, nil
 }
 
-func (gen *CGenerator) WriteBindingFiles(sourceFile string, _ generator.Options, mergedModel *model.ModelInfo) error {
+func (gen *CGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
-	var bindingFiles = gen.BindingFiles(sourceFile)
+	var bindingFiles = gen.BindingFiles(sourceFile, options)
 
 	for _, bindingFile := range bindingFiles {
 		var bindingSource []byte
@@ -148,7 +147,7 @@ func (gen *CGenerator) generateBindingFile(bindingFile, headerFile string, m *mo
 func (gen *CGenerator) WriteModelBindingFile(options generator.Options, mergedModel *model.ModelInfo) error {
 	var err, err2 error
 
-	var modelFile = gen.ModelFile(options.ModelInfoFile)
+	var modelFile = gen.ModelFile(options.ModelInfoFile, options)
 	var modelSource []byte
 
 	if modelSource, err = generateModelFile(mergedModel); err != nil {

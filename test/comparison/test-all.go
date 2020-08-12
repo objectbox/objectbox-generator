@@ -112,8 +112,8 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 	modelInfoFile := generator.ModelInfoFile(genDir)
 	modelInfoExpectedFile := generator.ModelInfoFile(srcDir) + ".expected"
 
-	modelCodeFile := conf.generator.ModelFile(modelInfoFile)
-	modelCodeExpectedFile := conf.generator.ModelFile(generator.ModelInfoFile(expDir)) + ".expected"
+	modelCodeFile := conf.generator.ModelFile(modelInfoFile, generator.Options{OutPath: genDir})
+	modelCodeExpectedFile := conf.generator.ModelFile(generator.ModelInfoFile(expDir), generator.Options{}) + ".expected"
 
 	// run the generation twice, first time with deleting old modelInfo
 	for i := 0; i <= 1; i++ {
@@ -224,8 +224,10 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 			// NOTE zero seed for test-only - avoid changes caused by random numbers by fixing them to the same seed
 			Rand:          rand.New(rand.NewSource(0)),
 			CodeGenerator: conf.helper.generatorFor(t, conf, sourceFile, genDir),
+			InPath:        sourceFile,
+			OutPath:       genDir,
 		}
-		err = errorTransformer(generator.Process(sourceFile, options))
+		err = errorTransformer(generator.Process(options))
 
 		// handle negative test
 		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail"+conf.sourceExt)
@@ -243,7 +245,7 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 
 		assert.NoErr(t, err)
 
-		var bindingFiles = options.CodeGenerator.BindingFiles(sourceFile)
+		var bindingFiles = options.CodeGenerator.BindingFiles(sourceFile, options)
 		for _, bindingFile := range bindingFiles {
 			var expectedFile = strings.Replace(bindingFile, genDir, expDir, 1) + ".expected"
 			assertSameFile(t, bindingFile, expectedFile, overwriteExpected)

@@ -34,23 +34,22 @@ import (
 
 type GoGenerator struct {
 	binding *astReader
-	OutPath string
 	ByValue bool
 }
 
 // BindingFiles returns names of binding files for the given entity file.
-func (gen *GoGenerator) BindingFiles(forFile string) []string {
-	if len(gen.OutPath) > 0 {
-		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
+func (gen *GoGenerator) BindingFiles(forFile string, options generator.Options) []string {
+	if len(options.OutPath) > 0 {
+		forFile = filepath.Join(options.OutPath, filepath.Base(forFile))
 	}
 	var extension = filepath.Ext(forFile)
 	return []string{forFile[0:len(forFile)-len(extension)] + ".obx" + extension}
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
-func (gen *GoGenerator) ModelFile(forFile string) string {
-	if len(gen.OutPath) > 0 {
-		forFile = filepath.Join(gen.OutPath, filepath.Base(forFile))
+func (gen *GoGenerator) ModelFile(forFile string, options generator.Options) string {
+	if len(options.OutPath) > 0 {
+		forFile = filepath.Join(options.OutPath, filepath.Base(forFile))
 	}
 	var extension = filepath.Ext(forFile)
 	return forFile[0:len(forFile)-len(extension)] + ".go"
@@ -94,7 +93,7 @@ func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator
 		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
 	}
 
-	var bindingFiles = goGen.BindingFiles(sourceFile)
+	var bindingFiles = goGen.BindingFiles(sourceFile, options)
 	if len(bindingFiles) != 1 {
 		panic("internal error - someone changed GoGenerator::BindingFiles()?")
 	}
@@ -141,7 +140,7 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options, m *mode
 func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, modelInfo *model.ModelInfo) error {
 	var err, err2 error
 
-	var modelFile = goGen.ModelFile(options.ModelInfoFile)
+	var modelFile = goGen.ModelFile(options.ModelInfoFile, options)
 	var modelSource []byte
 
 	if modelSource, err = goGen.generateModelFile(modelInfo); err != nil {
