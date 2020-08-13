@@ -87,36 +87,33 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 	}()
 
 	// Test in a temporary directory - if tested by an end user, the repo is read-only.
-	// This doesn't apply if overwriteExpected is set, as that's only supposed to be run during this lib's development.
-	if !overwriteExpected {
-		tempRoot, err := ioutil.TempDir("", "objectbox-generator-test")
-		assert.NoErr(t, err)
+	tempRoot, err := ioutil.TempDir("", "objectbox-generator-test")
+	assert.NoErr(t, err)
 
-		// we can't defer directly because compilation step is run in a separate goroutine after this function exits
-		cleanup = func() {
-			assert.NoErr(t, os.RemoveAll(tempRoot))
-		}
-
-		genDir = filepath.Join(tempRoot, testCase)
-		t.Logf("Testing in a temporary directory %s", genDir)
-		assert.NoErr(t, os.MkdirAll(genDir, 0700))
-
-		if conf.helper != nil {
-			if errTrans := conf.helper.prepareTempDir(t, conf, expDir, genDir, tempRoot); errTrans != nil {
-				errorTransformer = errTrans
-			}
-		}
-	} else if !fileExists(genDir) {
-		// if updating existing code and the directory for this type doesn't exist
-		expDir = srcDir
-		genDir = srcDir
+	// we can't defer directly because compilation step is run in a separate goroutine after this function exits
+	cleanup = func() {
+		assert.NoErr(t, os.RemoveAll(tempRoot))
 	}
+
+	genDir = filepath.Join(tempRoot, testCase)
+	t.Logf("Testing in a temporary directory %s", genDir)
+	assert.NoErr(t, os.MkdirAll(genDir, 0700))
+
+	if conf.helper != nil {
+		if errTrans := conf.helper.prepareTempDir(t, conf, srcDir, genDir, tempRoot); errTrans != nil {
+			errorTransformer = errTrans
+		}
+	}
+
+	// Go generator updates generator go.mod when loading files (adds the missing objectbox-go import).
+	// Therefore, we'll load files from the temp dir instead
+	srcDir = genDir
 
 	modelInfoFile := generator.ModelInfoFile(genDir)
 	modelInfoExpectedFile := generator.ModelInfoFile(srcDir) + ".expected"
 
-	modelCodeFile := conf.generator.ModelFile(modelInfoFile)
-	modelCodeExpectedFile := conf.generator.ModelFile(generator.ModelInfoFile(expDir)) + ".expected"
+	modelCodeFile := conf.generator.ModelFile(modelInfoFile, generator.Options{OutPath: genDir})
+	modelCodeExpectedFile := conf.generator.ModelFile(generator.ModelInfoFile(expDir), generator.Options{}) + ".expected"
 
 	// run the generation twice, first time with deleting old modelInfo
 	for i := 0; i <= 1; i++ {
@@ -196,11 +193,9 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 }
 
 func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDir, expDir, genDir string, modelInfoFile string, errorTransformer func(error) error) int {
-	var modelFile = conf.generator.ModelFile(modelInfoFile)
-
 	// remove generated files during development (they might be syntactically wrong)
 	if overwriteExpected {
-		files, err := filepath.Glob(filepath.Join(genDir, "*."+conf.generatedExt))
+		files, err := filepath.Glob(filepath.Join(genDir, "*"+conf.generatedExt))
 		assert.NoErr(t, err)
 
 		for _, file := range files {
@@ -215,11 +210,10 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 	assert.NoErr(t, err)
 	for _, sourceFile := range inputFiles {
 		// skip generated files & "expected results" files
-		if strings.HasSuffix(sourceFile, conf.generatedExt) ||
+		if conf.generator.IsGeneratedFile(sourceFile) ||
 			strings.HasSuffix(sourceFile, ".skip"+conf.sourceExt) ||
 			strings.HasSuffix(sourceFile, "expected") ||
-			strings.HasSuffix(sourceFile, "initial") ||
-			sourceFile == modelFile {
+			strings.HasSuffix(sourceFile, "initial") {
 			continue
 		}
 
@@ -230,8 +224,10 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 			// NOTE zero seed for test-only - avoid changes caused by random numbers by fixing them to the same seed
 			Rand:          rand.New(rand.NewSource(0)),
 			CodeGenerator: conf.helper.generatorFor(t, conf, sourceFile, genDir),
+			InPath:        sourceFile,
+			OutPath:       genDir,
 		}
-		err = errorTransformer(generator.Process(sourceFile, options))
+		err = errorTransformer(generator.Process(options))
 
 		// handle negative test
 		var shouldFail = strings.HasSuffix(filepath.Base(sourceFile), ".fail"+conf.sourceExt)
@@ -249,7 +245,7 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 
 		assert.NoErr(t, err)
 
-		var bindingFiles = options.CodeGenerator.BindingFiles(sourceFile)
+		var bindingFiles = options.CodeGenerator.BindingFiles(sourceFile, options)
 		for _, bindingFile := range bindingFiles {
 			var expectedFile = strings.Replace(bindingFile, genDir, expDir, 1) + ".expected"
 			assertSameFile(t, bindingFile, expectedFile, overwriteExpected)

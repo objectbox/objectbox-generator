@@ -1,6 +1,6 @@
 package object
 
-// ERROR = can't prepare bindings for testdata/embedding/2.fail.go: duplicate name (note that property names are case insensitive) on property Id found in Negative2.IdAndFloat64Value
+// ERROR = can't prepare bindings for embedding/2.fail.go: multiple properties recognized as an ID: Id (0:0) and Id (0:0) on entity Negative2
 
 // duplicate field
 type Negative2 struct {

@@ -1,9 +1,10 @@
 package object
 
-// ERROR = can't prepare bindings for testdata/embedding/1.fail.go: duplicate name (note that property names are case insensitive) on property Value found in Negative1.BytesValue
+// ERROR = can't merge model information: merging entity Negative1: property Value: duplicate property name (note that property names are case insensitive)
 
 // both contain Value field but of two distinct types
 type Negative1 struct {
+	Id           uint64
 	Float64Value `objectbox:"inline"`
 	BytesValue   `objectbox:"inline"`
 }

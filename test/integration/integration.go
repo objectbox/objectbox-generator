@@ -80,11 +80,12 @@ func generateCCpp(t *testing.T, srcFile string, cpp bool, outDir string) {
 	var options = generator.Options{
 		ModelInfoFile: path.Join(outDir, "objectbox-model.json"),
 		CodeGenerator: &cgenerator.CGenerator{
-			OutPath: outDir,
-			PlainC:  !cpp,
+			PlainC: !cpp,
 		},
+		InPath:  srcFile,
+		OutPath: outDir,
 	}
-	assert.NoErr(t, generator.Process(srcFile, options))
+	assert.NoErr(t, generator.Process(options))
 }
 
 type CCppTestConf struct {
