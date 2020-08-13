@@ -34,16 +34,23 @@ import (
 
 type GoGenerator struct {
 	binding *astReader
+	ByValue bool
 }
 
-// BindingFile returns a name of the binding file for the given entity file.
-func (GoGenerator) BindingFile(forFile string) string {
+// BindingFiles returns names of binding files for the given entity file.
+func (gen *GoGenerator) BindingFiles(forFile string, options generator.Options) []string {
+	if len(options.OutPath) > 0 {
+		forFile = filepath.Join(options.OutPath, filepath.Base(forFile))
+	}
 	var extension = filepath.Ext(forFile)
-	return forFile[0:len(forFile)-len(extension)] + ".obx" + extension
+	return []string{forFile[0:len(forFile)-len(extension)] + ".obx" + extension}
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
-func (GoGenerator) ModelFile(forFile string) string {
+func (gen *GoGenerator) ModelFile(forFile string, options generator.Options) string {
+	if len(options.OutPath) > 0 {
+		forFile = filepath.Join(options.OutPath, filepath.Base(forFile))
+	}
 	var extension = filepath.Ext(forFile)
 	return forFile[0:len(forFile)-len(extension)] + ".go"
 }
@@ -73,6 +80,12 @@ func (goGen *GoGenerator) ParseSource(sourceFile string) (*model.ModelInfo, erro
 }
 
 func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
+	// NOTE: find a better place for this check - we only want to do it for some languages
+	// should be called after generator calls storedMode.Finalize()
+	if err := mergedModel.CheckRelationCycles(); err != nil {
+		return err
+	}
+
 	var err, err2 error
 
 	var bindingSource []byte
@@ -80,15 +93,18 @@ func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator
 		return fmt.Errorf("can't generate binding file %s: %s", sourceFile, err)
 	}
 
-	var bindingFile = goGen.BindingFile(sourceFile)
+	var bindingFiles = goGen.BindingFiles(sourceFile, options)
+	if len(bindingFiles) != 1 {
+		panic("internal error - someone changed GoGenerator::BindingFiles()?")
+	}
 	if formattedSource, err := format.Source(bindingSource); err != nil {
 		// we just store error but still write the file so that we can check it manually
-		err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFile, err)
+		err2 = fmt.Errorf("failed to format generated binding file %s: %s", bindingFiles[0], err)
 	} else {
 		bindingSource = formattedSource
 	}
 
-	if err = generator.WriteFile(bindingFile, bindingSource, sourceFile); err != nil {
+	if err = generator.WriteFile(bindingFiles[0], bindingSource, sourceFile); err != nil {
 		return fmt.Errorf("can't write binding file %s: %s", sourceFile, err)
 	} else if err2 != nil {
 		// now when the binding has been written (for debugging purposes), we can return the error
@@ -105,9 +121,10 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options, m *mode
 	var tplArguments = struct {
 		Model            *model.ModelInfo
 		Binding          *astReader
+		ByValue          bool
 		GeneratorVersion int
 		Options          generator.Options
-	}{m, goGen.binding, generator.VersionId, options}
+	}{m, goGen.binding, goGen.ByValue, generator.VersionId, options}
 
 	if err = templates.BindingTemplate.Execute(writer, tplArguments); err != nil {
 		return nil, fmt.Errorf("template execution failed: %s", err)
@@ -123,7 +140,7 @@ func (goGen *GoGenerator) generateBindingFile(options generator.Options, m *mode
 func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, modelInfo *model.ModelInfo) error {
 	var err, err2 error
 
-	var modelFile = goGen.ModelFile(options.ModelInfoFile)
+	var modelFile = goGen.ModelFile(options.ModelInfoFile, options)
 	var modelSource []byte
 
 	if modelSource, err = goGen.generateModelFile(modelInfo); err != nil {

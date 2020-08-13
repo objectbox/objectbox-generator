@@ -1,6 +1,6 @@
 package negative
 
-// ERROR = can't prepare bindings for testdata/negative/duplicate-property.fail.go: duplicate name (note that property names are case insensitive) on property text found in DuplicateProperty
+// ERROR = can't merge model information: merging entity DuplicateProperty: property text: duplicate property name (note that property names are case insensitive)
 
 type DuplicateProperty struct {
 	Id   uint64 `objectbox:"id"`

@@ -40,6 +40,7 @@ var supportedEntityAnnotations = map[string]bool{
 var supportedPropertyAnnotations = map[string]bool{
 	"transient":    true,
 	"date":         true,
+	"date-nano":    true,
 	"id":           true,
 	"index":        true,
 	"relation":     true, // to-one

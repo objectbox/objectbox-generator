@@ -20,6 +20,7 @@
 package cgenerator
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/objectbox/objectbox-generator/internal/generator/binding"
@@ -53,12 +54,16 @@ func (mo *fbsObject) CName() string {
 	return prefix + mo.CppName()
 }
 
-// CppNamespacePrefix returns c++ namespace prefix for symbol definition
-func (mo *fbsObject) CppNamespacePrefix() string {
-	if len(mo.Namespace) == 0 {
+func cppNamespacePrefix(ns string) string {
+	if len(ns) == 0 {
 		return ""
 	}
-	return strings.Join(strings.Split(mo.Namespace, "."), "::") + "::"
+	return strings.Join(strings.Split(ns, "."), "::") + "::"
+}
+
+// CppNamespacePrefix returns c++ namespace prefix for symbol definition
+func (mo *fbsObject) CppNamespacePrefix() string {
+	return cppNamespacePrefix(mo.Namespace)
 }
 
 // CppNamespaceStart returns c++ namespace opening declaration
@@ -88,6 +93,50 @@ func (mo *fbsObject) CppNamespaceEnd() string {
 	return result
 }
 
+// PreDeclareCppRelTargets returns C++ struct pre-declarations for related entities.
+func (mo *fbsObject) PreDeclareCppRelTargets() (string, error) {
+	// first create a map `(ns.entity) => bool`, then sort it to keep the code from changing, and generate the C++ decl.
+	var m = make(map[string]bool)
+
+	for _, rel := range mo.ModelEntity.Relations {
+		m[rel.Target.Meta.(*fbsObject).Namespace+"."+rel.Target.Name] = true
+	}
+	for _, prop := range mo.ModelEntity.Properties {
+		if len(prop.RelationTarget) > 0 {
+			m[prop.Meta.(*fbsField).relTargetNamespace()+"."+prop.RelationTarget] = true
+		}
+	}
+
+	// sort
+	var sortedUniqueTargets []string
+	for k := range m {
+		sortedUniqueTargets = append(sortedUniqueTargets, k)
+	}
+	sort.Strings(sortedUniqueTargets)
+
+	// generated the code
+	var code string
+	for _, name := range sortedUniqueTargets {
+		var nss []string // namespaces
+		if strings.HasPrefix(name, ".") {
+			name = name[1:] // no NS
+		} else {
+			nss = strings.Split(name, ".")
+			name = nss[len(nss)-1]
+			nss = nss[0 : len(nss)-1]
+		}
+
+		var line string
+		for _, ns := range nss {
+			line = line + "namespace " + ns + " { "
+		}
+		line = line + "struct " + cppName(name) + "; "
+		line = line + strings.Repeat("}", len(nss))
+		code = code + line + "\n"
+	}
+	return code, nil
+}
+
 type fbsField struct {
 	*binding.Field
 	fbsField *reflection.Field
@@ -102,6 +151,11 @@ func (mp *fbsField) Merge(property *model.Property) model.PropertyMeta {
 // CppName returns C++ variable name with reserved keywords suffixed by an underscore
 func (mp *fbsField) CppName() string {
 	return cppName(mp.Name)
+}
+
+// CppNameRelationTarget returns C++ target class name with reserved keywords suffixed by an underscore
+func (mp *fbsField) CppNameRelationTarget() string {
+	return cppNamespacePrefix(mp.relTargetNamespace()) + cppName(mp.ModelProperty.RelationTarget)
 }
 
 // CppType returns C++ type name
@@ -188,6 +242,17 @@ func (mp *fbsField) FbDefaultValue() string {
 		return "0.0"
 	}
 	return "0"
+}
+
+// Try to determine the namespace of the target entity but don't fail if we can't because it's declared in a different
+// file. Assume no namespace in that case and hope for the best.
+func (mp *fbsField) relTargetNamespace() string {
+	if targetEntity, err := mp.ModelProperty.Entity.Model.FindEntityByName(mp.ModelProperty.RelationTarget); err == nil {
+		if targetEntity.Meta != nil {
+			return targetEntity.Meta.(*fbsObject).Namespace
+		}
+	}
+	return ""
 }
 
 type standaloneRel struct {

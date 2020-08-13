@@ -80,20 +80,29 @@ func generateCCpp(t *testing.T, srcFile string, cpp bool, outDir string) {
 	var options = generator.Options{
 		ModelInfoFile: path.Join(outDir, "objectbox-model.json"),
 		CodeGenerator: &cgenerator.CGenerator{
-			OutPath: outDir,
-			PlainC:  !cpp,
+			PlainC: !cpp,
 		},
+		InPath:  srcFile,
+		OutPath: outDir,
 	}
-	assert.NoErr(t, generator.Process(srcFile, options))
+	assert.NoErr(t, generator.Process(options))
 }
 
 type CCppTestConf struct {
 	Cmake *cmake.Cmake
 }
 
+func sourceExt(cpp bool) string {
+	if cpp {
+		return "cpp"
+	} else {
+		return "c"
+	}
+}
+
 // CommonExecute executes the integration with the simple/common setup
 func (conf *CCppTestConf) CommonExecute(t *testing.T, cpp bool) {
-	conf.CreateCMake(t, true, "main.cpp")
+	conf.CreateCMake(t, cpp, "main."+sourceExt(cpp))
 	conf.Generate(t, "")
 	conf.Build(t)
 	conf.Run(t, nil)
@@ -148,8 +157,6 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, cpp bool, mainFile string) {
 			conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "-static-libstdc++")
 		}
 	}
-
-	assert.NoErr(t, conf.Cmake.WriteCMakeListsTxt())
 }
 
 // Generate loads *.fbs files in the current dir (or the given schema file) and generates the code
@@ -175,6 +182,12 @@ func (conf *CCppTestConf) Generate(t *testing.T, schema string) {
 
 // Build compiles the test sources producing an executable
 func (conf *CCppTestConf) Build(t *testing.T) {
+	generatedSources, err := filepath.Glob(filepath.Join(conf.Cmake.ConfDir, "*obx."+sourceExt(conf.Cmake.IsCpp)))
+	assert.NoErr(t, err)
+	conf.Cmake.Files = append(conf.Cmake.Files, generatedSources...)
+
+	assert.NoErr(t, conf.Cmake.WriteCMakeListsTxt())
+
 	if !testing.Short() {
 		if testing.Verbose() {
 			cml, err := conf.Cmake.GetCMakeListsTxt()

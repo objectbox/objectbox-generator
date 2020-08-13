@@ -70,9 +70,6 @@ type Entity struct {
 
 	Fields []*Field // the tree of struct fields (necessary for embedded structs)
 
-	// TODO remove these
-	Relations map[string]*StandaloneRelation
-
 	binding *astReader // parent
 }
 
@@ -86,21 +83,17 @@ func (entity *Entity) Merge(mEntity *model.Entity) model.EntityMeta {
 type Property struct {
 	*binding.Field
 
-	GoType string
-	FbType string
-
-	// TODO remove these
-	Identifier
-	IsPointer bool
-	Converter *string
+	IsBasicType bool
+	GoType      string
+	FbType      string
+	Converter   *string
 
 	// type casts for named types
 	CastOnRead  string
 	CastOnWrite string
 
-	GoField    *Field // actual code field this property represents
-	Entity     *Entity
-	UidRequest bool
+	GoField *Field // actual code field this property represents
+	Entity  *Entity
 
 	annotations map[string]*binding.Annotation
 }
@@ -111,44 +104,20 @@ func (property *Property) Merge(mProperty *model.Property) model.PropertyMeta {
 	return property
 }
 
-// StandaloneRelation contains information about a "to-many" relation
-type StandaloneRelation struct {
-	Identifier
-	Target struct {
-		Identifier
-		Name      string
-		IsPointer bool
-	}
-	Name       string
-	UidRequest bool
-}
-
-// Index holds information for creating an indexed field in DB
-type Index struct {
-	Identifier
-}
-
 // Field is a field in an entity-struct. Not all fields become properties (e.g. to-many relations don't have a property)
 type Field struct {
 	Entity             *Entity // parent entity
 	Name               string
 	Type               string
 	IsPointer          bool
-	Property           *Property // nil if it's an embedded struct
-	Fields             []*Field  // inner fields, nil if it's a property
-	SimpleRelation     string
-	StandaloneRelation *StandaloneRelation // to-many relation stored as a standalone relation in the model
-	IsLazyLoaded       bool                // only standalone (to-many) relations currently support lazy loading
-	Meta               *Field              // self reference for recursive ".Meta.Fields" access in the template
+	Property           *Property                 // nil if it's an embedded struct
+	Fields             []*Field                  // inner fields, nil if it's a property
+	StandaloneRelation *model.StandaloneRelation // to-many relation stored as a standalone relation in the model
+	IsLazyLoaded       bool                      // only standalone (to-many) relations currently support lazy loading
+	Meta               *Field                    // self reference for recursive ".Meta.Fields" access in the template
 
 	path   string // relative addressing path for embedded structs
 	parent *Field // when included in parent.Fields[], nil for top-level fields (directly in the entity)
-}
-
-// Identifier combines DB ID and UID into a single structure
-type Identifier struct {
-	Id  id
-	Uid uid
 }
 
 func NewBinding() (*astReader, error) {
@@ -260,19 +229,19 @@ func (r *astReader) createEntityFromAst(strct *ast.StructType, name string, comm
 	} else if idProp.Type == model.PropertyTypeString {
 		var idPropMeta = idProp.Meta.(*Property)
 		idProp.Type = model.PropertyTypeLong
-		idPropMeta.FbType = "Int64"
+		idPropMeta.FbType = "Uint64"
+		idPropMeta.GoType = "uint64"
 
 		if idPropMeta.annotations["converter"] == nil {
 			var converter = "objectbox.StringIdConvert"
 			idPropMeta.Converter = &converter
 		}
+	} else if !idProp.Meta.(*Property).hasValidTypeAsId() {
+		return fmt.Errorf("id field '%s' has unsupported type '%s' on entity %s - must be one of [int64, uint64, string]",
+			idProp.Meta.(*Property).Name, idProp.Meta.(*Property).GoType, entity.Name)
+	} else {
+		idProp.Meta.(*Property).FbType = "Uint64" // always stored as Uint64
 	}
-
-	// IDs must not be tagged unsigned for compatibility reasons
-	// initially set for uint types by setBasicType()
-	// TODO migrate this code
-	// entity.IdProperty.removeObFlag(model.PropertyFlagUnsigned)
-	// entity.IdProperty.FbType = "Uint64" // always stored as Uint64
 
 	r.model.Entities = append(r.model.Entities, modelEntity)
 
@@ -318,10 +287,8 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 		field.Meta = field
 		property.GoField = field
 
-		if tag := f.Tag(); tag != "" {
-			if err := property.setAnnotations(tag); err != nil {
-				return nil, propertyError(err, property)
-			}
+		if err := property.setAnnotations(f.Tag()); err != nil {
+			return nil, propertyError(err, property)
 		}
 
 		if property.IsSkipped {
@@ -357,7 +324,6 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 			var annotatedType = property.annotations["type"].Value
 			if len(annotatedType) > 1 && annotatedType[0] == '*' {
 				field.IsPointer = true
-				field.Property.IsPointer = true
 				annotatedType = annotatedType[1:]
 			}
 
@@ -382,6 +348,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 			if err := property.setBasicType("int64"); err != nil {
 				return nil, propertyError(err, property)
 			}
+			property.IsBasicType = false // override the value set by setBasicType
 
 			if property.annotations["converter"] == nil {
 				var converter = "objectbox.TimeInt64Convert"
@@ -483,7 +450,6 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 	if pointer, isPointer := baseType.(*types.Pointer); isPointer {
 		baseType = pointer.Elem().Underlying()
 		field.IsPointer = true
-		field.Property.IsPointer = true
 		isNamed = typesTypeErrorful{Type: baseType}.IsNamed()
 	} else {
 		isNamed = typ.IsNamed()
@@ -508,12 +474,9 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 
 		// if it's a one-to-many relation
 		if property.annotations["link"] != nil {
-			if err := property.setRelation(typeBaseName(typ.String()), false); err != nil {
-				return nil, err
-			}
-
-			field.SimpleRelation = property.ModelProperty.RelationTarget
-			return nil, nil
+			err := property.setRelationAnnotation(typeBaseName(typ.String()), false)
+			property.IsBasicType = false // override the value set by setBasicType
+			return nil, err
 		}
 
 		// otherwise inline all fields
@@ -525,31 +488,20 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 		var elementType = slice.Elem()
 
 		// it's a many-to-many relation
-		if err := property.setRelation(typeBaseName(elementType.String()), true); err != nil {
+		if err := property.setRelationAnnotation(typeBaseName(elementType.String()), true); err != nil {
 			return nil, err
 		}
 
-		if err := property.handleUid(); err != nil {
+		var relDetails = make(map[string]*binding.Annotation)
+		relDetails["name"] = &binding.Annotation{Value: field.Name}
+		relDetails["to"] = property.annotations["link"]
+		relDetails["uid"] = property.annotations["uid"]
+		if rel, err := field.Entity.AddRelation(relDetails); err != nil {
 			return nil, err
+		} else {
+			field.StandaloneRelation = rel
 		}
 
-		// add this as a standalone relation to the entity
-		if field.Entity.Relations[field.Name] != nil {
-			return nil, fmt.Errorf("relation with the name %s already exists", field.Name)
-		}
-
-		rel := &StandaloneRelation{}
-		rel.Name = field.Name
-		rel.Target.Name = property.annotations["link"].Value
-		rel.UidRequest = property.UidRequest
-		rel.Uid = property.Uid
-
-		if _, isPointer := elementType.(*types.Pointer); isPointer {
-			rel.Target.IsPointer = true
-		}
-
-		field.Entity.Relations[field.Name] = rel
-		field.StandaloneRelation = rel
 		if field.Property.annotations["lazy"] != nil {
 			// relations only
 			field.IsLazyLoaded = true
@@ -557,7 +509,8 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 
 		// fill in the field information
 		field.fillInfo(f, typesTypeErrorful{elementType})
-		if rel.Target.IsPointer {
+
+		if _, isPointer := elementType.(*types.Pointer); isPointer {
 			field.Type = "[]*" + field.Type
 		} else {
 			field.Type = "[]" + field.Type
@@ -665,13 +618,9 @@ func (property *Property) setAnnotations(tags string) error {
 	return nil
 }
 
-// setRelation sets a relation on the property.
+// setRelationAnnotation sets a relation on the property.
 // If the user has previously defined a relation manually, it must match the arguments (relation target)
-func (property *Property) setRelation(target string, manyToMany bool) error {
-	if property.annotations == nil {
-		property.annotations = make(map[string]*binding.Annotation)
-	}
-
+func (property *Property) setRelationAnnotation(target string, manyToMany bool) error {
 	if property.annotations["link"] == nil {
 		property.annotations["link"] = &binding.Annotation{}
 	}
@@ -694,22 +643,6 @@ func (property *Property) setRelation(target string, manyToMany bool) error {
 		}
 	}
 
-	return nil
-}
-
-// TODO we probably don't need this? done in ProcessAnnotations()
-func (property *Property) handleUid() error {
-	if property.annotations["uid"] != nil {
-		if len(property.annotations["uid"].Value) == 0 {
-			// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID
-			// this flag is handled by the merge mechanism and prints the UID of the already existing property
-			property.UidRequest = true
-		} else if uid, err := strconv.ParseUint(property.annotations["uid"].Value, 10, 64); err != nil {
-			return fmt.Errorf("can't parse uid - %s", err)
-		} else {
-			property.Uid = uid
-		}
-	}
 	return nil
 }
 
@@ -765,6 +698,7 @@ func parseAnnotations(tags string, annotations *map[string]*binding.Annotation) 
 
 func (property *Property) setBasicType(baseType string) error {
 	property.GoType = baseType
+	property.IsBasicType = true
 
 	ts := property.GoType
 	if property.GoType == "string" {
@@ -814,6 +748,7 @@ func (property *Property) setBasicType(baseType string) error {
 		property.ModelProperty.Type = model.PropertyTypeBool
 		property.FbType = "Bool"
 	} else {
+		property.IsBasicType = false
 		return fmt.Errorf("unknown type %s", ts)
 	}
 
@@ -855,7 +790,7 @@ func (entity *Entity) HasLazyLoadedRelations() bool {
 
 // HasRelations called from the template.
 func (field *Field) HasRelations() bool {
-	if field.StandaloneRelation != nil || len(field.SimpleRelation) > 0 {
+	if field.StandaloneRelation != nil || len(field.Property.ModelProperty.RelationTarget) > 0 {
 		return true
 	}
 
@@ -907,26 +842,6 @@ func (field *Field) HasPointersInPath() bool {
 	}
 
 	return field.parent.HasPointersInPath()
-}
-
-// TODO moved to model.Property
-// FbvTableOffset calculates flatbuffers vTableOffset.
-// Called from the template.
-func (property *Property) FbvTableOffset() uint16 {
-	// derived from the FB generated code & https://google.github.io/flatbuffers/md__internals.html
-	var result = 4 + 2*uint32(property.FbSlot())
-
-	if uint32(uint16(result)) != result {
-		panic(fmt.Errorf("can't calculate FlatBuffers VTableOffset: property %s ID %d is too large",
-			property.Name, property.Id))
-	}
-
-	return uint16(result)
-}
-
-// FbSlot is called from the template. It calculates flatbuffers slot number.
-func (property *Property) FbSlot() int {
-	return int(property.Id - 1)
 }
 
 // Path is called from the template. It returns full path to the property (in embedded struct).
@@ -987,6 +902,7 @@ func (property *Property) TplSetAndReturn(objVar, castType, rhs string) string {
 
 	// While not explicitly, this is currently only true if called from SetId() template part.
 	if property.ModelProperty.IsIdProperty() && property.GoType != "uint64" {
+		// TODO this won't compile because converters (i.e. `rhs`) now return two values
 		rhs = property.GoType + "(" + rhs + ")"
 	}
 

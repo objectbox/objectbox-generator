@@ -114,7 +114,7 @@ func (property *Property) CreateIndex() error {
 		return fmt.Errorf("can't create an index - it already exists")
 	}
 
-	indexId, err := property.Entity.model.createIndexId()
+	indexId, err := property.Entity.Model.createIndexId()
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (property *Property) RemoveIndex() error {
 		return fmt.Errorf("can't remove index - it's not defined")
 	}
 
-	property.Entity.model.RetiredIndexUids = append(property.Entity.model.RetiredIndexUids, property.IndexId.getUidSafe())
+	property.Entity.Model.RetiredIndexUids = append(property.Entity.Model.RetiredIndexUids, property.IndexId.getUidSafe())
 
 	property.IndexId = nil
 

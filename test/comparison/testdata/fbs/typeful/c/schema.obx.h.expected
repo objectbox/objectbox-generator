@@ -10,6 +10,14 @@
 #include "flatcc/flatcc_builder.h"
 #include "objectbox.h"
 
+/// Internal function used in other generated functions to put (write) explicitly typed objects 
+static obx_id schema_obx_h_put_object(OBX_box* box, void* object,
+                             bool (*to_flatbuffer)(flatcc_builder_t*, const void*, void**, size_t*), OBXPutMode mode);
+
+/// Internal function used in other generated functions to get (read) explicitly typed objects
+static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t));
+
+
 /// Entity documentation is copied
 /// into the generated output
 typedef struct Typeful {
@@ -38,6 +46,8 @@ typedef struct Typeful {
     double float64;
     float float_;
     double double_;
+    /// Relation to an entity declared later in the same file
+    uint64_t relId;
     
 } Typeful;
 
@@ -65,6 +75,7 @@ enum Typeful_ {
     Typeful_PROP_ID_float64 = 20,
     Typeful_PROP_ID_float_ = 21,
     Typeful_PROP_ID_double_ = 22,
+    Typeful_PROP_ID_relId = 23,
 };
 
 /// Write given object to the FlatBufferBuilder
@@ -129,6 +140,72 @@ static void ns_Annotated_free_pointers(ns_Annotated* object);
 /// Equivalent to calling ns_Annotated_free_pointers() followed by free();
 static void ns_Annotated_free(ns_Annotated* object);
 
+typedef struct ns_TSDate {
+    uint64_t id;
+    int64_t timestamp;
+    
+} ns_TSDate;
+
+enum ns_TSDate_ {
+    ns_TSDate_ENTITY_ID = 3,
+    ns_TSDate_PROP_ID_id = 1,
+    ns_TSDate_PROP_ID_timestamp = 2,
+};
+
+/// Write given object to the FlatBufferBuilder
+static bool ns_TSDate_to_flatbuffer(flatcc_builder_t* B, const ns_TSDate* object, void** out_buffer, size_t* out_size);
+
+/// Read an object from a valid FlatBuffer.
+/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling ns_TSDate_free_pointers().
+/// Thus, when calling this function multiple times on the same object, ensure to call ns_TSDate_free_pointers() before subsequent calls to avoid leaks. 
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+///          allocated by this function will also be freed before returning, allowing you to retry.
+static bool ns_TSDate_from_flatbuffer(const void* data, size_t size, ns_TSDate* out_object);
+
+/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// The object must be freed after use by calling ns_TSDate_free();
+static ns_TSDate* ns_TSDate_new_from_flatbuffer(const void* data, size_t size);
+
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+static void ns_TSDate_free_pointers(ns_TSDate* object);
+
+/// Free ns_TSDate* object pointer and all its property pointers (vectors and strings).
+/// Equivalent to calling ns_TSDate_free_pointers() followed by free();
+static void ns_TSDate_free(ns_TSDate* object);
+
+typedef struct ns_TSDateNano {
+    uint64_t id;
+    int64_t timestamp;
+    
+} ns_TSDateNano;
+
+enum ns_TSDateNano_ {
+    ns_TSDateNano_ENTITY_ID = 4,
+    ns_TSDateNano_PROP_ID_id = 1,
+    ns_TSDateNano_PROP_ID_timestamp = 2,
+};
+
+/// Write given object to the FlatBufferBuilder
+static bool ns_TSDateNano_to_flatbuffer(flatcc_builder_t* B, const ns_TSDateNano* object, void** out_buffer, size_t* out_size);
+
+/// Read an object from a valid FlatBuffer.
+/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling ns_TSDateNano_free_pointers().
+/// Thus, when calling this function multiple times on the same object, ensure to call ns_TSDateNano_free_pointers() before subsequent calls to avoid leaks. 
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+///          allocated by this function will also be freed before returning, allowing you to retry.
+static bool ns_TSDateNano_from_flatbuffer(const void* data, size_t size, ns_TSDateNano* out_object);
+
+/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// The object must be freed after use by calling ns_TSDateNano_free();
+static ns_TSDateNano* ns_TSDateNano_new_from_flatbuffer(const void* data, size_t size);
+
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+static void ns_TSDateNano_free_pointers(ns_TSDateNano* object);
+
+/// Free ns_TSDateNano* object pointer and all its property pointers (vectors and strings).
+/// Equivalent to calling ns_TSDateNano_free_pointers() followed by free();
+static void ns_TSDateNano_free(ns_TSDateNano* object);
+
 static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, void** out_buffer, size_t* out_size) {
     assert(B);
     assert(object);
@@ -151,7 +228,7 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
     flatcc_builder_ref_t offset_bytevector = !object->bytevector ? 0 : flatcc_builder_create_vector(B, object->bytevector, object->bytevector_len, sizeof(int8_t), sizeof(int8_t), FLATBUFFERS_COUNT_MAX(sizeof(int8_t)));
     flatcc_builder_ref_t offset_ubytevector = !object->ubytevector ? 0 : flatcc_builder_create_vector(B, object->ubytevector, object->ubytevector_len, sizeof(uint8_t), sizeof(uint8_t), FLATBUFFERS_COUNT_MAX(sizeof(uint8_t)));
 
-    if (flatcc_builder_start_table(B, 22) != 0) return false;
+    if (flatcc_builder_start_table(B, 23) != 0) return false;
 
     void* p;
     flatcc_builder_ref_t* _p;
@@ -229,6 +306,9 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
     
     if (!(p = flatcc_builder_table_add(B, 21, 8, 8))) return false;
     flatbuffers_double_write_to_pe(p, object->double_);
+    
+    if (!(p = flatcc_builder_table_add(B, 22, 8, 8))) return false;
+    flatbuffers_uint64_write_to_pe(p, object->relId);
     
     flatcc_builder_ref_t ref;
     if (!(ref = flatcc_builder_end_table(B))) return false;
@@ -342,6 +422,7 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
     out_object->float64 = (vs < sizeof(vt[0]) * (19 + 3)) ? 0.0 : flatbuffers_double_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 19 + 2));
     out_object->float_ = (vs < sizeof(vt[0]) * (20 + 3)) ? 0.0f : flatbuffers_float_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 20 + 2));
     out_object->double_ = (vs < sizeof(vt[0]) * (21 + 3)) ? 0.0 : flatbuffers_double_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 21 + 2));
+    out_object->relId = (vs < sizeof(vt[0]) * (22 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 22 + 2));
     return true;
 }
 
@@ -395,6 +476,31 @@ static void Typeful_free_pointers(Typeful* object) {
 static void Typeful_free(Typeful* object) {
     Typeful_free_pointers(object);
     free(object);
+}
+
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID 
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id Typeful_put(OBX_box* box, Typeful* object) {
+    obx_id id = schema_obx_h_put_object(box, object,
+                               (bool (*)(flatcc_builder_t*, const void*, void**, size_t*)) Typeful_to_flatbuffer,
+                               OBXPutMode_PUT);
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling Typeful_free();
+static Typeful* Typeful_get(OBX_box* box, obx_id id) {
+    return (Typeful*) schema_obx_h_get_object(box, id, (void* (*) (const void*, size_t)) Typeful_new_from_flatbuffer);
 }
 
 static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* object, void** out_buffer, size_t* out_size) {
@@ -493,3 +599,248 @@ static void ns_Annotated_free(ns_Annotated* object) {
     free(object);
 }
 
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID 
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id ns_Annotated_put(OBX_box* box, ns_Annotated* object) {
+    obx_id id = schema_obx_h_put_object(box, object,
+                               (bool (*)(flatcc_builder_t*, const void*, void**, size_t*)) ns_Annotated_to_flatbuffer,
+                               OBXPutMode_PUT);
+    if (id != 0) {
+        object->identifier = id;  // update the ID property on new objects for convenience
+    }
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling ns_Annotated_free();
+static ns_Annotated* ns_Annotated_get(OBX_box* box, obx_id id) {
+    return (ns_Annotated*) schema_obx_h_get_object(box, id, (void* (*) (const void*, size_t)) ns_Annotated_new_from_flatbuffer);
+}
+
+static bool ns_TSDate_to_flatbuffer(flatcc_builder_t* B, const ns_TSDate* object, void** out_buffer, size_t* out_size) {
+    assert(B);
+    assert(object);
+    assert(out_buffer);
+    assert(out_size);
+
+    flatcc_builder_reset(B);
+    flatcc_builder_start_buffer(B, 0, 0, 0);
+    
+
+    if (flatcc_builder_start_table(B, 2) != 0) return false;
+
+    void* p;
+    flatcc_builder_ref_t* _p;
+    
+    if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
+    flatbuffers_uint64_write_to_pe(p, object->id);
+    
+    if (!(p = flatcc_builder_table_add(B, 1, 8, 8))) return false;
+    flatbuffers_int64_write_to_pe(p, object->timestamp);
+    
+    flatcc_builder_ref_t ref;
+    if (!(ref = flatcc_builder_end_table(B))) return false;
+    if (!flatcc_builder_end_buffer(B, ref)) return false;
+    return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
+}
+
+static bool ns_TSDate_from_flatbuffer(const void* data, size_t size, ns_TSDate* out_object) {
+    assert(data);
+    assert(out_object);
+
+    const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
+    assert(table);
+    flatbuffers_voffset_t *vt = (flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
+    flatbuffers_voffset_t vs = __flatbuffers_voffset_read_from_pe(vt);
+
+    // variables reused when reading strings and vectors
+    flatbuffers_voffset_t offset;
+    const flatbuffers_uoffset_t* val;
+    size_t len;
+
+    out_object->id = (vs < sizeof(vt[0]) * (0 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 0 + 2));
+    out_object->timestamp = (vs < sizeof(vt[0]) * (1 + 3)) ? 0 : flatbuffers_int64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 1 + 2));
+    return true;
+}
+
+static ns_TSDate* ns_TSDate_new_from_flatbuffer(const void* data, size_t size) {
+    ns_TSDate* object = (ns_TSDate*) malloc(sizeof(ns_TSDate));
+    if (object) {
+        if (!ns_TSDate_from_flatbuffer(data, size, object)) {
+            free(object);
+            object = NULL;
+        }
+    }
+    return object;
+}
+
+static void ns_TSDate_free_pointers(ns_TSDate* object) {
+    if (object == NULL) return;
+}
+
+static void ns_TSDate_free(ns_TSDate* object) {
+    ns_TSDate_free_pointers(object);
+    free(object);
+}
+
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID 
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id ns_TSDate_put(OBX_box* box, ns_TSDate* object) {
+    obx_id id = schema_obx_h_put_object(box, object,
+                               (bool (*)(flatcc_builder_t*, const void*, void**, size_t*)) ns_TSDate_to_flatbuffer,
+                               OBXPutMode_PUT);
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling ns_TSDate_free();
+static ns_TSDate* ns_TSDate_get(OBX_box* box, obx_id id) {
+    return (ns_TSDate*) schema_obx_h_get_object(box, id, (void* (*) (const void*, size_t)) ns_TSDate_new_from_flatbuffer);
+}
+
+static bool ns_TSDateNano_to_flatbuffer(flatcc_builder_t* B, const ns_TSDateNano* object, void** out_buffer, size_t* out_size) {
+    assert(B);
+    assert(object);
+    assert(out_buffer);
+    assert(out_size);
+
+    flatcc_builder_reset(B);
+    flatcc_builder_start_buffer(B, 0, 0, 0);
+    
+
+    if (flatcc_builder_start_table(B, 2) != 0) return false;
+
+    void* p;
+    flatcc_builder_ref_t* _p;
+    
+    if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
+    flatbuffers_uint64_write_to_pe(p, object->id);
+    
+    if (!(p = flatcc_builder_table_add(B, 1, 8, 8))) return false;
+    flatbuffers_int64_write_to_pe(p, object->timestamp);
+    
+    flatcc_builder_ref_t ref;
+    if (!(ref = flatcc_builder_end_table(B))) return false;
+    if (!flatcc_builder_end_buffer(B, ref)) return false;
+    return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
+}
+
+static bool ns_TSDateNano_from_flatbuffer(const void* data, size_t size, ns_TSDateNano* out_object) {
+    assert(data);
+    assert(out_object);
+
+    const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
+    assert(table);
+    flatbuffers_voffset_t *vt = (flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
+    flatbuffers_voffset_t vs = __flatbuffers_voffset_read_from_pe(vt);
+
+    // variables reused when reading strings and vectors
+    flatbuffers_voffset_t offset;
+    const flatbuffers_uoffset_t* val;
+    size_t len;
+
+    out_object->id = (vs < sizeof(vt[0]) * (0 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 0 + 2));
+    out_object->timestamp = (vs < sizeof(vt[0]) * (1 + 3)) ? 0 : flatbuffers_int64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 1 + 2));
+    return true;
+}
+
+static ns_TSDateNano* ns_TSDateNano_new_from_flatbuffer(const void* data, size_t size) {
+    ns_TSDateNano* object = (ns_TSDateNano*) malloc(sizeof(ns_TSDateNano));
+    if (object) {
+        if (!ns_TSDateNano_from_flatbuffer(data, size, object)) {
+            free(object);
+            object = NULL;
+        }
+    }
+    return object;
+}
+
+static void ns_TSDateNano_free_pointers(ns_TSDateNano* object) {
+    if (object == NULL) return;
+}
+
+static void ns_TSDateNano_free(ns_TSDateNano* object) {
+    ns_TSDateNano_free_pointers(object);
+    free(object);
+}
+
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID 
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id ns_TSDateNano_put(OBX_box* box, ns_TSDateNano* object) {
+    obx_id id = schema_obx_h_put_object(box, object,
+                               (bool (*)(flatcc_builder_t*, const void*, void**, size_t*)) ns_TSDateNano_to_flatbuffer,
+                               OBXPutMode_PUT);
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling ns_TSDateNano_free();
+static ns_TSDateNano* ns_TSDateNano_get(OBX_box* box, obx_id id) {
+    return (ns_TSDateNano*) schema_obx_h_get_object(box, id, (void* (*) (const void*, size_t)) ns_TSDateNano_new_from_flatbuffer);
+}
+
+static obx_id schema_obx_h_put_object(OBX_box* box, void* object,
+                             bool (*to_flatbuffer)(flatcc_builder_t*, const void*, void**, size_t*), OBXPutMode mode) {
+    flatcc_builder_t builder;
+    flatcc_builder_init(&builder);
+
+    obx_id id = 0;
+    size_t size = 0;
+    void* buffer = NULL;
+    if (!to_flatbuffer(&builder, object, &buffer, &size)) {
+        obx_last_error_set(OBX_ERROR_STD_OTHER, 0, "FlatBuffer serialization failed");
+    } else {
+        id = obx_box_put_object4(box, buffer, size, mode);  // 0 on error
+    }
+
+    flatcc_builder_clear(&builder);
+    if (buffer) flatcc_builder_aligned_free(buffer);
+
+    return id;
+}
+
+static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t)) {
+    // We need an explicit TX - read data lifecycle is bound to the open TX.
+    OBX_txn* tx = obx_txn_read(obx_box_store(box));
+    if (!tx) return NULL;
+
+    void* result = NULL;
+    void* data;
+    size_t size;
+    if (obx_box_get(box, id, &data, &size) == OBX_SUCCESS) {
+        result = from_flatbuffer(data, size);
+        if (result == NULL) {
+            obx_last_error_set(OBX_ERROR_STD_OTHER, 0, "FlatBuffer deserialization failed");
+        }
+    }
+
+    obx_txn_close(tx);
+    return result;
+}

@@ -1,6 +1,7 @@
-*.obx.go
 objectbox-model.json
 objectbox-model.go
+objectbox-model.[ch]
 
-*.obx.[c|h]
-objectbox-model.[c|h]
+*.obx.go
+*.obx.[ch]
+*.obx.cpp

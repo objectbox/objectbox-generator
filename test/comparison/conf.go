@@ -24,6 +24,7 @@ import (
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
 	"github.com/objectbox/objectbox-generator/internal/generator/c"
+	"github.com/objectbox/objectbox-generator/internal/generator/go"
 )
 
 type testHelper interface {
@@ -53,5 +54,5 @@ type testSpec struct {
 var confs = map[string]testSpec{
 	"fbs-c":   {"c", ".fbs", ".obx.h", &cgenerator.CGenerator{PlainC: true}, &cTestHelper{cpp: false}},
 	"fbs-cpp": {"cpp", ".fbs", "-cpp.obx.h", &cgenerator.CGenerator{PlainC: false}, &cTestHelper{cpp: true}},
-	// TODO "go":  {"go", ".go", ".obx.go", &gogenerator.GoGenerator{}, goTestHelper{}},
+	"go":      {"go", ".go", ".obx.go", &gogenerator.GoGenerator{}, &goTestHelper{}},
 }

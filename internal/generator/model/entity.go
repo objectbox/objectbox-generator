@@ -35,22 +35,21 @@ type Entity struct {
 	UidRequest     bool                  `json:"-"` // used when the user gives an empty uid annotation
 	Meta           EntityMeta            `json:"-"`
 	Comments       []string              `json:"-"`
-
-	model *ModelInfo
+	Model          *ModelInfo            `json:"-"`
 }
 
 // CreateEntity constructs an Entity
 func CreateEntity(model *ModelInfo, id Id, uid Uid) *Entity {
 	return &Entity{
-		model:      model,
+		Model:      model,
 		Id:         CreateIdUid(id, uid),
 		Properties: make([]*Property, 0),
 	}
 }
 
-// Validate performs initial validation of loaded data so that it doesn't have to be checked in each function
+// Validate performs validation of the entity model
 func (entity *Entity) Validate() (err error) {
-	if entity.model == nil {
+	if entity.Model == nil {
 		return fmt.Errorf("undefined parent model")
 	}
 
@@ -100,7 +99,7 @@ func (entity *Entity) Validate() (err error) {
 			}
 		}
 
-		if !found && !searchSliceUid(entity.model.RetiredPropertyUids, lastUid) {
+		if !found && !searchSliceUid(entity.Model.RetiredPropertyUids, lastUid) {
 			return fmt.Errorf("lastPropertyId %s doesn't match any relation", entity.LastPropertyId)
 		}
 	}
@@ -227,7 +226,7 @@ func (entity *Entity) CreateProperty() (*Property, error) {
 		id = entity.LastPropertyId.getIdSafe() + 1
 	}
 
-	uniqueUid, err := entity.model.GenerateUid()
+	uniqueUid, err := entity.Model.GenerateUid()
 
 	if err != nil {
 		return nil, err
@@ -265,7 +264,7 @@ func (entity *Entity) RemoveProperty(property *Property) error {
 	entity.Properties = append(entity.Properties[:indexToRemove], entity.Properties[indexToRemove+1:]...)
 
 	// store the UID in the "retired" list so that it's not reused in the future
-	entity.model.RetiredPropertyUids = append(entity.model.RetiredPropertyUids, property.Id.getUidSafe())
+	entity.Model.RetiredPropertyUids = append(entity.Model.RetiredPropertyUids, property.Id.getUidSafe())
 
 	return nil
 }
@@ -295,7 +294,7 @@ func (entity *Entity) FindRelationByName(name string) (*StandaloneRelation, erro
 
 // CreateRelation creates relation
 func (entity *Entity) CreateRelation() (*StandaloneRelation, error) {
-	id, err := entity.model.createRelationId()
+	id, err := entity.Model.createRelationId()
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +321,7 @@ func (entity *Entity) RemoveRelation(relation *StandaloneRelation) error {
 	entity.Relations = append(entity.Relations[:indexToRemove], entity.Relations[indexToRemove+1:]...)
 
 	// store the UID in the "retired" list so that it's not reused in the future
-	entity.model.RetiredRelationUids = append(entity.model.RetiredRelationUids, relation.Id.getUidSafe())
+	entity.Model.RetiredRelationUids = append(entity.Model.RetiredRelationUids, relation.Id.getUidSafe())
 
 	return nil
 }

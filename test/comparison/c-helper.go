@@ -53,7 +53,6 @@ func (h *cTestHelper) init(t *testing.T, conf testSpec) {
 func (h cTestHelper) generatorFor(t *testing.T, conf testSpec, sourceFile string, genDir string) generator.CodeGenerator {
 	// make a copy of the default generator
 	var gen = *conf.generator.(*cgenerator.CGenerator)
-	gen.OutPath = genDir
 	return &gen
 }
 

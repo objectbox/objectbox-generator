@@ -179,6 +179,12 @@ func getModelProperty(currentProperty *model.Property, storedEntity *model.Entit
 	// we don't care about this error, either the property is found or we create it
 	property, _ := storedEntity.FindPropertyByName(currentProperty.Name)
 
+	// This effectively check for duplicate property names in the entity source definition by checking that a model
+	// property with this name has already been merged with another "currentProperty".
+	if property != nil && property.Meta != nil {
+		return nil, fmt.Errorf("duplicate property name (note that property names are case insensitive)")
+	}
+
 	// handle uid request
 	if currentProperty.UidRequest {
 		if property != nil {
@@ -302,8 +308,7 @@ func getModelRelation(currentRelation *model.StandaloneRelation, storedEntity *m
 		} else {
 			errInfo = "relation not found in the model"
 		}
-		return nil, fmt.Errorf("uid annotation value must not be empty (%s) on relation %s, entity %s",
-			errInfo, currentRelation.Name, storedEntity.Name)
+		return nil, fmt.Errorf("uid annotation value must not be empty (%s)", errInfo)
 	}
 
 	if relation == nil {

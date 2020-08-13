@@ -2,11 +2,14 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstdbool>
+#include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"
+#include "objectbox-cpp.h"
 #include "objectbox.h"
+
+namespace ns { struct AnnotatedEntity; }
 
 struct Typeful_;
 
@@ -37,31 +40,34 @@ struct Typeful {
     double float64;
     float float_;
     double double_;
+    /// Relation to an entity declared later in the same file
+    uint64_t relId;
 };
 
 struct Typeful_ {
-    static const obx_schema_id id = 1;
-    static const obx_schema_id int_ = 2;
-    static const obx_schema_id int8 = 3;
-    static const obx_schema_id int16 = 4;
-    static const obx_schema_id int32 = 5;
-    static const obx_schema_id int64 = 6;
-    static const obx_schema_id uint = 7;
-    static const obx_schema_id uint8 = 8;
-    static const obx_schema_id uint16 = 9;
-    static const obx_schema_id uint32 = 10;
-    static const obx_schema_id uint64 = 11;
-    static const obx_schema_id bool_ = 12;
-    static const obx_schema_id string = 13;
-    static const obx_schema_id stringvector = 14;
-    static const obx_schema_id byte = 15;
-    static const obx_schema_id ubyte = 16;
-    static const obx_schema_id bytevector = 17;
-    static const obx_schema_id ubytevector = 18;
-    static const obx_schema_id float32 = 19;
-    static const obx_schema_id float64 = 20;
-    static const obx_schema_id float_ = 21;
-    static const obx_schema_id double_ = 22;
+    static const obx::Property<Typeful, OBXPropertyType_Long> id;
+    static const obx::Property<Typeful, OBXPropertyType_Int> int_;
+    static const obx::Property<Typeful, OBXPropertyType_Byte> int8;
+    static const obx::Property<Typeful, OBXPropertyType_Short> int16;
+    static const obx::Property<Typeful, OBXPropertyType_Int> int32;
+    static const obx::Property<Typeful, OBXPropertyType_Long> int64;
+    static const obx::Property<Typeful, OBXPropertyType_Int> uint;
+    static const obx::Property<Typeful, OBXPropertyType_Byte> uint8;
+    static const obx::Property<Typeful, OBXPropertyType_Short> uint16;
+    static const obx::Property<Typeful, OBXPropertyType_Int> uint32;
+    static const obx::Property<Typeful, OBXPropertyType_Long> uint64;
+    static const obx::Property<Typeful, OBXPropertyType_Bool> bool_;
+    static const obx::Property<Typeful, OBXPropertyType_String> string;
+    static const obx::Property<Typeful, OBXPropertyType_StringVector> stringvector;
+    static const obx::Property<Typeful, OBXPropertyType_Byte> byte;
+    static const obx::Property<Typeful, OBXPropertyType_Byte> ubyte;
+    static const obx::Property<Typeful, OBXPropertyType_ByteVector> bytevector;
+    static const obx::Property<Typeful, OBXPropertyType_ByteVector> ubytevector;
+    static const obx::Property<Typeful, OBXPropertyType_Float> float32;
+    static const obx::Property<Typeful, OBXPropertyType_Double> float64;
+    static const obx::Property<Typeful, OBXPropertyType_Float> float_;
+    static const obx::Property<Typeful, OBXPropertyType_Double> double_;
+    static const obx::RelationProperty<Typeful, ns::AnnotatedEntity> relId;
 
     static constexpr obx_schema_id entityId() { return 1; }
 
@@ -80,6 +86,8 @@ struct Typeful_ {
     static void fromFlatBuffer(const void* data, size_t size, Typeful& outObject);
 };
 
+struct Typeful; 
+
 namespace ns {
 struct Annotated_;
 
@@ -95,12 +103,12 @@ struct Annotated {
 };
 
 struct Annotated_ {
-    static const obx_schema_id identifier = 1;
-    static const obx_schema_id fullName = 2;
-    static const obx_schema_id time = 3;
-    static const obx_schema_id relId = 4;
-    static const obx_schema_id typefuls = 1;
-    static const obx_schema_id m2m = 2;
+    static const obx::Property<Annotated, OBXPropertyType_Long> identifier;
+    static const obx::Property<Annotated, OBXPropertyType_String> fullName;
+    static const obx::Property<Annotated, OBXPropertyType_Date> time;
+    static const obx::RelationProperty<Annotated, Typeful> relId;
+    static const obx::RelationStandalone<Annotated, Typeful> typefuls;
+    static const obx::RelationStandalone<Annotated, Typeful> m2m;
 
     static constexpr obx_schema_id entityId() { return 2; }
 
@@ -120,133 +128,69 @@ struct Annotated_ {
 };
 }  // namespace ns
 
-inline void Typeful_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& object) {
-    fbb.Clear();
-    auto offsetstring = fbb.CreateString(object.string);
-    auto offsetstringvector = fbb.CreateVectorOfStrings(object.stringvector);
-    auto offsetbytevector = fbb.CreateVector(object.bytevector);
-    auto offsetubytevector = fbb.CreateVector(object.ubytevector);
-    flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.id));
-    fbb.TrackField(6, fbb.PushElement<int32_t>(object.int_));
-    fbb.TrackField(8, fbb.PushElement<int8_t>(object.int8));
-    fbb.TrackField(10, fbb.PushElement<int16_t>(object.int16));
-    fbb.TrackField(12, fbb.PushElement<int32_t>(object.int32));
-    fbb.TrackField(14, fbb.PushElement<int64_t>(object.int64));
-    fbb.TrackField(16, fbb.PushElement<uint32_t>(object.uint));
-    fbb.TrackField(18, fbb.PushElement<uint8_t>(object.uint8));
-    fbb.TrackField(20, fbb.PushElement<uint16_t>(object.uint16));
-    fbb.TrackField(22, fbb.PushElement<uint32_t>(object.uint32));
-    fbb.TrackField(24, fbb.PushElement<uint64_t>(object.uint64));
-    fbb.TrackField(26, fbb.PushElement<uint8_t>(object.bool_ ? 1 : 0));
-    fbb.AddOffset(28, offsetstring);
-    fbb.AddOffset(30, offsetstringvector);
-    fbb.TrackField(32, fbb.PushElement<int8_t>(object.byte));
-    fbb.TrackField(34, fbb.PushElement<uint8_t>(object.ubyte));
-    fbb.AddOffset(36, offsetbytevector);
-    fbb.AddOffset(38, offsetubytevector);
-    fbb.TrackField(40, fbb.PushElement<float>(object.float32));
-    fbb.TrackField(42, fbb.PushElement<double>(object.float64));
-    fbb.TrackField(44, fbb.PushElement<float>(object.float_));
-    fbb.TrackField(46, fbb.PushElement<double>(object.double_));
-    flatbuffers::Offset<flatbuffers::Table> offset;
-    offset.o = fbb.EndTable(fbStart);
-    fbb.Finish(offset);
-}
 
-inline Typeful Typeful_::fromFlatBuffer(const void* data, size_t size) {
-    Typeful object;
-    fromFlatBuffer(data, size, object);
-    return object;
-}
+namespace ns {
+struct TSDate_;
 
-inline std::unique_ptr<Typeful> Typeful_::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::unique_ptr<Typeful>(new Typeful());
-    fromFlatBuffer(data, size, *object);
-    return object;
-}
-
-inline void Typeful_::fromFlatBuffer(const void* data, size_t size, Typeful& outObject) {
-    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
-    assert(table);
-    outObject.id = table->GetField<uint64_t>(4, 0);
-    outObject.int_ = table->GetField<int32_t>(6, 0);
-    outObject.int8 = table->GetField<int8_t>(8, 0);
-    outObject.int16 = table->GetField<int16_t>(10, 0);
-    outObject.int32 = table->GetField<int32_t>(12, 0);
-    outObject.int64 = table->GetField<int64_t>(14, 0);
-    outObject.uint = table->GetField<uint32_t>(16, 0);
-    outObject.uint8 = table->GetField<uint8_t>(18, 0);
-    outObject.uint16 = table->GetField<uint16_t>(20, 0);
-    outObject.uint32 = table->GetField<uint32_t>(22, 0);
-    outObject.uint64 = table->GetField<uint64_t>(24, 0);
-    outObject.bool_ = table->GetField<uint8_t>(26, 0) != 0;
-    {
-        auto* ptr = table->GetPointer<const flatbuffers::String*>(28);
-        if (ptr) outObject.string.assign(ptr->c_str());
-    }
-    {
-        auto* ptr = table->GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*>(30);
-        if (ptr) {
-            outObject.stringvector.reserve(ptr->size());
-            for (size_t i = 0; i < ptr->size(); i++) {
-                auto* itemPtr = ptr->Get(i);
-                if (itemPtr) outObject.stringvector.emplace_back(itemPtr->c_str());
-            }
-        }
-    }
-    outObject.byte = table->GetField<int8_t>(32, 0);
-    outObject.ubyte = table->GetField<uint8_t>(34, 0);
-    {
-        auto* ptr = table->GetPointer<const flatbuffers::Vector<int8_t>*>(36);
-        if (ptr) outObject.bytevector.assign(ptr->begin(), ptr->end());
-    }
-    {
-        auto* ptr = table->GetPointer<const flatbuffers::Vector<uint8_t>*>(38);
-        if (ptr) outObject.ubytevector.assign(ptr->begin(), ptr->end());
-    }
-    outObject.float32 = table->GetField<float>(40, 0.0f);
-    outObject.float64 = table->GetField<double>(42, 0.0);
-    outObject.float_ = table->GetField<float>(44, 0.0f);
-    outObject.double_ = table->GetField<double>(46, 0.0);
+struct TSDate {
+    using _OBX_MetaInfo = TSDate_;
     
-}
+    uint64_t id;
+    int64_t timestamp;
+};
 
-inline void ns::Annotated_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::Annotated& object) {
-    fbb.Clear();
-    auto offsetfullName = fbb.CreateString(object.fullName);
-    flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.identifier));
-    fbb.AddOffset(6, offsetfullName);
-    fbb.TrackField(8, fbb.PushElement<int64_t>(object.time));
-    fbb.TrackField(10, fbb.PushElement<uint64_t>(object.relId));
-    flatbuffers::Offset<flatbuffers::Table> offset;
-    offset.o = fbb.EndTable(fbStart);
-    fbb.Finish(offset);
-}
+struct TSDate_ {
+    static const obx::Property<TSDate, OBXPropertyType_Long> id;
+    static const obx::Property<TSDate, OBXPropertyType_Date> timestamp;
 
-inline ns::Annotated ns::Annotated_::fromFlatBuffer(const void* data, size_t size) {
-    ns::Annotated object;
-    fromFlatBuffer(data, size, object);
-    return object;
-}
+    static constexpr obx_schema_id entityId() { return 3; }
 
-inline std::unique_ptr<ns::Annotated> ns::Annotated_::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::unique_ptr<ns::Annotated>(new ns::Annotated());
-    fromFlatBuffer(data, size, *object);
-    return object;
-}
+    static void setObjectId(TSDate& object, obx_id newId) { object.id = newId; }
 
-inline void ns::Annotated_::fromFlatBuffer(const void* data, size_t size, ns::Annotated& outObject) {
-    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
-    assert(table);
-    outObject.identifier = table->GetField<uint64_t>(4, 0);
-    {
-        auto* ptr = table->GetPointer<const flatbuffers::String*>(6);
-        if (ptr) outObject.fullName.assign(ptr->c_str());
-    }
-    outObject.time = table->GetField<int64_t>(8, 0);
-    outObject.relId = table->GetField<uint64_t>(10, 0);
+    /// Write given object to the FlatBufferBuilder
+    static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const TSDate& object);
+
+    /// Read an object from a valid FlatBuffer
+    static TSDate fromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static std::unique_ptr<TSDate> newFromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static void fromFlatBuffer(const void* data, size_t size, TSDate& outObject);
+};
+}  // namespace ns
+
+
+namespace ns {
+struct TSDateNano_;
+
+struct TSDateNano {
+    using _OBX_MetaInfo = TSDateNano_;
     
-}
+    uint64_t id;
+    int64_t timestamp;
+};
+
+struct TSDateNano_ {
+    static const obx::Property<TSDateNano, OBXPropertyType_Long> id;
+    static const obx::Property<TSDateNano, OBXPropertyType_DateNano> timestamp;
+
+    static constexpr obx_schema_id entityId() { return 4; }
+
+    static void setObjectId(TSDateNano& object, obx_id newId) { object.id = newId; }
+
+    /// Write given object to the FlatBufferBuilder
+    static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const TSDateNano& object);
+
+    /// Read an object from a valid FlatBuffer
+    static TSDateNano fromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static std::unique_ptr<TSDateNano> newFromFlatBuffer(const void* data, size_t size);
+
+    /// Read an object from a valid FlatBuffer
+    static void fromFlatBuffer(const void* data, size_t size, TSDateNano& outObject);
+};
+}  // namespace ns
 
