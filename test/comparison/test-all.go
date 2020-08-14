@@ -99,10 +99,11 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 	t.Logf("Testing in a temporary directory %s", genDir)
 	assert.NoErr(t, os.MkdirAll(genDir, 0700))
 
-	if conf.helper != nil {
-		if errTrans := conf.helper.prepareTempDir(t, conf, srcDir, genDir, tempRoot); errTrans != nil {
-			errorTransformer = errTrans
-		}
+	// copy the source dir, including the relative paths (to make sure expected errors contain same paths)
+	assert.NoErr(t, copyDirectory(srcDir, genDir, 0700, 0600))
+
+	if errTrans := conf.helper.prepareTempDir(t, conf, srcDir, genDir, tempRoot); errTrans != nil {
+		errorTransformer = errTrans
 	}
 
 	// Go generator updates generator go.mod when loading files (adds the missing objectbox-go import).
@@ -137,7 +138,7 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 	}
 
 	// verify the result can be built
-	if !testing.Short() && conf.helper != nil {
+	if !testing.Short() {
 		// override the defer to prevent cleanup before compilation is actually run
 		var cleanupAfterCompile = cleanup
 		cleanup = func() {}
@@ -195,11 +196,14 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDir, expDir, genDir string, modelInfoFile string, errorTransformer func(error) error) int {
 	// remove generated files during development (they might be syntactically wrong)
 	if overwriteExpected {
-		files, err := filepath.Glob(filepath.Join(genDir, "*"+conf.generatedExt))
-		assert.NoErr(t, err)
+		for _, generatedExt := range conf.generatedExt {
+			files, err := filepath.Glob(filepath.Join(genDir, "*"+generatedExt))
+			assert.NoErr(t, err)
 
-		for _, file := range files {
-			assert.NoErr(t, os.Remove(file))
+			for _, file := range files {
+				t.Logf("removing previously generated %s", file)
+				assert.NoErr(t, os.Remove(file))
+			}
 		}
 	}
 
@@ -208,6 +212,8 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 	// process all source files in the directory
 	inputFiles, err := filepath.Glob(filepath.Join(srcDir, "*"+conf.sourceExt))
 	assert.NoErr(t, err)
+	assert.True(t, len(inputFiles) > 0)
+
 	for _, sourceFile := range inputFiles {
 		// skip generated files & "expected results" files
 		if conf.generator.IsGeneratedFile(sourceFile) ||

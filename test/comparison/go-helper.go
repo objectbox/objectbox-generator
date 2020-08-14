@@ -88,9 +88,6 @@ func argsToMap(args string) map[string]string {
 }
 
 func (goTestHelper) prepareTempDir(t *testing.T, conf testSpec, srcDir, tempDir, tempRoot string) func(err error) error {
-	// copy the source dir, including the relative paths (to make sure expected errors contain same paths)
-	assert.NoErr(t, copyDirectory(srcDir, tempDir, 0700, 0600))
-
 	// When outside of the project's directory, we need to set up the whole temp dir as its own module, otherwise
 	// imports won't work correctly. To do that we create a go.mod file pointing it to this repo.
 	var modulePath = goModuleName + "/test/comparison/" + srcDir

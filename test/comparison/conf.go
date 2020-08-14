@@ -46,13 +46,13 @@ type testHelper interface {
 type testSpec struct {
 	targetLang   string
 	sourceExt    string
-	generatedExt string
+	generatedExt []string
 	generator    generator.CodeGenerator
 	helper       testHelper
 }
 
 var confs = map[string]testSpec{
-	"fbs-c":   {"c", ".fbs", ".obx.h", &cgenerator.CGenerator{PlainC: true}, &cTestHelper{cpp: false}},
-	"fbs-cpp": {"cpp", ".fbs", "-cpp.obx.h", &cgenerator.CGenerator{PlainC: false}, &cTestHelper{cpp: true}},
-	"go":      {"go", ".go", ".obx.go", &gogenerator.GoGenerator{}, &goTestHelper{}},
+	"fbs-c":   {"c", ".fbs", []string{".obx.h"}, &cgenerator.CGenerator{PlainC: true}, &cTestHelper{cpp: false}},
+	"fbs-cpp": {"cpp", ".fbs", []string{"-cpp.obx.h", ".obx.cpp"}, &cgenerator.CGenerator{PlainC: false}, &cTestHelper{cpp: true}},
+	"go":      {"go", ".go", []string{".obx.go"}, &gogenerator.GoGenerator{}, &goTestHelper{}},
 }

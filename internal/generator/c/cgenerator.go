@@ -62,7 +62,9 @@ func (gen *CGenerator) ModelFile(forFile string, options generator.Options) stri
 
 func (CGenerator) IsGeneratedFile(file string) bool {
 	var name = filepath.Base(file)
-	return name == "objectbox-model.h" || strings.HasSuffix(name, ".obx.h")
+	return name == "objectbox-model.h" ||
+		strings.HasSuffix(name, ".obx.h") ||
+		strings.HasSuffix(name, ".obx.cpp")
 }
 
 func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) {
