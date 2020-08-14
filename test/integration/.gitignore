@@ -3,7 +3,7 @@ CMakeLists.txt
 objectbox-model.json
 objectbox-model.[ch]
 *.obx.[ch]
-*.obx.cpp
+*.obx.[ch]pp
 
 # IDE
 .idea/

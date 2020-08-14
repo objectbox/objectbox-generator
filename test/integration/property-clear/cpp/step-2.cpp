@@ -2,7 +2,7 @@
 
 #include "catch2/catch.hpp"
 #include "objectbox-cpp.h"
-#include "schema-cpp.obx.h"
+#include "schema.obx.hpp"
 #include "shared/store-init.h"
 using namespace obx;
 

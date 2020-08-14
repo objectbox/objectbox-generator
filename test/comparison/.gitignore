@@ -4,4 +4,4 @@ objectbox-model.[ch]
 
 *.obx.go
 *.obx.[ch]
-*.obx.cpp
+*.obx.[ch]pp

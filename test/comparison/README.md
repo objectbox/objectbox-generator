@@ -14,7 +14,7 @@ Therefore, the test works as follows:
     * negative tests: if the file has a fail infix in the name: `*.fail.<source-type>`, 
       it's considered a negative test case (the generation should fail)
 * `<source-type>/<test-case>/<target-type>/*.<target-type-ext>.expected` are files expected to be generated
-    e.g. `fbs/typeful/cpp/schema-cpp.obx.h`
+    e.g. `fbs/typeful/cpp/schema.obx.hpp`
     * there's an exception with `go` source & target type = the target type isn't present in the path
       e.g. `go/typeful/typebuf.obx.go.expected`
 * `<source-type>/<test-case>/objectbox-model.json.expected` is the expected model JSON file, it's common for all languages.     

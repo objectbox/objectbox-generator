@@ -48,7 +48,7 @@ func (gen *CGenerator) BindingFiles(forFile string, options generator.Options) [
 	if gen.PlainC {
 		return []string{base + ".obx.h"}
 	}
-	return []string{base + "-cpp.obx.h", base + ".obx.cpp"}
+	return []string{base + ".obx.hpp", base + ".obx.cpp"}
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
@@ -64,6 +64,7 @@ func (CGenerator) IsGeneratedFile(file string) bool {
 	var name = filepath.Base(file)
 	return name == "objectbox-model.h" ||
 		strings.HasSuffix(name, ".obx.h") ||
+		strings.HasSuffix(name, ".obx.hpp") ||
 		strings.HasSuffix(name, ".obx.cpp")
 }
 

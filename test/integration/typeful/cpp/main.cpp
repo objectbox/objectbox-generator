@@ -1,10 +1,10 @@
 #define CATCH_CONFIG_MAIN
 
-#include "annotated-cpp.obx.h"
+#include "annotated.obx.hpp"
 #include "catch2/catch.hpp"
 #include "objectbox-cpp.h"
 #include "objectbox-model.h"
-#include "schema-cpp.obx.h"
+#include "schema.obx.hpp"
 
 using namespace obx;
 

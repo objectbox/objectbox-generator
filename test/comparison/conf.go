@@ -53,6 +53,6 @@ type testSpec struct {
 
 var confs = map[string]testSpec{
 	"fbs-c":   {"c", ".fbs", []string{".obx.h"}, &cgenerator.CGenerator{PlainC: true}, &cTestHelper{cpp: false}},
-	"fbs-cpp": {"cpp", ".fbs", []string{"-cpp.obx.h", ".obx.cpp"}, &cgenerator.CGenerator{PlainC: false}, &cTestHelper{cpp: true}},
+	"fbs-cpp": {"cpp", ".fbs", []string{".obx.hpp", ".obx.cpp"}, &cgenerator.CGenerator{PlainC: false}, &cTestHelper{cpp: true}},
 	"go":      {"go", ".go", []string{".obx.go"}, &gogenerator.GoGenerator{}, &goTestHelper{}},
 }
