@@ -33,7 +33,7 @@ import (
 )
 
 // Version specifies the current generator version.
-const Version = "0.10.0"
+const Version = "0.10.1"
 
 // VersionId specifies the current generator version identifier.
 // It is used to validate generated code compatibility and is increased when there are changes in the generated code.
