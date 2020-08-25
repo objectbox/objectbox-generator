@@ -167,7 +167,7 @@
     },
     {
       "id": "3:959367522974354090",
-      "lastPropertyId": "22:3959279844101328186",
+      "lastPropertyId": "22:303089054982227392",
       "name": "Typeful",
       "properties": [
         {
@@ -275,15 +275,19 @@
         {
           "id": "20:388440063886460141",
           "name": "Date",
-          "type": 10
+          "indexId": "1:7561811714888168464",
+          "type": 10,
+          "flags": 8
         },
         {
-          "id": "21:7561811714888168464",
+          "id": "21:3959279844101328186",
           "name": "Time",
-          "type": 10
+          "indexId": "2:8902041070398994519",
+          "type": 10,
+          "flags": 8
         },
         {
-          "id": "22:3959279844101328186",
+          "id": "22:303089054982227392",
           "name": "Time2",
           "type": 10
         }
@@ -291,7 +295,7 @@
     }
   ],
   "lastEntityId": "3:959367522974354090",
-  "lastIndexId": "",
+  "lastIndexId": "2:8902041070398994519",
   "lastRelationId": "",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,

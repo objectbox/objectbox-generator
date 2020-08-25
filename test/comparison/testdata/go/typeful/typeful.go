@@ -23,7 +23,7 @@ type Typeful struct {
 	Rune         rune
 	Float32      float32
 	Float64      float64
-	Date         int64     `objectbox:"date"`
-	Time         time.Time `objectbox:"date"`
+	Date         int64     `objectbox:"date index"`
+	Time         time.Time `objectbox:"date,index"`
 	Time2        time.Time // prints a warning, otherwise the same as with an annotation
 }

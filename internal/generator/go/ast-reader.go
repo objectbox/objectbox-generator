@@ -27,6 +27,7 @@ import (
 	"log"
 	"path"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -666,7 +667,7 @@ func parseAnnotations(tags string, annotations *map[string]*binding.Annotation) 
 	}
 
 	// tags are space-separated
-	for _, tag := range strings.Split(tags, " ") {
+	for _, tag := range regexp.MustCompile("[ ,]+").Split(tags, -1) {
 		if len(tag) > 0 {
 			var name string
 			var value = &binding.Annotation{}
