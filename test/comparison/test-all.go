@@ -106,15 +106,15 @@ func generateOneDir(t *testing.T, overwriteExpected bool, conf testSpec, srcType
 		errorTransformer = errTrans
 	}
 
-	// Go generator updates generator go.mod when loading files (adds the missing objectbox-go import).
-	// Therefore, we'll load files from the temp dir instead
-	srcDir = genDir
-
 	modelInfoFile := generator.ModelInfoFile(genDir)
 	modelInfoExpectedFile := generator.ModelInfoFile(srcDir) + ".expected"
 
 	modelCodeFile := conf.generator.ModelFile(modelInfoFile, generator.Options{OutPath: genDir})
 	modelCodeExpectedFile := conf.generator.ModelFile(generator.ModelInfoFile(expDir), generator.Options{}) + ".expected"
+
+	// Go generator updates generator go.mod when loading files (adds the missing objectbox-go import).
+	// Therefore, we'll load files from the temp dir instead
+	srcDir = genDir
 
 	// run the generation twice, first time with deleting old modelInfo
 	for i := 0; i <= 1; i++ {

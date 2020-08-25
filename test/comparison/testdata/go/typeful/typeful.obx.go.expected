@@ -216,9 +216,13 @@ func (typeful_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Property("Float32", 7, 18, 4345851588384648695)
 	model.Property("Float64", 8, 19, 7699391924090763411)
 	model.Property("Date", 10, 20, 388440063886460141)
-	model.Property("Time", 10, 21, 7561811714888168464)
-	model.Property("Time2", 10, 22, 3959279844101328186)
-	model.EntityLastPropertyId(22, 3959279844101328186)
+	model.PropertyFlags(8)
+	model.PropertyIndex(1, 7561811714888168464)
+	model.Property("Time", 10, 21, 3959279844101328186)
+	model.PropertyFlags(8)
+	model.PropertyIndex(2, 8902041070398994519)
+	model.Property("Time2", 10, 22, 303089054982227392)
+	model.EntityLastPropertyId(22, 303089054982227392)
 }
 
 // GetId is called by ObjectBox during Put operations to check for existing ID on an object
