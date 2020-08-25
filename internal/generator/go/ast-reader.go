@@ -666,7 +666,7 @@ func parseAnnotations(tags string, annotations *map[string]*binding.Annotation) 
 		return nil
 	}
 
-	// tags are space-separated
+	// tags are space or comma separated
 	for _, tag := range regexp.MustCompile("[ ,]+").Split(tags, -1) {
 		if len(tag) > 0 {
 			var name string
