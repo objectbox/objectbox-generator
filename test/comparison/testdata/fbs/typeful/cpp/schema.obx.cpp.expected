@@ -124,17 +124,31 @@ const obx::Property<ns::Annotated, OBXPropertyType_Long> ns::Annotated_::identif
 const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::fullName(2);
 const obx::Property<ns::Annotated, OBXPropertyType_Date> ns::Annotated_::time(3);
 const obx::RelationProperty<ns::Annotated, Typeful> ns::Annotated_::relId(4);
+const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::unique(5);
+const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqueValue(6);
+const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqueHash(7);
+const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqueHash64(8);
+const obx::Property<ns::Annotated, OBXPropertyType_Int> ns::Annotated_::uid(9);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::typefuls(1);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::m2m(2);
 
 void ns::Annotated_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::Annotated& object) {
     fbb.Clear();
     auto offsetfullName = fbb.CreateString(object.fullName);
+    auto offsetunique = fbb.CreateString(object.unique);
+    auto offsetuniqueValue = fbb.CreateString(object.uniqueValue);
+    auto offsetuniqueHash = fbb.CreateString(object.uniqueHash);
+    auto offsetuniqueHash64 = fbb.CreateString(object.uniqueHash64);
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
     fbb.TrackField(4, fbb.PushElement<uint64_t>(object.identifier));
     fbb.AddOffset(6, offsetfullName);
     fbb.TrackField(8, fbb.PushElement<int64_t>(object.time));
     fbb.TrackField(10, fbb.PushElement<uint64_t>(object.relId));
+    fbb.AddOffset(12, offsetunique);
+    fbb.AddOffset(14, offsetuniqueValue);
+    fbb.AddOffset(16, offsetuniqueHash);
+    fbb.AddOffset(18, offsetuniqueHash64);
+    fbb.TrackField(20, fbb.PushElement<int32_t>(object.uid));
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
     fbb.Finish(offset);
@@ -162,6 +176,23 @@ void ns::Annotated_::fromFlatBuffer(const void* data, size_t size, ns::Annotated
     }
     outObject.time = table->GetField<int64_t>(8, 0);
     outObject.relId = table->GetField<uint64_t>(10, 0);
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::String*>(12);
+        if (ptr) outObject.unique.assign(ptr->c_str());
+    }
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::String*>(14);
+        if (ptr) outObject.uniqueValue.assign(ptr->c_str());
+    }
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::String*>(16);
+        if (ptr) outObject.uniqueHash.assign(ptr->c_str());
+    }
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::String*>(18);
+        if (ptr) outObject.uniqueHash64.assign(ptr->c_str());
+    }
+    outObject.uid = table->GetField<int32_t>(20, 0);
     
 }
 

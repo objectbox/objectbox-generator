@@ -68,27 +68,42 @@ static inline OBX_model* create_obx_model() {
     obx_model_property(model, "relId", OBXPropertyType_Relation, 4, 1395437218309923052);
     obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEXED | OBXPropertyFlags_INDEX_PARTIAL_SKIP_ZERO | OBXPropertyFlags_UNSIGNED));
     obx_model_property_relation(model, "Typeful", 3, 6745438398739480977);
-    obx_model_relation(model, 1, 2897681629866238117, 1, 8717895732742165505);
-    obx_model_relation(model, 2, 3398579248012586914, 1, 8717895732742165505);
-    obx_model_entity_last_property_id(model, 4, 1395437218309923052);
+    obx_model_property(model, "unique", OBXPropertyType_String, 5, 2897681629866238117);
+    obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEX_HASH | OBXPropertyFlags_UNIQUE));
+    obx_model_property_index_id(model, 4, 3398579248012586914);
+    obx_model_property(model, "uniqueValue", OBXPropertyType_String, 6, 5974317550424871033);
+    obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEXED | OBXPropertyFlags_UNIQUE));
+    obx_model_property_index_id(model, 5, 3317123977833389635);
+    obx_model_property(model, "uniqueHash", OBXPropertyType_String, 7, 5001958211167890979);
+    obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEX_HASH | OBXPropertyFlags_UNIQUE));
+    obx_model_property_index_id(model, 6, 167566062957544642);
+    obx_model_property(model, "uniqueHash64", OBXPropertyType_String, 8, 4778690082005258714);
+    obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEX_HASH64 | OBXPropertyFlags_UNIQUE));
+    obx_model_property_index_id(model, 7, 1059542851699319360);
+    obx_model_property(model, "uid", OBXPropertyType_Int, 9, 6972732843819909978);
+    obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEXED | OBXPropertyFlags_UNIQUE));
+    obx_model_property_index_id(model, 8, 5558237345453186302);
+    obx_model_relation(model, 1, 7845762441295307478, 1, 8717895732742165505);
+    obx_model_relation(model, 2, 771642788862502430, 1, 8717895732742165505);
+    obx_model_entity_last_property_id(model, 9, 6972732843819909978);
     
     obx_model_entity(model, "TSDate", 3, 6050128673802995827);
-    obx_model_property(model, "id", OBXPropertyType_Long, 1, 5974317550424871033);
+    obx_model_property(model, "id", OBXPropertyType_Long, 1, 8514850266767180993);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_property(model, "timestamp", OBXPropertyType_Date, 2, 3317123977833389635);
+    obx_model_property(model, "timestamp", OBXPropertyType_Date, 2, 8683452355129068124);
     obx_model_property_flags(model, OBXPropertyFlags_ID_COMPANION);
-    obx_model_entity_last_property_id(model, 2, 3317123977833389635);
+    obx_model_entity_last_property_id(model, 2, 8683452355129068124);
     
     obx_model_entity(model, "TSDateNano", 4, 501233450539197794);
-    obx_model_property(model, "id", OBXPropertyType_Long, 1, 5001958211167890979);
+    obx_model_property(model, "id", OBXPropertyType_Long, 1, 4345851588384648695);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_property(model, "timestamp", OBXPropertyType_DateNano, 2, 167566062957544642);
+    obx_model_property(model, "timestamp", OBXPropertyType_DateNano, 2, 7699391924090763411);
     obx_model_property_flags(model, OBXPropertyFlags_ID_COMPANION);
-    obx_model_entity_last_property_id(model, 2, 167566062957544642);
+    obx_model_entity_last_property_id(model, 2, 7699391924090763411);
     
     obx_model_last_entity_id(model, 4, 501233450539197794);
-    obx_model_last_index_id(model, 3, 6745438398739480977);
-    obx_model_last_relation_id(model, 2, 3398579248012586914);
+    obx_model_last_index_id(model, 8, 5558237345453186302);
+    obx_model_last_relation_id(model, 2, 771642788862502430);
     return model; // NOTE: the returned model will contain error information if an error occurred.
 }
 

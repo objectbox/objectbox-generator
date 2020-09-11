@@ -50,6 +50,23 @@ table Annotated {
 
 	/// objectbox:relation=Typeful
 	relId:ulong;
+
+	/// unique on string without index type implies HASH index
+	/// objectbox:unique
+	unique:string;
+
+	/// objectbox:unique,index=value
+    uniqueValue:string;
+
+	/// objectbox:unique,index=hash
+    uniqueHash:string;
+
+	/// objectbox:unique,index=hash64
+    uniqueHash64:string;
+
+	/// unique on string without index type implies HASH index
+	/// objectbox:unique
+	uid:int;
 }
 
 /// objectbox: transient

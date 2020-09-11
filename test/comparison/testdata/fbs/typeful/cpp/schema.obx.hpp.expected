@@ -100,6 +100,13 @@ struct Annotated {
     std::string fullName;
     int64_t time;
     uint64_t relId;
+    /// unique on string without index type implies HASH index
+    std::string unique;
+    std::string uniqueValue;
+    std::string uniqueHash;
+    std::string uniqueHash64;
+    /// unique on string without index type implies HASH index
+    int32_t uid;
 };
 
 struct Annotated_ {
@@ -107,6 +114,11 @@ struct Annotated_ {
     static const obx::Property<Annotated, OBXPropertyType_String> fullName;
     static const obx::Property<Annotated, OBXPropertyType_Date> time;
     static const obx::RelationProperty<Annotated, Typeful> relId;
+    static const obx::Property<Annotated, OBXPropertyType_String> unique;
+    static const obx::Property<Annotated, OBXPropertyType_String> uniqueValue;
+    static const obx::Property<Annotated, OBXPropertyType_String> uniqueHash;
+    static const obx::Property<Annotated, OBXPropertyType_String> uniqueHash64;
+    static const obx::Property<Annotated, OBXPropertyType_Int> uid;
     static const obx::RelationStandalone<Annotated, Typeful> typefuls;
     static const obx::RelationStandalone<Annotated, Typeful> m2m;
 
