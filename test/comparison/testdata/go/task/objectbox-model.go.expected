@@ -18,7 +18,7 @@ func ObjectBoxModel() *objectbox.Model {
 	model.RegisterBinding(TaskStringByValueBinding)
 	model.RegisterBinding(TaskIndexedBinding)
 	model.LastEntityId(5, 7144924247938981575)
-	model.LastIndexId(8, 4035568504096476779)
+	model.LastIndexId(12, 3317123977833389635)
 
 	return model
 }

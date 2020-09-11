@@ -74,7 +74,7 @@ func (task_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Property("Id", 6, 1, 6050128673802995827)
 	model.PropertyFlags(1)
 	model.Property("Uid", 9, 2, 501233450539197794)
-	model.PropertyFlags(32)
+	model.PropertyFlags(2080)
 	model.PropertyIndex(1, 3390393562759376202)
 	model.Property("text", 9, 3, 2669985732393126063)
 	model.Property("Date", 10, 4, 1774932891286980153)

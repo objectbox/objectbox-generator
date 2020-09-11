@@ -67,7 +67,7 @@ func (b_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Property("Id", 6, 2, 2669985732393126063)
 	model.PropertyFlags(1)
 	model.Property("Value", 8, 3, 1774932891286980153)
-	model.PropertyFlags(32)
+	model.PropertyFlags(40)
 	model.PropertyIndex(1, 6044372234677422456)
 	model.Property("Name", 9, 4, 8274930044578894929)
 	model.EntityLastPropertyId(4, 8274930044578894929)

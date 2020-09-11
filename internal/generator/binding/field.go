@@ -104,6 +104,15 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		field.ModelProperty.AddFlag(model.PropertyFlagIdCompanion)
 	}
 
+	if a["unique"] != nil {
+		field.ModelProperty.AddFlag(model.PropertyFlagUnique)
+
+		// add a default index type, unless specified otherwise
+		if a["index"] == nil {
+			a["index"] = &Annotation{}
+		}
+	}
+
 	if a["index"] != nil {
 		switch strings.ToLower(a["index"].Value) {
 		case "":
@@ -122,14 +131,6 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		default:
 			return fmt.Errorf("unknown index type %s", a["index"].Value)
 		}
-
-		if err := field.ModelProperty.SetIndex(); err != nil {
-			return err
-		}
-	}
-
-	if a["unique"] != nil {
-		field.ModelProperty.AddFlag(model.PropertyFlagUnique)
 
 		if err := field.ModelProperty.SetIndex(); err != nil {
 			return err

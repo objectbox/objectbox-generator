@@ -24,13 +24,17 @@ var TaskIndexedBinding = taskIndexed_EntityInfo{
 
 // TaskIndexed_ contains type-based Property helpers to facilitate some common operations such as Queries.
 var TaskIndexed_ = struct {
-	Id       *objectbox.PropertyUint64
-	Uid      *objectbox.PropertyString
-	Name     *objectbox.PropertyString
-	Priority *objectbox.PropertyInt
-	Group    *objectbox.PropertyString
-	Place    *objectbox.PropertyString
-	Source   *objectbox.PropertyString
+	Id        *objectbox.PropertyUint64
+	Uid       *objectbox.PropertyString
+	UidValue  *objectbox.PropertyString
+	UidHash   *objectbox.PropertyString
+	UidHash64 *objectbox.PropertyString
+	UidInt    *objectbox.PropertyUint64
+	Name      *objectbox.PropertyString
+	Priority  *objectbox.PropertyInt
+	Group     *objectbox.PropertyString
+	Place     *objectbox.PropertyString
+	Source    *objectbox.PropertyString
 }{
 	Id: &objectbox.PropertyUint64{
 		BaseProperty: &objectbox.BaseProperty{
@@ -44,33 +48,57 @@ var TaskIndexed_ = struct {
 			Entity: &TaskIndexedBinding.Entity,
 		},
 	},
-	Name: &objectbox.PropertyString{
+	UidValue: &objectbox.PropertyString{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     3,
 			Entity: &TaskIndexedBinding.Entity,
 		},
 	},
-	Priority: &objectbox.PropertyInt{
+	UidHash: &objectbox.PropertyString{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     4,
 			Entity: &TaskIndexedBinding.Entity,
 		},
 	},
-	Group: &objectbox.PropertyString{
+	UidHash64: &objectbox.PropertyString{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     5,
 			Entity: &TaskIndexedBinding.Entity,
 		},
 	},
-	Place: &objectbox.PropertyString{
+	UidInt: &objectbox.PropertyUint64{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     6,
 			Entity: &TaskIndexedBinding.Entity,
 		},
 	},
-	Source: &objectbox.PropertyString{
+	Name: &objectbox.PropertyString{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     7,
+			Entity: &TaskIndexedBinding.Entity,
+		},
+	},
+	Priority: &objectbox.PropertyInt{
+		BaseProperty: &objectbox.BaseProperty{
+			Id:     8,
+			Entity: &TaskIndexedBinding.Entity,
+		},
+	},
+	Group: &objectbox.PropertyString{
+		BaseProperty: &objectbox.BaseProperty{
+			Id:     9,
+			Entity: &TaskIndexedBinding.Entity,
+		},
+	},
+	Place: &objectbox.PropertyString{
+		BaseProperty: &objectbox.BaseProperty{
+			Id:     10,
+			Entity: &TaskIndexedBinding.Entity,
+		},
+	},
+	Source: &objectbox.PropertyString{
+		BaseProperty: &objectbox.BaseProperty{
+			Id:     11,
 			Entity: &TaskIndexedBinding.Entity,
 		},
 	},
@@ -87,24 +115,36 @@ func (taskIndexed_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Property("Id", 6, 1, 161231572858529631)
 	model.PropertyFlags(1)
 	model.Property("Uid", 9, 2, 7259475919510918339)
-	model.PropertyFlags(32)
+	model.PropertyFlags(2080)
 	model.PropertyIndex(3, 7373105480197164748)
-	model.Property("Name", 9, 3, 3287288577352441706)
-	model.PropertyFlags(2048)
+	model.Property("UidValue", 9, 3, 3287288577352441706)
+	model.PropertyFlags(40)
 	model.PropertyIndex(4, 3930927879439176946)
-	model.Property("Priority", 6, 4, 4706154865122290029)
-	model.PropertyFlags(8)
+	model.Property("UidHash", 9, 4, 4706154865122290029)
+	model.PropertyFlags(2080)
 	model.PropertyIndex(5, 2217592893536642650)
-	model.Property("Group", 9, 5, 1929546706668609706)
-	model.PropertyFlags(8)
+	model.Property("UidHash64", 9, 5, 1929546706668609706)
+	model.PropertyFlags(4128)
 	model.PropertyIndex(6, 6392442863481646880)
-	model.Property("Place", 9, 6, 3706853784096366226)
-	model.PropertyFlags(2048)
+	model.Property("UidInt", 6, 6, 3706853784096366226)
+	model.PropertyFlags(8232)
 	model.PropertyIndex(7, 2627038740284806767)
-	model.Property("Source", 9, 7, 6303220950515014660)
-	model.PropertyFlags(4096)
+	model.Property("Name", 9, 7, 6303220950515014660)
+	model.PropertyFlags(2048)
 	model.PropertyIndex(8, 4035568504096476779)
-	model.EntityLastPropertyId(7, 6303220950515014660)
+	model.Property("Priority", 6, 8, 959367522974354090)
+	model.PropertyFlags(8)
+	model.PropertyIndex(9, 2914295034816259174)
+	model.Property("Group", 9, 9, 1395437218309923052)
+	model.PropertyFlags(8)
+	model.PropertyIndex(10, 6745438398739480977)
+	model.Property("Place", 9, 10, 2897681629866238117)
+	model.PropertyFlags(2048)
+	model.PropertyIndex(11, 3398579248012586914)
+	model.Property("Source", 9, 11, 5974317550424871033)
+	model.PropertyFlags(4096)
+	model.PropertyIndex(12, 3317123977833389635)
+	model.EntityLastPropertyId(11, 5974317550424871033)
 }
 
 // GetId is called by ObjectBox during Put operations to check for existing ID on an object
@@ -127,20 +167,27 @@ func (taskIndexed_EntityInfo) PutRelated(ob *objectbox.ObjectBox, object interfa
 func (taskIndexed_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, id uint64) error {
 	obj := object.(*TaskIndexed)
 	var offsetUid = fbutils.CreateStringOffset(fbb, obj.Uid)
+	var offsetUidValue = fbutils.CreateStringOffset(fbb, obj.UidValue)
+	var offsetUidHash = fbutils.CreateStringOffset(fbb, obj.UidHash)
+	var offsetUidHash64 = fbutils.CreateStringOffset(fbb, obj.UidHash64)
 	var offsetName = fbutils.CreateStringOffset(fbb, obj.Name)
 	var offsetGroup = fbutils.CreateStringOffset(fbb, obj.Group)
 	var offsetPlace = fbutils.CreateStringOffset(fbb, obj.Place)
 	var offsetSource = fbutils.CreateStringOffset(fbb, obj.Source)
 
 	// build the FlatBuffers object
-	fbb.StartObject(7)
+	fbb.StartObject(11)
 	fbutils.SetUint64Slot(fbb, 0, id)
 	fbutils.SetUOffsetTSlot(fbb, 1, offsetUid)
-	fbutils.SetUOffsetTSlot(fbb, 2, offsetName)
-	fbutils.SetInt64Slot(fbb, 3, int64(obj.Priority))
-	fbutils.SetUOffsetTSlot(fbb, 4, offsetGroup)
-	fbutils.SetUOffsetTSlot(fbb, 5, offsetPlace)
-	fbutils.SetUOffsetTSlot(fbb, 6, offsetSource)
+	fbutils.SetUOffsetTSlot(fbb, 2, offsetUidValue)
+	fbutils.SetUOffsetTSlot(fbb, 3, offsetUidHash)
+	fbutils.SetUOffsetTSlot(fbb, 4, offsetUidHash64)
+	fbutils.SetUint64Slot(fbb, 5, obj.UidInt)
+	fbutils.SetUOffsetTSlot(fbb, 6, offsetName)
+	fbutils.SetInt64Slot(fbb, 7, int64(obj.Priority))
+	fbutils.SetUOffsetTSlot(fbb, 8, offsetGroup)
+	fbutils.SetUOffsetTSlot(fbb, 9, offsetPlace)
+	fbutils.SetUOffsetTSlot(fbb, 10, offsetSource)
 	return nil
 }
 
@@ -158,13 +205,17 @@ func (taskIndexed_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byte) (inter
 	var propId = table.GetUint64Slot(4, 0)
 
 	return &TaskIndexed{
-		Id:       propId,
-		Uid:      fbutils.GetStringSlot(table, 6),
-		Name:     fbutils.GetStringSlot(table, 8),
-		Priority: fbutils.GetIntSlot(table, 10),
-		Group:    fbutils.GetStringSlot(table, 12),
-		Place:    fbutils.GetStringSlot(table, 14),
-		Source:   fbutils.GetStringSlot(table, 16),
+		Id:        propId,
+		Uid:       fbutils.GetStringSlot(table, 6),
+		UidValue:  fbutils.GetStringSlot(table, 8),
+		UidHash:   fbutils.GetStringSlot(table, 10),
+		UidHash64: fbutils.GetStringSlot(table, 12),
+		UidInt:    fbutils.GetUint64Slot(table, 14),
+		Name:      fbutils.GetStringSlot(table, 16),
+		Priority:  fbutils.GetIntSlot(table, 18),
+		Group:     fbutils.GetStringSlot(table, 20),
+		Place:     fbutils.GetStringSlot(table, 22),
+		Source:    fbutils.GetStringSlot(table, 24),
 	}, nil
 }
 
