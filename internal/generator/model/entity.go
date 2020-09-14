@@ -30,6 +30,7 @@ type Entity struct {
 	Id             IdUid                 `json:"id"`
 	LastPropertyId IdUid                 `json:"lastPropertyId"`
 	Name           string                `json:"name"`
+	Flags          EntityFlags           `json:"flags,omitempty"`
 	Properties     []*Property           `json:"properties"`
 	Relations      []*StandaloneRelation `json:"relations,omitempty"`
 	UidRequest     bool                  `json:"-"` // used when the user gives an empty uid annotation
@@ -185,6 +186,11 @@ func (entity *Entity) AutosetIdProperty(acceptedTypes []PropertyType) error {
 	}
 
 	return nil
+}
+
+// AddFlag flags the entity
+func (entity *Entity) AddFlag(flag EntityFlags) {
+	entity.Flags = entity.Flags | flag
 }
 
 // IdProperty updates finds a property that's defined as an ID and if none is, tries to set one based on its name and type
