@@ -114,6 +114,9 @@ func ({{$entityNameCamel}}_EntityInfo) GeneratorVersion() int {
 // AddToModel is called by ObjectBox during model build
 func ({{$entityNameCamel}}_EntityInfo) AddToModel(model *objectbox.Model) {
     model.Entity("{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}})
+    {{with $entity.Flags -}}
+		model.EntityFlags({{.}})
+	{{end -}}
     {{range $property := $entity.Properties -}}
     model.Property("{{$property.Name}}", {{$property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}})
     {{with $property.Flags -}}

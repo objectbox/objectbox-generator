@@ -38,7 +38,14 @@ import (
 type uid = uint64
 type id = uint32
 
-var supportedAnnotations = map[string]bool{
+var supportedEntityAnnotations = map[string]bool{
+	"transient": true,
+	"name":      false, // TODO
+	"uid":       true,
+	"sync":      true,
+}
+
+var supportedPropertyAnnotations = map[string]bool{
 	"-":         true,
 	"converter": true,
 	"date":      true,
@@ -562,7 +569,7 @@ func (entity *Entity) setAnnotations(comments []*ast.Comment) error {
 	for _, tags := range lines {
 		// only handle comments in the form of:   // `tags`
 		if len(tags) > 1 && tags[0] == tags[len(tags)-1] && tags[0] == '`' {
-			if err := parseAnnotations(tags, &annotations); err != nil {
+			if err := parseAnnotations(tags, &annotations, supportedEntityAnnotations); err != nil {
 				return err
 			}
 		}
@@ -607,7 +614,7 @@ func (property *Property) hasValidTypeAsId() bool {
 
 func (property *Property) setAnnotations(tags string) error {
 	var annotations = make(map[string]*binding.Annotation)
-	if err := parseAnnotations(tags, &annotations); err != nil {
+	if err := parseAnnotations(tags, &annotations, supportedPropertyAnnotations); err != nil {
 		return err
 	}
 
@@ -647,7 +654,7 @@ func (property *Property) setRelationAnnotation(target string, manyToMany bool) 
 	return nil
 }
 
-func parseAnnotations(tags string, annotations *map[string]*binding.Annotation) error {
+func parseAnnotations(tags string, annotations *map[string]*binding.Annotation, supportedAnnotations map[string]bool) error {
 	if len(tags) > 1 && tags[0] == tags[len(tags)-1] && (tags[0] == '`' || tags[0] == '"') {
 		tags = tags[1 : len(tags)-1]
 	}
