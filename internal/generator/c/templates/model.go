@@ -51,6 +51,8 @@ static inline OBX_model* create_obx_model() {
     if (!model) return NULL;
 	{{range $entity := .Model.Entities}}
 	obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}});
+	{{with $entity.Flags}}obx_model_entity_flags(model, {{CoreEntityFlags .}});
+	{{end -}}
 	{{range $property := $entity.Properties -}}
 	obx_model_property(model, "{{$property.Name}}", OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}});
 	{{with $property.Flags}}obx_model_property_flags(model, {{CorePropFlags .}});

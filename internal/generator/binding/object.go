@@ -75,6 +75,13 @@ func (object *Object) ProcessAnnotations(a map[string]*Annotation) error {
 		object.ModelEntity.Name = a["name"].Value
 	}
 
+	if a["sync"] != nil {
+		if len(a["sync"].Value) != 0 {
+			return fmt.Errorf("sync annotation value must be empty")
+		}
+		object.ModelEntity.AddFlag(model.EntityFlagSyncEnabled)
+	}
+
 	if a["uid"] != nil {
 		if len(a["uid"].Value) == 0 {
 			// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID

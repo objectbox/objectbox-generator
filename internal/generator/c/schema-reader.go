@@ -35,6 +35,7 @@ var supportedEntityAnnotations = map[string]bool{
 	"name":      true,
 	"uid":       true,
 	"relation":  true, // to-many, standalone
+	"sync":      true,
 }
 
 var supportedPropertyAnnotations = map[string]bool{
