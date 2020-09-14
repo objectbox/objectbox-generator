@@ -31,7 +31,7 @@ table Typeful  {
 
 namespace ns;
 
-/// objectbox: relation(to=Typeful, name=typefuls), name=AnnotatedEntity
+/// objectbox:name=AnnotatedEntity, relation(to=Typeful, name=typefuls)
 /// objectbox:relation(to = Typeful, name = m2m)
 table Annotated {
 	/// Objectbox requires an ID property.

@@ -272,6 +272,7 @@ func parseAnnotations(str string, annotations *map[string]*binding.Annotation, s
 				if len(detailsStr) == 0 {
 					return fmt.Errorf("invalid annotation details format, closing bracket ')' not found in `%s`", str[i+1:])
 				}
+				s.name = strings.TrimSpace(s.name)
 				if s.name != "relation" {
 					return fmt.Errorf("invalid annotation format: details only supported for `relation` annotations, found `%s`", s.name)
 				}
