@@ -136,10 +136,12 @@ func (property *Property) RemoveIndex() error {
 	return nil
 }
 
+// AddFlag flags the property
 func (property *Property) AddFlag(flag PropertyFlags) {
 	property.Flags = property.Flags | flag
 }
 
+// SetIndex defines an index on the property
 func (property *Property) SetIndex() error {
 	if property.IndexId != nil {
 		return fmt.Errorf("index is already defined")
