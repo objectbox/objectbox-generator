@@ -85,6 +85,7 @@ func getModelEntity(currentEntity *model.Entity, storedModel *model.ModelInfo) (
 
 func mergeModelEntity(currentEntity *model.Entity, storedEntity *model.Entity, storedModel *model.ModelInfo) (err error) {
 	storedEntity.Name = currentEntity.Name
+	storedEntity.Flags = currentEntity.Flags
 	storedEntity.Comments = currentEntity.Comments
 
 	if currentEntity.Meta != nil {

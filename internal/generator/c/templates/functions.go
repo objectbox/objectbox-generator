@@ -64,6 +64,25 @@ var funcMap = template.FuncMap{
 		}
 		return ""
 	},
+	"CoreEntityFlags": func(val model.EntityFlags) string {
+		var result []string
+
+		// Get sorted flag names to avoid changes in the generated code. Go map iteration order is not guaranteed.
+		for flag, name := range model.EntityFlagNames {
+			if val&flag != 0 { // if this flag is set
+				result = append(result, "OBXEntityFlags_"+cccToUc(name))
+			}
+		}
+
+		if len(result) > 1 {
+			sort.Strings(result)
+			// if there's more than one, we need to cast the result of their combination back to the right type
+			return "(OBXEntityFlags) (" + strings.Join(result, " | ") + ")"
+		} else if len(result) > 0 {
+			return result[0]
+		}
+		return ""
+	},
 	"PrintComments": func(tabs int, comments []string) string {
 		var result string
 		for _, comment := range comments {
