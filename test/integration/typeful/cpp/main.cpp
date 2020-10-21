@@ -5,20 +5,12 @@
 #include "objectbox-cpp.h"
 #include "objectbox-model.h"
 #include "schema.obx.hpp"
+#include "shared/store-init.h"
 
 using namespace obx;
 
-namespace {
-Store testStore() {
-    Store::Options options(create_obx_model());
-    options.directory = "c-cpp-tests-db";
-    obx_remove_db_files(options.directory.c_str());
-    return Store(options);
-}
-}  // namespace
-
 TEST_CASE("CRUD", "") {
-    Store store = testStore();
+    Store store = testStore(true,  "c-cpp-tests-db");
 
     // Box<Typeful_> box(store); // one way
     auto box = store.box<Typeful>();  // another way to get the same box

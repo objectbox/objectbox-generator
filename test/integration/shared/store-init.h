@@ -2,12 +2,13 @@
 
 #include "objectbox-model.h"
 
-obx::Store testStore(bool removeBeforeOpening) {
+obx::Store testStore(bool removeBeforeOpening, const char* dbDir = nullptr) {
+    if (!dbDir) {
+    	dbDir = std::getenv("dbDir");
+    	if (!dbDir) throw std::invalid_argument("dbDir environment variable not given");
+    }
+    if (removeBeforeOpening) obx_remove_db_files(dbDir);
     obx::Store::Options options(create_obx_model());
-    const char* dbDir = std::getenv("dbDir");
-    if (!dbDir) throw std::invalid_argument("dbDir environment variable not given");
-    REQUIRE(dbDir != nullptr);
-    options.directory = dbDir;
-    if (removeBeforeOpening) obx_remove_db_files(options.directory.c_str());
+    options.directory(dbDir);
     return obx::Store(options);
 }
