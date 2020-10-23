@@ -134,6 +134,7 @@ static bool {{$entity.Meta.CName}}_to_flatbuffer(flatcc_builder_t* B, const {{$e
 
 static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size, {{$entity.Meta.CName}}* out_object) {
 	assert(data);
+	assert(size > 0);
 	assert(out_object);
 
 	const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);

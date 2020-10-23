@@ -330,6 +330,7 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
 
 static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_object) {
     assert(data);
+    assert(size > 0);
     assert(out_object);
 
     const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
@@ -580,6 +581,7 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
 
 static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annotated* out_object) {
     assert(data);
+    assert(size > 0);
     assert(out_object);
 
     const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
@@ -773,6 +775,7 @@ static bool ns_TSDate_to_flatbuffer(flatcc_builder_t* B, const ns_TSDate* object
 
 static bool ns_TSDate_from_flatbuffer(const void* data, size_t size, ns_TSDate* out_object) {
     assert(data);
+    assert(size > 0);
     assert(out_object);
 
     const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
@@ -864,6 +867,7 @@ static bool ns_TSDateNano_to_flatbuffer(flatcc_builder_t* B, const ns_TSDateNano
 
 static bool ns_TSDateNano_from_flatbuffer(const void* data, size_t size, ns_TSDateNano* out_object) {
     assert(data);
+    assert(size > 0);
     assert(out_object);
 
     const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
