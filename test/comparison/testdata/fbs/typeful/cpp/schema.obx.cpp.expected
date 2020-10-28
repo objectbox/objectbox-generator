@@ -73,7 +73,7 @@ std::unique_ptr<Typeful> Typeful_::newFromFlatBuffer(const void* data, size_t si
     return object;
 }
 
-void Typeful_::fromFlatBuffer(const void* data, size_t size, Typeful& outObject) {
+void Typeful_::fromFlatBuffer(const void* data, size_t, Typeful& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.id = table->GetField<uint64_t>(4, 0);
@@ -166,7 +166,7 @@ std::unique_ptr<ns::Annotated> ns::Annotated_::newFromFlatBuffer(const void* dat
     return object;
 }
 
-void ns::Annotated_::fromFlatBuffer(const void* data, size_t size, ns::Annotated& outObject) {
+void ns::Annotated_::fromFlatBuffer(const void* data, size_t, ns::Annotated& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.identifier = table->GetField<uint64_t>(4, 0);
@@ -221,7 +221,7 @@ std::unique_ptr<ns::TSDate> ns::TSDate_::newFromFlatBuffer(const void* data, siz
     return object;
 }
 
-void ns::TSDate_::fromFlatBuffer(const void* data, size_t size, ns::TSDate& outObject) {
+void ns::TSDate_::fromFlatBuffer(const void* data, size_t, ns::TSDate& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.id = table->GetField<uint64_t>(4, 0);
@@ -254,7 +254,7 @@ std::unique_ptr<ns::TSDateNano> ns::TSDateNano_::newFromFlatBuffer(const void* d
     return object;
 }
 
-void ns::TSDateNano_::fromFlatBuffer(const void* data, size_t size, ns::TSDateNano& outObject) {
+void ns::TSDateNano_::fromFlatBuffer(const void* data, size_t, ns::TSDateNano& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.id = table->GetField<uint64_t>(4, 0);

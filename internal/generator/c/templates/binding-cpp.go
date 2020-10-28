@@ -68,7 +68,7 @@ std::unique_ptr<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}> {{$
 	return object;
 }
 
-void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::fromFlatBuffer(const void* data, size_t size, {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& outObject) {
+void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::fromFlatBuffer(const void* data, size_t, {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& outObject) {
 	const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
 	assert(table);
 	{{range $property := $entity.Properties}}

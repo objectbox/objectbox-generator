@@ -134,11 +134,12 @@ static bool {{$entity.Meta.CName}}_to_flatbuffer(flatcc_builder_t* B, const {{$e
 
 static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size, {{$entity.Meta.CName}}* out_object) {
 	assert(data);
+	assert(size > 0);
 	assert(out_object);
 
 	const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
 	assert(table);
-	flatbuffers_voffset_t *vt = (flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
+	const flatbuffers_voffset_t* vt = (const flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
 	flatbuffers_voffset_t vs = __flatbuffers_voffset_read_from_pe(vt);
 
 	// variables reused when reading strings and vectors
@@ -271,7 +272,7 @@ static void* {{.FileIdentifier}}_get_object(OBX_box* box, obx_id id, void* (*fro
     if (!tx) return NULL;
 
     void* result = NULL;
-    void* data;
+    const void* data;
     size_t size;
     if (obx_box_get(box, id, &data, &size) == OBX_SUCCESS) {
         result = from_flatbuffer(data, size);
