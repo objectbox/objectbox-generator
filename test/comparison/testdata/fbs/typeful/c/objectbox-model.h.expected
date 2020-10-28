@@ -24,6 +24,7 @@ static inline OBX_model* create_obx_model() {
     if (!model) return NULL;
     
     obx_model_entity(model, "Typeful", 1, 8717895732742165505);
+    obx_model_entity_flags(model, OBXEntityFlags_SYNC_ENABLED);
     obx_model_property(model, "id", OBXPropertyType_Long, 1, 3390393562759376202);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
     obx_model_property(model, "int", OBXPropertyType_Int, 2, 2669985732393126063);
@@ -59,6 +60,7 @@ static inline OBX_model* create_obx_model() {
     obx_model_entity_last_property_id(model, 23, 3706853784096366226);
     
     obx_model_entity(model, "AnnotatedEntity", 2, 2259404117704393152);
+    obx_model_entity_flags(model, OBXEntityFlags_SYNC_ENABLED);
     obx_model_property(model, "identifier", OBXPropertyType_Long, 1, 6303220950515014660);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
     obx_model_property(model, "name", OBXPropertyType_String, 2, 4035568504096476779);
@@ -101,25 +103,9 @@ static inline OBX_model* create_obx_model() {
     obx_model_property_flags(model, OBXPropertyFlags_ID_COMPANION);
     obx_model_entity_last_property_id(model, 2, 7699391924090763411);
     
-    obx_model_entity(model, "SyncedEntity", 5, 388440063886460141);
-    obx_model_entity_flags(model, OBXEntityFlags_SYNC_ENABLED);
-    obx_model_property(model, "id", OBXPropertyType_Long, 1, 3959279844101328186);
-    obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_property(model, "propRelId", OBXPropertyType_Relation, 2, 8902041070398994519);
-    obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEXED | OBXPropertyFlags_INDEX_PARTIAL_SKIP_ZERO | OBXPropertyFlags_UNSIGNED));
-    obx_model_property_relation(model, "SyncedRelTarget", 9, 303089054982227392);
-    obx_model_relation(model, 3, 7338728586234333996, 6, 7561811714888168464);
-    obx_model_entity_last_property_id(model, 2, 8902041070398994519);
-    
-    obx_model_entity(model, "SyncedRelTarget", 6, 7561811714888168464);
-    obx_model_entity_flags(model, OBXEntityFlags_SYNC_ENABLED);
-    obx_model_property(model, "id", OBXPropertyType_Long, 1, 5392504858645185670);
-    obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_entity_last_property_id(model, 1, 5392504858645185670);
-    
-    obx_model_last_entity_id(model, 6, 7561811714888168464);
-    obx_model_last_index_id(model, 9, 303089054982227392);
-    obx_model_last_relation_id(model, 3, 7338728586234333996);
+    obx_model_last_entity_id(model, 4, 501233450539197794);
+    obx_model_last_index_id(model, 8, 5558237345453186302);
+    obx_model_last_relation_id(model, 2, 771642788862502430);
     return model; // NOTE: the returned model will contain error information if an error occurred.
 }
 

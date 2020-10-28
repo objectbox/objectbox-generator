@@ -1,5 +1,6 @@
 /// Entity documentation is copied
 /// into the generated output
+/// objectbox:sync
 table Typeful  {
 	id           : uint64	;
 	int          : int		;
@@ -31,7 +32,7 @@ table Typeful  {
 
 namespace ns;
 
-/// objectbox:name=AnnotatedEntity, relation(to=Typeful, name=typefuls)
+/// objectbox:name=AnnotatedEntity, relation(to=Typeful, name=typefuls), sync
 /// objectbox:relation(to = Typeful, name = m2m)
 table Annotated {
 	/// Objectbox requires an ID property.

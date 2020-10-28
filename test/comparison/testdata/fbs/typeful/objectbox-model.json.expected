@@ -7,6 +7,7 @@
       "id": "1:8717895732742165505",
       "lastPropertyId": "23:3706853784096366226",
       "name": "Typeful",
+      "flags": 2,
       "properties": [
         {
           "id": "1:3390393562759376202",
@@ -139,6 +140,7 @@
       "id": "2:2259404117704393152",
       "lastPropertyId": "9:6972732843819909978",
       "name": "AnnotatedEntity",
+      "flags": 2,
       "properties": [
         {
           "id": "1:6303220950515014660",
@@ -252,54 +254,11 @@
           "flags": 16384
         }
       ]
-    },
-    {
-      "id": "5:388440063886460141",
-      "lastPropertyId": "2:8902041070398994519",
-      "name": "SyncedEntity",
-      "flags": 2,
-      "properties": [
-        {
-          "id": "1:3959279844101328186",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:8902041070398994519",
-          "name": "propRelId",
-          "indexId": "9:303089054982227392",
-          "type": 11,
-          "flags": 8712,
-          "relationTarget": "SyncedRelTarget"
-        }
-      ],
-      "relations": [
-        {
-          "id": "3:7338728586234333996",
-          "name": "standaloneRel",
-          "targetId": "6:7561811714888168464"
-        }
-      ]
-    },
-    {
-      "id": "6:7561811714888168464",
-      "lastPropertyId": "1:5392504858645185670",
-      "name": "SyncedRelTarget",
-      "flags": 2,
-      "properties": [
-        {
-          "id": "1:5392504858645185670",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        }
-      ]
     }
   ],
-  "lastEntityId": "6:7561811714888168464",
-  "lastIndexId": "9:303089054982227392",
-  "lastRelationId": "3:7338728586234333996",
+  "lastEntityId": "4:501233450539197794",
+  "lastIndexId": "8:5558237345453186302",
+  "lastRelationId": "2:771642788862502430",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
