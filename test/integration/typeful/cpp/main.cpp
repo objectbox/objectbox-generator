@@ -2,7 +2,7 @@
 
 #include "annotated.obx.hpp"
 #include "catch2/catch.hpp"
-#include "objectbox-cpp.h"
+#include "objectbox.hpp"
 #include "objectbox-model.h"
 #include "schema.obx.hpp"
 #include "shared/store-init.h"

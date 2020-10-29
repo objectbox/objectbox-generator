@@ -35,7 +35,7 @@ func CanCompileObjectBoxCCpp(t *testing.T, repoRoot string, cpp, required bool) 
 
 	// check objectbox lib
 	if cpp {
-		err = cmake.LibraryExists("objectbox", []string{"objectbox-cpp.h"}, includeDirs, libDirs)
+		err = cmake.LibraryExists("objectbox", []string{"objectbox.hpp"}, includeDirs, libDirs)
 	} else {
 		err = cmake.LibraryExists("objectbox", []string{"objectbox.h"}, includeDirs, libDirs)
 	}

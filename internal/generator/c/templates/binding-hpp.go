@@ -33,8 +33,8 @@ var CppBindingTemplateHeader = template.Must(template.New("binding-hpp").Funcs(f
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"
-#include "objectbox-cpp.h"
 #include "objectbox.h"
+#include "objectbox.hpp"
 {{range $entity := .Model.EntitiesWithMeta}}
 {{$entity.Meta.PreDeclareCppRelTargets -}}
 {{with $entity.Meta.CppNamespaceStart}}
