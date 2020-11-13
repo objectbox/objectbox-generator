@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cVersion=0.10.0
+cVersion=0.11.0
 
 scriptDir=$(dirname "${BASH_SOURCE[0]}")
 
@@ -12,7 +12,7 @@ cd "${scriptDir}"
 
 # don't install the library system-wide, just download it
 export installLibrary=false
-bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) --quiet ${cVersion}
+bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/main/download.sh) --quiet ${cVersion}
 
 echo "******** Collecting artifacts ********"
 cp -rfv download/testing/*objectbox*/include ./
