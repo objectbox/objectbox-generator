@@ -8,52 +8,13 @@ defaults:
     shell: bash
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-    container:
-      image: centos/devtoolset-7-toolchain-centos7
-      options: --user 0
-    steps:
-      - name: Install Git
-        run: yum install -y git
-
-      - name: Install CMake
-        env:
-          version: 3.17.3
-        run: curl -L https://github.com/Kitware/CMake/releases/download/v${version}/cmake-${version}-Linux-x86_64.tar.gz | tar xz --strip 1 -C /usr/local
-
-      - name: Install Go
-        env:
-          version: 1.14.4
-        run: |
-          curl -L https://dl.google.com/go/go${version}.linux-amd64.tar.gz | tar xz -C /usr/local
-          echo "::add-path::/usr/local/go/bin"
-
-      - name: Get sources
-        uses: actions/checkout@v2
-
-      - name: Cache Deps
-        uses: actions/cache@v2
-        with:
-          path: ./third_party/*
-          key: ${{ runner.os }}-${{ github.workspace }}-deps-${{ hashFiles('./third_party/*') }}
-
-      - run: make
-      - run: make test-depend
-      - run: make test
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: objectbox-generator-${{ runner.os }}
-          path: objectbox-generator
-
   build:
     strategy:
       matrix:
         os:
           - windows-2019
           - macos-10.15
+          - ubuntu-18.04
     runs-on: ${{ matrix.os }}
     steps:
       - run: git config --global core.autocrlf false
