@@ -23,12 +23,14 @@ package model
 type EntityFlags int32
 
 const (
-	EntityFlagSyncEnabled EntityFlags = 2
+	EntityFlagSyncEnabled     EntityFlags = 2
+	EntityFlagSharedGlobalIds EntityFlags = 4
 )
 
 // EntityFlagNames assigns a name to each PropertyFlag
 var EntityFlagNames = map[EntityFlags]string{
-	EntityFlagSyncEnabled: "SyncEnabled",
+	EntityFlagSyncEnabled:     "SyncEnabled",
+	EntityFlagSharedGlobalIds: "SharedGlobalIds",
 }
 
 // PropertyFlags is a bit combination of 0..n property flags corresponding with objectbox-c

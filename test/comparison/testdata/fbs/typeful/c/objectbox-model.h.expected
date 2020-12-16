@@ -24,7 +24,7 @@ static inline OBX_model* create_obx_model() {
     if (!model) return NULL;
     
     obx_model_entity(model, "Typeful", 1, 8717895732742165505);
-    obx_model_entity_flags(model, OBXEntityFlags_SYNC_ENABLED);
+    obx_model_entity_flags(model, (OBXEntityFlags) (OBXEntityFlags_SHARED_GLOBAL_IDS | OBXEntityFlags_SYNC_ENABLED));
     obx_model_property(model, "id", OBXPropertyType_Long, 1, 3390393562759376202);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
     obx_model_property(model, "int", OBXPropertyType_Int, 2, 2669985732393126063);

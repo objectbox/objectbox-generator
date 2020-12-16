@@ -1,6 +1,6 @@
 /// Entity documentation is copied
 /// into the generated output
-/// objectbox:sync
+/// objectbox:sync(sharedGlobalIds)
 table Typeful  {
 	id           : uint64	;
 	int          : int		;

@@ -8,6 +8,7 @@ table SyncedEntity {
 	propRelId:ulong;
 }
 
+/// TODO sync(sharedGlobalIds) after the annotation is available in a released objectbox.h
 /// objectbox:sync
 table SyncedRelTarget {
 	id:ulong;
