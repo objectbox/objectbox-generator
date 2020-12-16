@@ -18,7 +18,7 @@ struct Typeful_;
 struct Typeful {
     using _OBX_MetaInfo = Typeful_;
     
-    uint64_t id;
+    obx_id id;
     int32_t int_;
     int8_t int8;
     int16_t int16;
@@ -41,7 +41,7 @@ struct Typeful {
     float float_;
     double double_;
     /// Relation to an entity declared later in the same file
-    uint64_t relId;
+    obx_id relId;
 };
 
 struct Typeful_ {
@@ -96,10 +96,10 @@ struct Annotated {
     
     /// Objectbox requires an ID property.
     /// It is recognized automatically if it has a right name ("id") or needs to be annotated otherwise.
-    uint64_t identifier;
+    obx_id identifier;
     std::string fullName;
     int64_t time;
-    uint64_t relId;
+    obx_id relId;
     /// unique on string without index type implies HASH index
     std::string unique;
     std::string uniqueValue;
@@ -147,7 +147,7 @@ struct TSDate_;
 struct TSDate {
     using _OBX_MetaInfo = TSDate_;
     
-    uint64_t id;
+    obx_id id;
     int64_t timestamp;
 };
 
@@ -180,7 +180,7 @@ struct TSDateNano_;
 struct TSDateNano {
     using _OBX_MetaInfo = TSDateNano_;
     
-    uint64_t id;
+    obx_id id;
     int64_t timestamp;
 };
 

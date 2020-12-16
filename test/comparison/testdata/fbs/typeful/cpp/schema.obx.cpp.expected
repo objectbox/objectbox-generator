@@ -33,7 +33,7 @@ void Typeful_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& 
     auto offsetbytevector = fbb.CreateVector(object.bytevector);
     auto offsetubytevector = fbb.CreateVector(object.ubytevector);
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.id));
+    fbb.TrackField(4, fbb.PushElement<obx_id>(object.id));
     fbb.TrackField(6, fbb.PushElement<int32_t>(object.int_));
     fbb.TrackField(8, fbb.PushElement<int8_t>(object.int8));
     fbb.TrackField(10, fbb.PushElement<int16_t>(object.int16));
@@ -55,7 +55,7 @@ void Typeful_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& 
     fbb.TrackField(42, fbb.PushElement<double>(object.float64));
     fbb.TrackField(44, fbb.PushElement<float>(object.float_));
     fbb.TrackField(46, fbb.PushElement<double>(object.double_));
-    fbb.TrackField(48, fbb.PushElement<uint64_t>(object.relId));
+    fbb.TrackField(48, fbb.PushElement<obx_id>(object.relId));
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
     fbb.Finish(offset);
@@ -76,7 +76,7 @@ std::unique_ptr<Typeful> Typeful_::newFromFlatBuffer(const void* data, size_t si
 void Typeful_::fromFlatBuffer(const void* data, size_t, Typeful& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
-    outObject.id = table->GetField<uint64_t>(4, 0);
+    outObject.id = table->GetField<obx_id>(4, 0);
     outObject.int_ = table->GetField<int32_t>(6, 0);
     outObject.int8 = table->GetField<int8_t>(8, 0);
     outObject.int16 = table->GetField<int16_t>(10, 0);
@@ -116,7 +116,7 @@ void Typeful_::fromFlatBuffer(const void* data, size_t, Typeful& outObject) {
     outObject.float64 = table->GetField<double>(42, 0.0);
     outObject.float_ = table->GetField<float>(44, 0.0f);
     outObject.double_ = table->GetField<double>(46, 0.0);
-    outObject.relId = table->GetField<uint64_t>(48, 0);
+    outObject.relId = table->GetField<obx_id>(48, 0);
     
 }
 
@@ -140,10 +140,10 @@ void ns::Annotated_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns:
     auto offsetuniqueHash = fbb.CreateString(object.uniqueHash);
     auto offsetuniqueHash64 = fbb.CreateString(object.uniqueHash64);
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.identifier));
+    fbb.TrackField(4, fbb.PushElement<obx_id>(object.identifier));
     fbb.AddOffset(6, offsetfullName);
     fbb.TrackField(8, fbb.PushElement<int64_t>(object.time));
-    fbb.TrackField(10, fbb.PushElement<uint64_t>(object.relId));
+    fbb.TrackField(10, fbb.PushElement<obx_id>(object.relId));
     fbb.AddOffset(12, offsetunique);
     fbb.AddOffset(14, offsetuniqueValue);
     fbb.AddOffset(16, offsetuniqueHash);
@@ -169,13 +169,13 @@ std::unique_ptr<ns::Annotated> ns::Annotated_::newFromFlatBuffer(const void* dat
 void ns::Annotated_::fromFlatBuffer(const void* data, size_t, ns::Annotated& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
-    outObject.identifier = table->GetField<uint64_t>(4, 0);
+    outObject.identifier = table->GetField<obx_id>(4, 0);
     {
         auto* ptr = table->GetPointer<const flatbuffers::String*>(6);
         if (ptr) outObject.fullName.assign(ptr->c_str());
     }
     outObject.time = table->GetField<int64_t>(8, 0);
-    outObject.relId = table->GetField<uint64_t>(10, 0);
+    outObject.relId = table->GetField<obx_id>(10, 0);
     {
         auto* ptr = table->GetPointer<const flatbuffers::String*>(12);
         if (ptr) outObject.unique.assign(ptr->c_str());
@@ -202,7 +202,7 @@ const obx::Property<ns::TSDate, OBXPropertyType_Date> ns::TSDate_::timestamp(2);
 void ns::TSDate_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TSDate& object) {
     fbb.Clear();
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.id));
+    fbb.TrackField(4, fbb.PushElement<obx_id>(object.id));
     fbb.TrackField(6, fbb.PushElement<int64_t>(object.timestamp));
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
@@ -224,7 +224,7 @@ std::unique_ptr<ns::TSDate> ns::TSDate_::newFromFlatBuffer(const void* data, siz
 void ns::TSDate_::fromFlatBuffer(const void* data, size_t, ns::TSDate& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
-    outObject.id = table->GetField<uint64_t>(4, 0);
+    outObject.id = table->GetField<obx_id>(4, 0);
     outObject.timestamp = table->GetField<int64_t>(6, 0);
     
 }
@@ -235,7 +235,7 @@ const obx::Property<ns::TSDateNano, OBXPropertyType_DateNano> ns::TSDateNano_::t
 void ns::TSDateNano_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TSDateNano& object) {
     fbb.Clear();
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.TrackField(4, fbb.PushElement<uint64_t>(object.id));
+    fbb.TrackField(4, fbb.PushElement<obx_id>(object.id));
     fbb.TrackField(6, fbb.PushElement<int64_t>(object.timestamp));
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
@@ -257,7 +257,7 @@ std::unique_ptr<ns::TSDateNano> ns::TSDateNano_::newFromFlatBuffer(const void* d
 void ns::TSDateNano_::fromFlatBuffer(const void* data, size_t, ns::TSDateNano& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
-    outObject.id = table->GetField<uint64_t>(4, 0);
+    outObject.id = table->GetField<obx_id>(4, 0);
     outObject.timestamp = table->GetField<int64_t>(6, 0);
     
 }

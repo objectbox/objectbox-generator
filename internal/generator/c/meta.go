@@ -165,6 +165,8 @@ func (mp *fbsField) CppType() string {
 	var cppType = fbsTypeToCppType[baseType]
 	if baseType == reflection.BaseTypeVector {
 		cppType = cppType + "<" + fbsTypeToCppType[fbsType.Element()] + ">"
+	} else if (mp.ModelProperty.IsIdProperty() || mp.ModelProperty.Type == model.PropertyTypeRelation) && cppType == "uint64_t" {
+		cppType = "obx_id" // defined in objectbox.h
 	}
 	return cppType
 }

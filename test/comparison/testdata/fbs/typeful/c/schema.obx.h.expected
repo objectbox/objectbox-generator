@@ -21,7 +21,7 @@ static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatb
 /// Entity documentation is copied
 /// into the generated output
 typedef struct Typeful {
-    uint64_t id;
+    obx_id id;
     int32_t int_;
     int8_t int8;
     int16_t int16;
@@ -47,7 +47,7 @@ typedef struct Typeful {
     float float_;
     double double_;
     /// Relation to an entity declared later in the same file
-    uint64_t relId;
+    obx_id relId;
     
 } Typeful;
 
@@ -102,10 +102,10 @@ static void Typeful_free(Typeful* object);
 typedef struct ns_Annotated {
     /// Objectbox requires an ID property.
     /// It is recognized automatically if it has a right name ("id") or needs to be annotated otherwise.
-    uint64_t identifier;
+    obx_id identifier;
     char* fullName;
     int64_t time;
-    uint64_t relId;
+    obx_id relId;
     /// unique on string without index type implies HASH index
     char* unique;
     char* uniqueValue;
@@ -153,7 +153,7 @@ static void ns_Annotated_free_pointers(ns_Annotated* object);
 static void ns_Annotated_free(ns_Annotated* object);
 
 typedef struct ns_TSDate {
-    uint64_t id;
+    obx_id id;
     int64_t timestamp;
     
 } ns_TSDate;
@@ -186,7 +186,7 @@ static void ns_TSDate_free_pointers(ns_TSDate* object);
 static void ns_TSDate_free(ns_TSDate* object);
 
 typedef struct ns_TSDateNano {
-    uint64_t id;
+    obx_id id;
     int64_t timestamp;
     
 } ns_TSDateNano;
