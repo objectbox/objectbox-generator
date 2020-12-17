@@ -1,0 +1,3 @@
+table RelTarget  {
+	id: uint64;
+}

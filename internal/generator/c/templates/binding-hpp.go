@@ -43,7 +43,7 @@ struct {{$entity.Meta.CppName}}_;
 
 {{PrintComments 0 $entity.Comments}}struct {{$entity.Meta.CppName}} {
 	{{- range $property := $entity.Properties}}
-	{{PrintComments 1 $property.Comments}}{{$property.Meta.CppType}} {{$property.Meta.CppName}};
+	{{PrintComments 1 $property.Comments}}{{$property.Meta.CppTypeWithOptional}} {{$property.Meta.CppName}};
 	{{- end}}
 
     struct _OBX_MetaInfo {

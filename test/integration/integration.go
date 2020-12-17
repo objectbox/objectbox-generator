@@ -28,6 +28,8 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
@@ -37,6 +39,24 @@ import (
 	"github.com/objectbox/objectbox-generator/test/cmake"
 	"github.com/objectbox/objectbox-generator/test/comparison"
 )
+
+type cCppStandard string
+
+func (std cCppStandard) isCpp() bool {
+	return strings.HasPrefix(string(std), "C++")
+}
+
+func (std cCppStandard) year() (int, error) {
+	var prefixLen = 1
+	if std.isCpp() {
+		prefixLen = 3
+	}
+	num, err := strconv.ParseInt(string(std)[prefixLen:], 10, 64)
+	return int(num), err
+}
+
+const Cpp11 = cCppStandard("C++11")
+const Cpp17 = cCppStandard("C++17")
 
 // used during development to generate code into the source directory instead of temp
 var inSource = flag.Bool("insource", false, "Output generated code to the source dir for development")
@@ -101,8 +121,8 @@ func sourceExt(cpp bool) string {
 }
 
 // CommonExecute executes the integration with the simple/common setup
-func (conf *CCppTestConf) CommonExecute(t *testing.T, cpp bool) {
-	conf.CreateCMake(t, cpp, "main."+sourceExt(cpp))
+func (conf *CCppTestConf) CommonExecute(t *testing.T, lang cCppStandard) {
+	conf.CreateCMake(t, lang, "main."+sourceExt(lang.isCpp()))
 	conf.Generate(t, "")
 	conf.Build(t)
 	conf.Run(t, nil)
@@ -115,24 +135,27 @@ func (conf *CCppTestConf) Cleanup() {
 }
 
 // CreateCMake creates temporary directories and configures the CMake project
-func (conf *CCppTestConf) CreateCMake(t *testing.T, cpp bool, mainFile string) {
+func (conf *CCppTestConf) CreateCMake(t *testing.T, lang cCppStandard, mainFile string) {
 	var testSrcDir string
 	var err error
-	if cpp {
+	if lang.isCpp() {
 		testSrcDir, err = filepath.Abs("cpp")
 	} else {
 		testSrcDir, err = filepath.Abs("c")
 	}
 	assert.NoErr(t, err)
 
+	langYear, err := lang.year()
+	assert.NoErr(t, err)
+
 	if conf.Cmake != nil {
 		t.Logf("Reusing the previous CMake configuration - just changing binary to %s", mainFile)
-		assert.Eq(t, cpp, conf.Cmake.IsCpp)
+		assert.Eq(t, lang.isCpp(), conf.Cmake.IsCpp)
 	} else {
 		conf.Cmake = &cmake.Cmake{
 			Name:        t.Name(),
 			IsCpp:       true,
-			Standard:    11,
+			Standard:    langYear,
 			IncludeDirs: append(build.IncludeDirs(repoRoot(t)), testSrcDir, filepath.Join(repoRoot(t), "test", "integration")),
 			LinkDirs:    build.LibDirs(repoRoot(t)),
 			LinkLibs:    []string{"objectbox"},
@@ -146,14 +169,14 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, cpp bool, mainFile string) {
 	}
 	conf.Cmake.IncludeDirs = append(conf.Cmake.IncludeDirs, conf.Cmake.ConfDir) // because of the generated files
 
-	if !cpp {
+	if !lang.isCpp() {
 		conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "flatccrt")
 	}
 
 	// Link the test executable statically on Windows or it won't execute in the temp dir (missing DLL)
 	if runtime.GOOS == "windows" {
 		conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "-static-libgcc")
-		if cpp {
+		if lang.isCpp() {
 			conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "-static-libstdc++")
 		}
 	}

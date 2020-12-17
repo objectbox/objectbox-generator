@@ -33,6 +33,7 @@ import (
 type Field struct {
 	ModelProperty *model.Property
 	Name          string
+	Optional      string
 	IsSkipped     bool
 }
 
@@ -170,6 +171,13 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		if err := field.ModelProperty.SetIndex(); err != nil {
 			return err
 		}
+	}
+
+	if a["optional"] != nil {
+		if len(a["optional"].Value) != 0 {
+			return fmt.Errorf("optional annotation value must be empty")
+		}
+		field.Optional = "std::optional"
 	}
 
 	return nil

@@ -1,0 +1,47 @@
+table Optional {
+	id           : uint64	;
+	/// objectbox:optional
+	int          : int		;
+	/// objectbox:optional
+	int8         : int8		;
+	/// objectbox:optional
+	int16        : int16	;
+	/// objectbox:optional
+	int32        : int32	;
+	/// objectbox:optional
+	int64        : int64	;
+	/// objectbox:optional
+	uint         : uint		;
+	/// objectbox:optional
+	uint8        : uint8	;
+	/// objectbox:optional
+	uint16       : uint16	;
+	/// objectbox:optional
+	uint32       : uint32	;
+	/// objectbox:optional
+	uint64       : uint64	;
+	/// objectbox:optional
+	bool         : bool		;
+	/// objectbox:optional
+	string       : string	;
+	/// objectbox:optional
+	stringvector : [string]	;
+	/// objectbox:optional
+	byte         : byte		;
+	/// objectbox:optional
+	ubyte        : ubyte	;
+	/// objectbox:optional
+	bytevector   : [byte]	;
+	/// objectbox:optional
+	ubytevector  : [ubyte]	;
+	/// objectbox:optional
+	float32      : float32	;
+	/// objectbox:optional
+	float64      : float64	;
+	/// objectbox:optional
+	float        : float	;
+	/// objectbox:optional
+	double       : double	;
+	/// objectbox:relation=RelTarget, optional
+	relId:ulong;
+}

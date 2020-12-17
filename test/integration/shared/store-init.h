@@ -1,5 +1,6 @@
 #pragma once
 
+#include "objectbox.hpp"
 #include "objectbox-model.h"
 
 obx::Store testStore(bool removeBeforeOpening, const char* dbDir = nullptr) {

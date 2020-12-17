@@ -49,6 +49,7 @@ var supportedPropertyAnnotations = map[string]bool{
 	"uid":          true,
 	"unique":       true,
 	"id-companion": true,
+	"optional":     true,
 }
 
 // fbSchemaReader reads FlatBuffers schema and populates a model
