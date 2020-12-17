@@ -22,11 +22,73 @@ package typeful
 import (
 	"testing"
 
+	"github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/integration"
 )
+
+const optionalSchemaFields = `
+	id           : uint64	;
+	/// objectbox:optional
+	int          : int		;
+	/// objectbox:optional
+	int8         : int8		;
+	/// objectbox:optional
+	int16        : int16	;
+	/// objectbox:optional
+	int32        : int32	;
+	/// objectbox:optional
+	int64        : int64	;
+	/// objectbox:optional
+	uint         : uint		;
+	/// objectbox:optional
+	uint8        : uint8	;
+	/// objectbox:optional
+	uint16       : uint16	;
+	/// objectbox:optional
+	uint32       : uint32	;
+	/// objectbox:optional
+	uint64       : uint64	;
+	/// objectbox:optional
+	bool         : bool		;
+	/// objectbox:optional
+	string       : string	;
+	/// objectbox:optional
+	stringvector : [string]	;
+	/// objectbox:optional
+	byte         : byte		;
+	/// objectbox:optional
+	ubyte        : ubyte	;
+	/// objectbox:optional
+	bytevector   : [byte]	;
+	/// objectbox:optional
+	ubytevector  : [ubyte]	;
+	/// objectbox:optional
+	float32      : float32	;
+	/// objectbox:optional
+	float64      : float64	;
+	/// objectbox:optional
+	float        : float	;
+	/// objectbox:optional
+	double       : double	;
+	/// objectbox:relation=RelTarget, optional
+	relId:ulong;
+`
 
 func TestCpp(t *testing.T) {
 	conf := &integration.CCppTestConf{}
 	defer conf.Cleanup()
-	conf.CommonExecute(t, integration.Cpp17)
+	conf.CreateCMake(t, integration.Cpp17, "main.cpp")
+	conf.Generate(t, "rel.fbs", "table RelTarget {id: uint64;}")
+
+	conf.Generator = &cgenerator.CGenerator{Optional: "std::optional"}
+	conf.Generate(t, "std-optional.fbs", "table Optional {"+optionalSchemaFields+"}")
+
+	conf.Generator = &cgenerator.CGenerator{Optional: "std::unique_ptr"}
+	conf.Generate(t, "std-unique_ptr.fbs", "table UniquePtr {"+optionalSchemaFields+"}")
+
+	conf.Generator = &cgenerator.CGenerator{Optional: "std::shared_ptr"}
+	conf.Generate(t, "std-shared_ptr.fbs", "table SharedPtr {"+optionalSchemaFields+"}")
+
+	conf.Build(t)
+	conf.Run(t, nil)
 }

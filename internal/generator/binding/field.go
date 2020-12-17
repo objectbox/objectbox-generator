@@ -174,10 +174,7 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 	}
 
 	if a["optional"] != nil {
-		if len(a["optional"].Value) != 0 {
-			return fmt.Errorf("optional annotation value must be empty")
-		}
-		field.Optional = "std::optional"
+		field.Optional = a["optional"].Value
 	}
 
 	return nil

@@ -56,6 +56,9 @@ var supportedPropertyAnnotations = map[string]bool{
 type fbSchemaReader struct {
 	// model produced by reading the schema
 	model *model.ModelInfo
+
+	// see CGenerator.Optional
+	optional string
 }
 
 // const annotationPrefix = "objectbox:"
@@ -178,6 +181,13 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 
 		// apply flags defined for this type (e.g.
 		property.AddFlag(fbsTypeToObxFlag[fbsBaseType])
+	}
+
+	if annotations["optional"] != nil {
+		if len(annotations["optional"].Value) != 0 {
+			return errors.New("optional annotation value must be empty")
+		}
+		annotations["optional"].Value = r.optional
 	}
 
 	if err := metaProperty.ProcessAnnotations(annotations); err != nil {

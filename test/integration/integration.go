@@ -95,21 +95,20 @@ func repoRoot(t *testing.T) string {
 // 	return
 // }
 
-func generateCCpp(t *testing.T, srcFile string, cpp bool, outDir string) {
+func generateCCpp(t *testing.T, srcFile string, outDir string, cGenerator *cgenerator.CGenerator) {
 	t.Logf("generating code for %s into %s", srcFile, outDir)
 	var options = generator.Options{
 		ModelInfoFile: path.Join(outDir, "objectbox-model.json"),
-		CodeGenerator: &cgenerator.CGenerator{
-			PlainC: !cpp,
-		},
-		InPath:  srcFile,
-		OutPath: outDir,
+		CodeGenerator: cGenerator,
+		InPath:        srcFile,
+		OutPath:       outDir,
 	}
 	assert.NoErr(t, generator.Process(options))
 }
 
 type CCppTestConf struct {
-	Cmake *cmake.Cmake
+	Cmake     *cmake.Cmake
+	Generator *cgenerator.CGenerator
 }
 
 func sourceExt(cpp bool) string {
@@ -123,7 +122,7 @@ func sourceExt(cpp bool) string {
 // CommonExecute executes the integration with the simple/common setup
 func (conf *CCppTestConf) CommonExecute(t *testing.T, lang cCppStandard) {
 	conf.CreateCMake(t, lang, "main."+sourceExt(lang.isCpp()))
-	conf.Generate(t, "")
+	conf.Generate(t, "", "")
 	conf.Build(t)
 	conf.Run(t, nil)
 }
@@ -183,23 +182,30 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, lang cCppStandard, mainFile 
 }
 
 // Generate loads *.fbs files in the current dir (or the given schema file) and generates the code
-func (conf *CCppTestConf) Generate(t *testing.T, schema string) {
+func (conf *CCppTestConf) Generate(t *testing.T, schemaName, schemaContents string) {
 	var inputFiles []string
 
-	if len(schema) != 0 {
-		tmpFile := filepath.Join(conf.Cmake.ConfDir, "schema.fbs")
+	if len(schemaContents) != 0 {
+		tmpFile := filepath.Join(conf.Cmake.ConfDir, schemaName)
 		defer os.Remove(tmpFile)
 		inputFiles = []string{tmpFile}
 
-		assert.NoErr(t, ioutil.WriteFile(tmpFile, []byte(schema), 0600))
+		assert.NoErr(t, ioutil.WriteFile(tmpFile, []byte(schemaContents), 0600))
 	} else {
 		var err error
 		inputFiles, err = filepath.Glob("*.fbs")
 		assert.NoErr(t, err)
 	}
 
+	var cGenerator = conf.Generator
+	if cGenerator == nil {
+		cGenerator = &cgenerator.CGenerator{
+			PlainC: !conf.Cmake.IsCpp,
+		}
+	}
+
 	for _, file := range inputFiles {
-		generateCCpp(t, file, conf.Cmake.IsCpp, conf.Cmake.ConfDir)
+		generateCCpp(t, file, conf.Cmake.ConfDir, cGenerator)
 	}
 }
 

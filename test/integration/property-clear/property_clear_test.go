@@ -44,7 +44,7 @@ func TestCpp(t *testing.T) {
 
 	// BEFORE start
 	conf.CreateCMake(t, integration.Cpp11, "step-1.cpp")
-	conf.Generate(t, `table EntityName {
+	conf.Generate(t, "schema.fbs", `table EntityName {
 	id:uint64;
 	value:int;
 }`)
@@ -69,7 +69,7 @@ func TestCpp(t *testing.T) {
 		modelInfo.Entities[0].Properties[1].Name, modelInfo.Entities[0].Properties[1].Id, newUid)
 	assert.NoErr(t, err)
 	conf.CreateCMake(t, integration.Cpp11, "step-2.cpp")
-	conf.Generate(t,
+	conf.Generate(t, "schema.fbs",
 		`table EntityName {
 	id:uint64;
 `+"/// objectbox: uid="+strconv.FormatInt(int64(newUid), 10)+`
