@@ -100,10 +100,13 @@ func (cmd *command) ParseFlags(remainingPosArgs *[]string, options *generator.Op
 	case "go":
 		options.CodeGenerator = &gogenerator.GoGenerator{}
 	case "c":
-		fallthrough
+		options.CodeGenerator = &cgenerator.CGenerator{
+			PlainC:   true,
+			Optional: "ptr", // dummy value for checks to evaluate to true if "optional" annotation is used
+		}
 	case "cpp":
 		options.CodeGenerator = &cgenerator.CGenerator{
-			PlainC:   selectedLang == "c",
+			PlainC:   false,
 			Optional: *cmd.optional,
 		}
 	default:

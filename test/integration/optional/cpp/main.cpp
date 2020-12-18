@@ -2,11 +2,12 @@
 
 #include <type_traits>
 
+#include "c-ptr.obx.h"
 #include "catch2/catch.hpp"
 #include "shared/store-init.h"
 #include "std-optional.obx.hpp"
-#include "std-unique_ptr.obx.hpp"
 #include "std-shared_ptr.obx.hpp"
+#include "std-unique_ptr.obx.hpp"
 
 using namespace obx;
 
@@ -229,8 +230,7 @@ void testPtrValues() {
     REQUIRE(*read->double_ == *src->double_);
     REQUIRE(*read->relId == *src->relId);
 }
-}
-
+}  // namespace
 
 TEST_CASE("std::unique_ptr") {
     static_assert(std::is_same<decltype(UniquePtr::int_), std::unique_ptr<int32_t>>::value, "must be std::unique_ptr");
@@ -240,4 +240,148 @@ TEST_CASE("std::unique_ptr") {
 TEST_CASE("std::shared_ptr") {
     static_assert(std::is_same<decltype(SharedPtr::int_), std::shared_ptr<int32_t>>::value, "must be std::shared_ptr");
     testPtrValues<SharedPtr>();
+}
+
+namespace {
+template <typename T>
+void cSetOptionalField(T*& outField, T value) {
+    outField = (T*) malloc(sizeof(value));
+    *outField = value;
+}
+
+template <typename T>
+void cSetOptionalFieldVector(T*& outField, size_t& outLen, std::vector<T> value) {
+    outLen = value.size();
+    outField = (T*) malloc(sizeof(T*) * outLen);
+    for (int i = 0; i < outLen; i++) {
+        outField[i] = value[i];
+    }
+}
+template <typename T>
+void cSetOptionalFieldVector(T*& outField, size_t& outLen, std::vector<std::string> value) {
+    outLen = value.size();
+    outField = (T*) malloc(sizeof(T*) * outLen);
+    for (int i = 0; i < outLen; i++) {
+        outField[i] = (char*) malloc(sizeof(char) * (value[i].size() + 1));
+        strcpy(outField[i], value[i].c_str());
+    }
+}
+}  // namespace
+
+TEST_CASE("c") {
+    Store store = testStore(true, "c-cpp-tests-db");
+    OBX_box* box = obx_box(store.cPtr(), PlainCPtr_ENTITY_ID);
+
+    // no values inserted -> no values loaded
+    PlainCPtr object{};
+    obx_id id = PlainCPtr_put(box, &object);
+    PlainCPtr* read = PlainCPtr_get(box, id);
+    REQUIRE(read);
+
+    REQUIRE(read->int_ == nullptr);
+    REQUIRE(read->int8 == nullptr);
+    REQUIRE(read->int16 == nullptr);
+    REQUIRE(read->int32 == nullptr);
+    REQUIRE(read->int64 == nullptr);
+    REQUIRE(read->uint == nullptr);
+    REQUIRE(read->uint8 == nullptr);
+    REQUIRE(read->uint16 == nullptr);
+    REQUIRE(read->uint32 == nullptr);
+    REQUIRE(read->uint64 == nullptr);
+    REQUIRE(read->bool_ == nullptr);
+    REQUIRE(read->string == nullptr);
+    REQUIRE(read->stringvector == nullptr);
+    REQUIRE(read->byte == nullptr);
+    REQUIRE(read->ubyte == nullptr);
+    REQUIRE(read->bytevector == nullptr);
+    REQUIRE(read->ubytevector == nullptr);
+    REQUIRE(read->float32 == nullptr);
+    REQUIRE(read->float64 == nullptr);
+    REQUIRE(read->float_ == nullptr);
+    REQUIRE(read->double_ == nullptr);
+    REQUIRE(read->relId == nullptr);
+    PlainCPtr_free(read);
+
+    // values inserted -> values loaded
+    PlainCPtr src = {0};
+    cSetOptionalField(src.int_, int32_t(__LINE__));
+    cSetOptionalField(src.int8, int8_t(__LINE__));
+    cSetOptionalField(src.int16, int16_t(__LINE__));
+    cSetOptionalField(src.int32, int32_t(__LINE__));
+    cSetOptionalField(src.int64, int64_t(__LINE__));
+    cSetOptionalField(src.uint, uint32_t(__LINE__));
+    cSetOptionalField(src.uint8, uint8_t(__LINE__));
+    cSetOptionalField(src.uint16, uint16_t(__LINE__));
+    cSetOptionalField(src.uint32, uint32_t(__LINE__));
+    cSetOptionalField(src.uint64, uint64_t(__LINE__));
+    cSetOptionalField(src.bool_, bool(__LINE__));
+    src.string = (char*) malloc(sizeof(char) * 4);
+    strcpy(src.string, "foo");
+    cSetOptionalFieldVector(src.stringvector, src.stringvector_len, std::vector<std::string>{"foo", "bar"});
+    cSetOptionalField(src.byte, int8_t(__LINE__));
+    cSetOptionalField(src.ubyte, uint8_t(__LINE__));
+    cSetOptionalFieldVector(src.bytevector, src.bytevector_len, std::vector<int8_t>{-13, 30});
+    cSetOptionalFieldVector(src.ubytevector, src.ubytevector_len, std::vector<uint8_t>{5, 6});
+    cSetOptionalField(src.float32, float(__LINE__));
+    cSetOptionalField(src.float64, double(__LINE__));
+    cSetOptionalField(src.float_, float(__LINE__));
+    cSetOptionalField(src.double_, double(__LINE__));
+    cSetOptionalField(src.relId, obx_id(__LINE__));
+
+    id = PlainCPtr_put(box, &src);
+    read = PlainCPtr_get(box, id);
+    REQUIRE(read);
+
+    REQUIRE(read->int_ != nullptr);
+    REQUIRE(read->int8 != nullptr);
+    REQUIRE(read->int16 != nullptr);
+    REQUIRE(read->int32 != nullptr);
+    REQUIRE(read->int64 != nullptr);
+    REQUIRE(read->uint != nullptr);
+    REQUIRE(read->uint8 != nullptr);
+    REQUIRE(read->uint16 != nullptr);
+    REQUIRE(read->uint32 != nullptr);
+    REQUIRE(read->uint64 != nullptr);
+    REQUIRE(read->bool_ != nullptr);
+    REQUIRE(read->string != nullptr);
+    REQUIRE(read->stringvector != nullptr);
+    REQUIRE(read->byte != nullptr);
+    REQUIRE(read->ubyte != nullptr);
+    REQUIRE(read->bytevector != nullptr);
+    REQUIRE(read->ubytevector != nullptr);
+    REQUIRE(read->float32 != nullptr);
+    REQUIRE(read->float64 != nullptr);
+    REQUIRE(read->float_ != nullptr);
+    REQUIRE(read->double_ != nullptr);
+    REQUIRE(read->relId != nullptr);
+
+    REQUIRE(*read->int_ == *src.int_);
+    REQUIRE(*read->int8 == *src.int8);
+    REQUIRE(*read->int16 == *src.int16);
+    REQUIRE(*read->int32 == *src.int32);
+    REQUIRE(*read->int64 == *src.int64);
+    REQUIRE(*read->uint == *src.uint);
+    REQUIRE(*read->uint8 == *src.uint8);
+    REQUIRE(*read->uint16 == *src.uint16);
+    REQUIRE(*read->uint32 == *src.uint32);
+    REQUIRE(*read->uint64 == *src.uint64);
+    REQUIRE(*read->bool_ == *src.bool_);
+    REQUIRE(*read->string == *src.string);
+    REQUIRE(read->stringvector_len == src.stringvector_len);
+    REQUIRE(read->stringvector[0] == std::string(src.stringvector[0]));
+    REQUIRE(read->stringvector[1] == std::string(src.stringvector[1]));
+    REQUIRE(*read->byte == *src.byte);
+    REQUIRE(*read->ubyte == *src.ubyte);
+    REQUIRE(read->bytevector_len == src.bytevector_len);
+    REQUIRE(0 == memcmp(read->bytevector, src.bytevector, sizeof(*src.bytevector) * src.bytevector_len));
+    REQUIRE(read->ubytevector_len == src.ubytevector_len);
+    REQUIRE(0 == memcmp(read->ubytevector, src.ubytevector, sizeof(*src.ubytevector) * src.ubytevector_len));
+    REQUIRE(*read->float32 == *src.float32);
+    REQUIRE(*read->float64 == *src.float64);
+    REQUIRE(*read->float_ == *src.float_);
+    REQUIRE(*read->double_ == *src.double_);
+    REQUIRE(*read->relId == *src.relId);
+
+    PlainCPtr_free_pointers(&src);
+    PlainCPtr_free(read);
 }

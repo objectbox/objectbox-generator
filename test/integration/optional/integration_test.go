@@ -74,7 +74,7 @@ const optionalSchemaFields = `
 	relId:ulong;
 `
 
-func TestCpp(t *testing.T) {
+func TestCppAndC(t *testing.T) {
 	conf := &integration.CCppTestConf{}
 	defer conf.Cleanup()
 	conf.CreateCMake(t, integration.Cpp17, "main.cpp")
@@ -88,6 +88,9 @@ func TestCpp(t *testing.T) {
 
 	conf.Generator = &cgenerator.CGenerator{Optional: "std::shared_ptr"}
 	conf.Generate(t, "std-shared_ptr.fbs", "table SharedPtr {"+optionalSchemaFields+"}")
+
+	conf.Generator = &cgenerator.CGenerator{PlainC: true, Optional: "ptr"}
+	conf.Generate(t, "c-ptr.fbs", "table PlainCPtr {"+optionalSchemaFields+"}")
 
 	conf.Build(t)
 	conf.Run(t, nil)

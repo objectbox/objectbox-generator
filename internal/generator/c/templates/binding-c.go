@@ -44,13 +44,18 @@ static obx_id {{.FileIdentifier}}_put_object(OBX_box* box, void* object,
 /// Internal function used in other generated functions to get (read) explicitly typed objects
 static void* {{.FileIdentifier}}_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t));
 
+flatbuffers_voffset_t {{.FileIdentifier}}_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt,
+                                                  size_t field) {
+    return (vs < sizeof(vt[0]) * (field + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + field + 2);
+}
+
 {{range $entity := .Model.EntitiesWithMeta}}
 {{PrintComments 0 $entity.Comments}}typedef struct {{$entity.Meta.CName}} {
 	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type -}}
 	{{PrintComments 1 $property.Comments}}{{if $property.Meta.FbIsVector}}{{$property.Meta.CElementType}}* {{$property.Meta.CppName}};
 	{{- if or (eq $propType "StringVector") (eq $propType "ByteVector")}}
 	size_t {{$property.Meta.CppName}}_len;{{end}}
-	{{else}}{{$property.Meta.CppType}} {{$property.Meta.CppName}};
+	{{else}}{{$property.Meta.CppType}}{{if $property.Meta.Optional}}*{{end}} {{$property.Meta.CppName}};
 	{{end}}{{end}}
 } {{$entity.Meta.CName}};
 
@@ -122,9 +127,10 @@ static bool {{$entity.Meta.CName}}_to_flatbuffer(flatcc_builder_t* B, const {{$e
         *_p = offset_{{$property.Meta.CppName}};
     }
 	{{- else}}
-	if (!(p = flatcc_builder_table_add(B, {{$property.FbSlot}}, {{$property.Meta.FbTypeSize}}, {{$property.Meta.FbTypeSize}}))) return false;
-    {{$property.Meta.FlatccFnPrefix}}_write_to_pe(p, object->{{$property.Meta.CppName}});
-	{{- end}}
+	{{if $property.Meta.Optional}}if (object->{{$property.Meta.CppName}}) {{end}}{
+		if (!(p = flatcc_builder_table_add(B, {{$property.FbSlot}}, {{$property.Meta.FbTypeSize}}, {{$property.Meta.FbTypeSize}}))) return false;
+    	{{$property.Meta.FlatccFnPrefix}}_write_to_pe(p, {{if $property.Meta.Optional}}*{{end}}object->{{$property.Meta.CppName}});
+	}{{- end}}
 	{{end}}
     flatcc_builder_ref_t ref;
 	if (!(ref = flatcc_builder_end_table(B))) return false;
@@ -147,9 +153,10 @@ static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size
 	const flatbuffers_uoffset_t* val;
 	size_t len;
 
+	*out_object = ({{$entity.Meta.CName}}) {0}; // reset so that dangling pointers are freed properly on malloc() failures
 	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type -}}
-	{{if $property.Meta.FbIsVector}}
-	if ((offset = (vs < sizeof(vt[0]) * ({{$property.FbSlot}} + 3)) ? {{$property.Meta.FbDefaultValue}} : __flatbuffers_voffset_read_from_pe(vt + {{$property.FbSlot}} + 2))) {
+	if ((offset = {{$.FileIdentifier}}_fb_field_offset(vs, vt, {{$property.FbSlot}}))) {
+	{{- if $property.Meta.FbIsVector}}
 		val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
 		len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
 		out_object->{{$property.Meta.CppName}} = ({{$property.Meta.CElementType}}*) malloc({{if eq $propType "String"}}(len+1){{else}}len{{end}} * sizeof({{$property.Meta.CElementType}}));
@@ -179,9 +186,16 @@ static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size
 		{{- if not (eq $propType "String")}}
 		out_object->{{$property.Meta.CppName}}_len = 0;
 		{{- end}}
-	}
-	{{else}}out_object->{{$property.Meta.CppName}} = (vs < sizeof(vt[0]) * ({{$property.FbSlot}} + 3)) ? {{$property.Meta.FbDefaultValue}} : {{$property.Meta.FlatccFnPrefix}}_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + {{$property.FbSlot}} + 2));
+	{{- else}}
+		{{if $property.Meta.Optional -}}
+		out_object->{{$property.Meta.CppName}} = ({{$property.Meta.CppType}}*) malloc(sizeof({{$property.Meta.CppType}}));
+		if (out_object->{{$property.Meta.CppName}} == NULL) {
+			{{$entity.Meta.CName}}_free_pointers(out_object);
+			return false;
+		}
+		*{{end}}out_object->{{$property.Meta.CppName}} = {{$property.Meta.FlatccFnPrefix}}_read_from_pe(table + offset);
 	{{- end}}
+	}
 	{{end}}return true;
 }
 
@@ -198,7 +212,7 @@ static {{$entity.Meta.CName}}* {{$entity.Meta.CName}}_new_from_flatbuffer(const 
 
 static void {{$entity.Meta.CName}}_free_pointers({{$entity.Meta.CName}}* object) {
 	if (object == NULL) return;
-	{{- range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type}}{{if $property.Meta.FbIsVector}}
+	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type}}{{if $property.Meta.FbIsVector -}}
 	if (object->{{$property.Meta.CppName}}) {
 		{{- if eq $propType "StringVector"}}
 		for (size_t i = 0; i < object->{{$property.Meta.CppName}}_len; i++) {
@@ -211,6 +225,11 @@ static void {{$entity.Meta.CName}}_free_pointers({{$entity.Meta.CName}}* object)
 	} else {
 		assert(object->{{$property.Meta.CppName}}_len == 0);
 	{{- end}}
+	}
+	{{else if $property.Meta.Optional -}}
+	if (object->{{$property.Meta.CppName}}) {
+		free(object->{{$property.Meta.CppName}});
+		object->{{$property.Meta.CppName}} = NULL;
 	}
 	{{end}}
 	{{- end}}

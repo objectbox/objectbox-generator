@@ -157,7 +157,7 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, lang cCppStandard, mainFile 
 			Standard:    langYear,
 			IncludeDirs: append(build.IncludeDirs(repoRoot(t)), testSrcDir, filepath.Join(repoRoot(t), "test", "integration")),
 			LinkDirs:    build.LibDirs(repoRoot(t)),
-			LinkLibs:    []string{"objectbox"},
+			LinkLibs:    []string{"objectbox", "flatccrt"},
 		}
 		assert.NoErr(t, conf.Cmake.CreateTempDirs())
 	}
@@ -167,10 +167,6 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, lang cCppStandard, mainFile 
 		conf.Cmake.ConfDir = testSrcDir
 	}
 	conf.Cmake.IncludeDirs = append(conf.Cmake.IncludeDirs, conf.Cmake.ConfDir) // because of the generated files
-
-	if !lang.isCpp() {
-		conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "flatccrt")
-	}
 
 	// Link the test executable statically on Windows or it won't execute in the temp dir (missing DLL)
 	if runtime.GOOS == "windows" {

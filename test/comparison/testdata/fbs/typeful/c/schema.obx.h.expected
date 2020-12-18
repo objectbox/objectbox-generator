@@ -17,6 +17,11 @@ static obx_id schema_obx_h_put_object(OBX_box* box, void* object,
 /// Internal function used in other generated functions to get (read) explicitly typed objects
 static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t));
 
+flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt,
+                                                  size_t field) {
+    return (vs < sizeof(vt[0]) * (field + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + field + 2);
+}
+
 
 /// Entity documentation is copied
 /// into the generated output
@@ -245,41 +250,65 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
     void* p;
     flatcc_builder_ref_t* _p;
     
-    if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->id);
+    {
+        if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->id);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 1, 4, 4))) return false;
-    flatbuffers_int32_write_to_pe(p, object->int_);
+    {
+        if (!(p = flatcc_builder_table_add(B, 1, 4, 4))) return false;
+        flatbuffers_int32_write_to_pe(p, object->int_);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 2, 1, 1))) return false;
-    flatbuffers_int8_write_to_pe(p, object->int8);
+    {
+        if (!(p = flatcc_builder_table_add(B, 2, 1, 1))) return false;
+        flatbuffers_int8_write_to_pe(p, object->int8);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 3, 2, 2))) return false;
-    flatbuffers_int16_write_to_pe(p, object->int16);
+    {
+        if (!(p = flatcc_builder_table_add(B, 3, 2, 2))) return false;
+        flatbuffers_int16_write_to_pe(p, object->int16);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 4, 4, 4))) return false;
-    flatbuffers_int32_write_to_pe(p, object->int32);
+    {
+        if (!(p = flatcc_builder_table_add(B, 4, 4, 4))) return false;
+        flatbuffers_int32_write_to_pe(p, object->int32);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 5, 8, 8))) return false;
-    flatbuffers_int64_write_to_pe(p, object->int64);
+    {
+        if (!(p = flatcc_builder_table_add(B, 5, 8, 8))) return false;
+        flatbuffers_int64_write_to_pe(p, object->int64);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 6, 4, 4))) return false;
-    flatbuffers_uint32_write_to_pe(p, object->uint);
+    {
+        if (!(p = flatcc_builder_table_add(B, 6, 4, 4))) return false;
+        flatbuffers_uint32_write_to_pe(p, object->uint);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 7, 1, 1))) return false;
-    flatbuffers_uint8_write_to_pe(p, object->uint8);
+    {
+        if (!(p = flatcc_builder_table_add(B, 7, 1, 1))) return false;
+        flatbuffers_uint8_write_to_pe(p, object->uint8);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 8, 2, 2))) return false;
-    flatbuffers_uint16_write_to_pe(p, object->uint16);
+    {
+        if (!(p = flatcc_builder_table_add(B, 8, 2, 2))) return false;
+        flatbuffers_uint16_write_to_pe(p, object->uint16);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 9, 4, 4))) return false;
-    flatbuffers_uint32_write_to_pe(p, object->uint32);
+    {
+        if (!(p = flatcc_builder_table_add(B, 9, 4, 4))) return false;
+        flatbuffers_uint32_write_to_pe(p, object->uint32);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 10, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->uint64);
+    {
+        if (!(p = flatcc_builder_table_add(B, 10, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->uint64);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 11, 1, 1))) return false;
-    flatbuffers_bool_write_to_pe(p, object->bool_);
+    {
+        if (!(p = flatcc_builder_table_add(B, 11, 1, 1))) return false;
+        flatbuffers_bool_write_to_pe(p, object->bool_);
+    }
     
     if (offset_string) {
         if (!(_p = flatcc_builder_table_add_offset(B, 12))) return false;
@@ -291,11 +320,15 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
         *_p = offset_stringvector;
     }
     
-    if (!(p = flatcc_builder_table_add(B, 14, 1, 1))) return false;
-    flatbuffers_int8_write_to_pe(p, object->byte);
+    {
+        if (!(p = flatcc_builder_table_add(B, 14, 1, 1))) return false;
+        flatbuffers_int8_write_to_pe(p, object->byte);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 15, 1, 1))) return false;
-    flatbuffers_uint8_write_to_pe(p, object->ubyte);
+    {
+        if (!(p = flatcc_builder_table_add(B, 15, 1, 1))) return false;
+        flatbuffers_uint8_write_to_pe(p, object->ubyte);
+    }
     
     if (offset_bytevector) {
         if (!(_p = flatcc_builder_table_add_offset(B, 16))) return false;
@@ -307,20 +340,30 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
         *_p = offset_ubytevector;
     }
     
-    if (!(p = flatcc_builder_table_add(B, 18, 4, 4))) return false;
-    flatbuffers_float_write_to_pe(p, object->float32);
+    {
+        if (!(p = flatcc_builder_table_add(B, 18, 4, 4))) return false;
+        flatbuffers_float_write_to_pe(p, object->float32);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 19, 8, 8))) return false;
-    flatbuffers_double_write_to_pe(p, object->float64);
+    {
+        if (!(p = flatcc_builder_table_add(B, 19, 8, 8))) return false;
+        flatbuffers_double_write_to_pe(p, object->float64);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 20, 4, 4))) return false;
-    flatbuffers_float_write_to_pe(p, object->float_);
+    {
+        if (!(p = flatcc_builder_table_add(B, 20, 4, 4))) return false;
+        flatbuffers_float_write_to_pe(p, object->float_);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 21, 8, 8))) return false;
-    flatbuffers_double_write_to_pe(p, object->double_);
+    {
+        if (!(p = flatcc_builder_table_add(B, 21, 8, 8))) return false;
+        flatbuffers_double_write_to_pe(p, object->double_);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 22, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->relId);
+    {
+        if (!(p = flatcc_builder_table_add(B, 22, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->relId);
+    }
     
     flatcc_builder_ref_t ref;
     if (!(ref = flatcc_builder_end_table(B))) return false;
@@ -343,20 +386,44 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
     const flatbuffers_uoffset_t* val;
     size_t len;
 
-    out_object->id = (vs < sizeof(vt[0]) * (0 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 0 + 2));
-    out_object->int_ = (vs < sizeof(vt[0]) * (1 + 3)) ? 0 : flatbuffers_int32_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 1 + 2));
-    out_object->int8 = (vs < sizeof(vt[0]) * (2 + 3)) ? 0 : flatbuffers_int8_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 2 + 2));
-    out_object->int16 = (vs < sizeof(vt[0]) * (3 + 3)) ? 0 : flatbuffers_int16_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 3 + 2));
-    out_object->int32 = (vs < sizeof(vt[0]) * (4 + 3)) ? 0 : flatbuffers_int32_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 4 + 2));
-    out_object->int64 = (vs < sizeof(vt[0]) * (5 + 3)) ? 0 : flatbuffers_int64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 5 + 2));
-    out_object->uint = (vs < sizeof(vt[0]) * (6 + 3)) ? 0 : flatbuffers_uint32_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 6 + 2));
-    out_object->uint8 = (vs < sizeof(vt[0]) * (7 + 3)) ? 0 : flatbuffers_uint8_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 7 + 2));
-    out_object->uint16 = (vs < sizeof(vt[0]) * (8 + 3)) ? 0 : flatbuffers_uint16_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 8 + 2));
-    out_object->uint32 = (vs < sizeof(vt[0]) * (9 + 3)) ? 0 : flatbuffers_uint32_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 9 + 2));
-    out_object->uint64 = (vs < sizeof(vt[0]) * (10 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 10 + 2));
-    out_object->bool_ = (vs < sizeof(vt[0]) * (11 + 3)) ? 0 : flatbuffers_bool_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 11 + 2));
-    
-    if ((offset = (vs < sizeof(vt[0]) * (12 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 12 + 2))) {
+    *out_object = (Typeful) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
+        out_object->id = flatbuffers_uint64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 1))) {
+        out_object->int_ = flatbuffers_int32_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 2))) {
+        out_object->int8 = flatbuffers_int8_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 3))) {
+        out_object->int16 = flatbuffers_int16_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 4))) {
+        out_object->int32 = flatbuffers_int32_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 5))) {
+        out_object->int64 = flatbuffers_int64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 6))) {
+        out_object->uint = flatbuffers_uint32_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 7))) {
+        out_object->uint8 = flatbuffers_uint8_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 8))) {
+        out_object->uint16 = flatbuffers_uint16_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 9))) {
+        out_object->uint32 = flatbuffers_uint32_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 10))) {
+        out_object->uint64 = flatbuffers_uint64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 11))) {
+        out_object->bool_ = flatbuffers_bool_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 12))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->string = (char*) malloc((len+1) * sizeof(char));
@@ -369,9 +436,7 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
     } else {
         out_object->string = NULL;
     }
-    
-    
-    if ((offset = (vs < sizeof(vt[0]) * (13 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 13 + 2))) {
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 13))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->stringvector = (char**) malloc(len * sizeof(char*));
@@ -394,11 +459,13 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
         out_object->stringvector = NULL;
         out_object->stringvector_len = 0;
     }
-    
-    out_object->byte = (vs < sizeof(vt[0]) * (14 + 3)) ? 0 : flatbuffers_int8_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 14 + 2));
-    out_object->ubyte = (vs < sizeof(vt[0]) * (15 + 3)) ? 0 : flatbuffers_uint8_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 15 + 2));
-    
-    if ((offset = (vs < sizeof(vt[0]) * (16 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 16 + 2))) {
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 14))) {
+        out_object->byte = flatbuffers_int8_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 15))) {
+        out_object->ubyte = flatbuffers_uint8_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 16))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->bytevector = (int8_t*) malloc(len * sizeof(int8_t));
@@ -413,9 +480,7 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
         out_object->bytevector = NULL;
         out_object->bytevector_len = 0;
     }
-    
-    
-    if ((offset = (vs < sizeof(vt[0]) * (17 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 17 + 2))) {
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 17))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->ubytevector = (uint8_t*) malloc(len * sizeof(uint8_t));
@@ -430,12 +495,21 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
         out_object->ubytevector = NULL;
         out_object->ubytevector_len = 0;
     }
-    
-    out_object->float32 = (vs < sizeof(vt[0]) * (18 + 3)) ? 0.0f : flatbuffers_float_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 18 + 2));
-    out_object->float64 = (vs < sizeof(vt[0]) * (19 + 3)) ? 0.0 : flatbuffers_double_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 19 + 2));
-    out_object->float_ = (vs < sizeof(vt[0]) * (20 + 3)) ? 0.0f : flatbuffers_float_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 20 + 2));
-    out_object->double_ = (vs < sizeof(vt[0]) * (21 + 3)) ? 0.0 : flatbuffers_double_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 21 + 2));
-    out_object->relId = (vs < sizeof(vt[0]) * (22 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 22 + 2));
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 18))) {
+        out_object->float32 = flatbuffers_float_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 19))) {
+        out_object->float64 = flatbuffers_double_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 20))) {
+        out_object->float_ = flatbuffers_float_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 21))) {
+        out_object->double_ = flatbuffers_double_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 22))) {
+        out_object->relId = flatbuffers_uint64_read_from_pe(table + offset);
+    }
     return true;
 }
 
@@ -456,7 +530,6 @@ static void Typeful_free_pointers(Typeful* object) {
         free(object->string);
         object->string = NULL;
     }
-    
     if (object->stringvector) {
         for (size_t i = 0; i < object->stringvector_len; i++) {
             if (object->stringvector[i]) free(object->stringvector[i]);
@@ -467,7 +540,6 @@ static void Typeful_free_pointers(Typeful* object) {
     } else {
         assert(object->stringvector_len == 0);
     }
-    
     if (object->bytevector) {
         free(object->bytevector);
         object->bytevector = NULL;
@@ -475,7 +547,6 @@ static void Typeful_free_pointers(Typeful* object) {
     } else {
         assert(object->bytevector_len == 0);
     }
-    
     if (object->ubytevector) {
         free(object->ubytevector);
         object->ubytevector = NULL;
@@ -536,19 +607,25 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
     void* p;
     flatcc_builder_ref_t* _p;
     
-    if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->identifier);
+    {
+        if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->identifier);
+    }
     
     if (offset_fullName) {
         if (!(_p = flatcc_builder_table_add_offset(B, 1))) return false;
         *_p = offset_fullName;
     }
     
-    if (!(p = flatcc_builder_table_add(B, 2, 8, 8))) return false;
-    flatbuffers_int64_write_to_pe(p, object->time);
+    {
+        if (!(p = flatcc_builder_table_add(B, 2, 8, 8))) return false;
+        flatbuffers_int64_write_to_pe(p, object->time);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 3, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->relId);
+    {
+        if (!(p = flatcc_builder_table_add(B, 3, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->relId);
+    }
     
     if (offset_unique) {
         if (!(_p = flatcc_builder_table_add_offset(B, 4))) return false;
@@ -570,8 +647,10 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
         *_p = offset_uniqueHash64;
     }
     
-    if (!(p = flatcc_builder_table_add(B, 8, 4, 4))) return false;
-    flatbuffers_int32_write_to_pe(p, object->uid);
+    {
+        if (!(p = flatcc_builder_table_add(B, 8, 4, 4))) return false;
+        flatbuffers_int32_write_to_pe(p, object->uid);
+    }
     
     flatcc_builder_ref_t ref;
     if (!(ref = flatcc_builder_end_table(B))) return false;
@@ -594,9 +673,11 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     const flatbuffers_uoffset_t* val;
     size_t len;
 
-    out_object->identifier = (vs < sizeof(vt[0]) * (0 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 0 + 2));
-    
-    if ((offset = (vs < sizeof(vt[0]) * (1 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 1 + 2))) {
+    *out_object = (ns_Annotated) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
+        out_object->identifier = flatbuffers_uint64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 1))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->fullName = (char*) malloc((len+1) * sizeof(char));
@@ -609,11 +690,13 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     } else {
         out_object->fullName = NULL;
     }
-    
-    out_object->time = (vs < sizeof(vt[0]) * (2 + 3)) ? 0 : flatbuffers_int64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 2 + 2));
-    out_object->relId = (vs < sizeof(vt[0]) * (3 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 3 + 2));
-    
-    if ((offset = (vs < sizeof(vt[0]) * (4 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 4 + 2))) {
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 2))) {
+        out_object->time = flatbuffers_int64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 3))) {
+        out_object->relId = flatbuffers_uint64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 4))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->unique = (char*) malloc((len+1) * sizeof(char));
@@ -626,9 +709,7 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     } else {
         out_object->unique = NULL;
     }
-    
-    
-    if ((offset = (vs < sizeof(vt[0]) * (5 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 5 + 2))) {
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 5))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->uniqueValue = (char*) malloc((len+1) * sizeof(char));
@@ -641,9 +722,7 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     } else {
         out_object->uniqueValue = NULL;
     }
-    
-    
-    if ((offset = (vs < sizeof(vt[0]) * (6 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 6 + 2))) {
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 6))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->uniqueHash = (char*) malloc((len+1) * sizeof(char));
@@ -656,9 +735,7 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     } else {
         out_object->uniqueHash = NULL;
     }
-    
-    
-    if ((offset = (vs < sizeof(vt[0]) * (7 + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + 7 + 2))) {
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 7))) {
         val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
         len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
         out_object->uniqueHash64 = (char*) malloc((len+1) * sizeof(char));
@@ -671,8 +748,9 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     } else {
         out_object->uniqueHash64 = NULL;
     }
-    
-    out_object->uid = (vs < sizeof(vt[0]) * (8 + 3)) ? 0 : flatbuffers_int32_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 8 + 2));
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 8))) {
+        out_object->uid = flatbuffers_int32_read_from_pe(table + offset);
+    }
     return true;
 }
 
@@ -693,22 +771,18 @@ static void ns_Annotated_free_pointers(ns_Annotated* object) {
         free(object->fullName);
         object->fullName = NULL;
     }
-    
     if (object->unique) {
         free(object->unique);
         object->unique = NULL;
     }
-    
     if (object->uniqueValue) {
         free(object->uniqueValue);
         object->uniqueValue = NULL;
     }
-    
     if (object->uniqueHash) {
         free(object->uniqueHash);
         object->uniqueHash = NULL;
     }
-    
     if (object->uniqueHash64) {
         free(object->uniqueHash64);
         object->uniqueHash64 = NULL;
@@ -761,11 +835,15 @@ static bool ns_TSDate_to_flatbuffer(flatcc_builder_t* B, const ns_TSDate* object
     void* p;
     flatcc_builder_ref_t* _p;
     
-    if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->id);
+    {
+        if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->id);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 1, 8, 8))) return false;
-    flatbuffers_int64_write_to_pe(p, object->timestamp);
+    {
+        if (!(p = flatcc_builder_table_add(B, 1, 8, 8))) return false;
+        flatbuffers_int64_write_to_pe(p, object->timestamp);
+    }
     
     flatcc_builder_ref_t ref;
     if (!(ref = flatcc_builder_end_table(B))) return false;
@@ -788,8 +866,13 @@ static bool ns_TSDate_from_flatbuffer(const void* data, size_t size, ns_TSDate* 
     const flatbuffers_uoffset_t* val;
     size_t len;
 
-    out_object->id = (vs < sizeof(vt[0]) * (0 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 0 + 2));
-    out_object->timestamp = (vs < sizeof(vt[0]) * (1 + 3)) ? 0 : flatbuffers_int64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 1 + 2));
+    *out_object = (ns_TSDate) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
+        out_object->id = flatbuffers_uint64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 1))) {
+        out_object->timestamp = flatbuffers_int64_read_from_pe(table + offset);
+    }
     return true;
 }
 
@@ -806,6 +889,7 @@ static ns_TSDate* ns_TSDate_new_from_flatbuffer(const void* data, size_t size) {
 
 static void ns_TSDate_free_pointers(ns_TSDate* object) {
     if (object == NULL) return;
+    
 }
 
 static void ns_TSDate_free(ns_TSDate* object) {
@@ -853,11 +937,15 @@ static bool ns_TSDateNano_to_flatbuffer(flatcc_builder_t* B, const ns_TSDateNano
     void* p;
     flatcc_builder_ref_t* _p;
     
-    if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
-    flatbuffers_uint64_write_to_pe(p, object->id);
+    {
+        if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->id);
+    }
     
-    if (!(p = flatcc_builder_table_add(B, 1, 8, 8))) return false;
-    flatbuffers_int64_write_to_pe(p, object->timestamp);
+    {
+        if (!(p = flatcc_builder_table_add(B, 1, 8, 8))) return false;
+        flatbuffers_int64_write_to_pe(p, object->timestamp);
+    }
     
     flatcc_builder_ref_t ref;
     if (!(ref = flatcc_builder_end_table(B))) return false;
@@ -880,8 +968,13 @@ static bool ns_TSDateNano_from_flatbuffer(const void* data, size_t size, ns_TSDa
     const flatbuffers_uoffset_t* val;
     size_t len;
 
-    out_object->id = (vs < sizeof(vt[0]) * (0 + 3)) ? 0 : flatbuffers_uint64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 0 + 2));
-    out_object->timestamp = (vs < sizeof(vt[0]) * (1 + 3)) ? 0 : flatbuffers_int64_read_from_pe(table + __flatbuffers_voffset_read_from_pe(vt + 1 + 2));
+    *out_object = (ns_TSDateNano) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
+        out_object->id = flatbuffers_uint64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 1))) {
+        out_object->timestamp = flatbuffers_int64_read_from_pe(table + offset);
+    }
     return true;
 }
 
@@ -898,6 +991,7 @@ static ns_TSDateNano* ns_TSDateNano_new_from_flatbuffer(const void* data, size_t
 
 static void ns_TSDateNano_free_pointers(ns_TSDateNano* object) {
     if (object == NULL) return;
+    
 }
 
 static void ns_TSDateNano_free(ns_TSDateNano* object) {
