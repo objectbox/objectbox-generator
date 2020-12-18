@@ -46,7 +46,8 @@ func main() {
 
 // implements generatorcmd.generatorCommand
 type command struct {
-	langs map[string]*bool
+	langs    map[string]*bool
+	optional *string
 }
 
 func (cmd command) ShowUsage() {
@@ -75,6 +76,9 @@ func (cmd *command) ConfigureFlags() {
 	cmd.langs["c"] = flag.Bool("c", false, "generate plain C code")
 	cmd.langs["cpp"] = flag.Bool("cpp", false, "generate C++ code")
 	cmd.langs["go"] = flag.Bool("go", false, "generate Go code")
+
+	// for c++ generator
+	cmd.optional = flag.String("optional", "", "C++ wrapper type to use for fields annotated \"optional\"; one of: std::optional, std::unique_ptr, std::shared_ptr")
 }
 
 func (cmd *command) ParseFlags(remainingPosArgs *[]string, options *generator.Options) error {
@@ -88,16 +92,19 @@ func (cmd *command) ParseFlags(remainingPosArgs *[]string, options *generator.Op
 		}
 	}
 
+	if len(*cmd.optional) != 0 && selectedLang != "cpp" {
+		return errors.New("argument -optional is only allowed in combination with -cpp")
+	}
+
 	switch selectedLang {
 	case "go":
 		options.CodeGenerator = &gogenerator.GoGenerator{}
 	case "c":
-		options.CodeGenerator = &cgenerator.CGenerator{
-			PlainC: true,
-		}
+		fallthrough
 	case "cpp":
 		options.CodeGenerator = &cgenerator.CGenerator{
-			PlainC: false,
+			PlainC:   selectedLang == "c",
+			Optional: *cmd.optional,
 		}
 	default:
 		return errors.New("you must specify an output language")
