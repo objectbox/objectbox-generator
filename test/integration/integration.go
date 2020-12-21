@@ -95,12 +95,12 @@ func repoRoot(t *testing.T) string {
 // 	return
 // }
 
-func generateCCpp(t *testing.T, srcFile string, outDir string, cGenerator *cgenerator.CGenerator) {
-	t.Logf("generating code for %s into %s", srcFile, outDir)
+func generateCCpp(t *testing.T, srcPath string, outDir string, cGenerator *cgenerator.CGenerator) {
+	t.Logf("generating code for %s into %s", srcPath, outDir)
 	var options = generator.Options{
 		ModelInfoFile: path.Join(outDir, "objectbox-model.json"),
 		CodeGenerator: cGenerator,
-		InPath:        srcFile,
+		InPath:        srcPath,
 		OutPath:       outDir,
 	}
 	assert.NoErr(t, generator.Process(options))
@@ -179,18 +179,16 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, lang cCppStandard, mainFile 
 
 // Generate loads *.fbs files in the current dir (or the given schema file) and generates the code
 func (conf *CCppTestConf) Generate(t *testing.T, schemaName, schemaContents string) {
-	var inputFiles []string
+	var srcPath string
 
 	if len(schemaContents) != 0 {
 		tmpFile := filepath.Join(conf.Cmake.ConfDir, schemaName)
 		defer os.Remove(tmpFile)
-		inputFiles = []string{tmpFile}
+		srcPath = filepath.Join(conf.Cmake.ConfDir, "*.fbs")
 
 		assert.NoErr(t, ioutil.WriteFile(tmpFile, []byte(schemaContents), 0600))
 	} else {
-		var err error
-		inputFiles, err = filepath.Glob("*.fbs")
-		assert.NoErr(t, err)
+		srcPath = "*.fbs"
 	}
 
 	var cGenerator = conf.Generator
@@ -200,9 +198,7 @@ func (conf *CCppTestConf) Generate(t *testing.T, schemaName, schemaContents stri
 		}
 	}
 
-	for _, file := range inputFiles {
-		generateCCpp(t, file, conf.Cmake.ConfDir, cGenerator)
-	}
+	generateCCpp(t, srcPath, conf.Cmake.ConfDir, cGenerator)
 }
 
 // Build compiles the test sources producing an executable

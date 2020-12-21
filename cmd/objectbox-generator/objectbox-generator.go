@@ -52,12 +52,15 @@ type command struct {
 
 func (cmd command) ShowUsage() {
 	fmt.Fprint(flag.CommandLine.Output(), `Usage:
-  objectbox-generator [flags] {source-file}
-      to generate the binding code
+  objectbox-generator [flags] {path}
+      to generate the binding code for
+        * a single file (if path is a single file)
+        * a directory, non-recursive (if path is a directory), "clean" is performed first
+        * a glob path/path pattern (e.g. ./...), "clean" is performed first
 
 or
   objectbox-generator [flags] clean {path}
-      to remove the generated files instead of creating them - this removes *.obx.h and objectbox-model.h but keeps objectbox-model.json
+      to remove the generated files instead of creating them - this removes *.obx.* and objectbox-model.h but keeps objectbox-model.json
 
 or
   objectbox-generator FLATC [flatc arguments]

@@ -69,6 +69,10 @@ func (CGenerator) IsGeneratedFile(file string) bool {
 		strings.HasSuffix(name, ".obx.cpp")
 }
 
+func (CGenerator) IsSourceFile(file string) bool {
+	return strings.HasSuffix(file, ".fbs")
+}
+
 func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) {
 	schemaReflection, err := flatbuffersc.ParseSchemaFile(sourceFile)
 	if err != nil {
