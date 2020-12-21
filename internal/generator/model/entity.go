@@ -27,16 +27,17 @@ import (
 
 // Entity represents a DB entity
 type Entity struct {
-	Id             IdUid                 `json:"id"`
-	LastPropertyId IdUid                 `json:"lastPropertyId"`
-	Name           string                `json:"name"`
-	Flags          EntityFlags           `json:"flags,omitempty"`
-	Properties     []*Property           `json:"properties"`
-	Relations      []*StandaloneRelation `json:"relations,omitempty"`
-	UidRequest     bool                  `json:"-"` // used when the user gives an empty uid annotation
-	Meta           EntityMeta            `json:"-"`
-	Comments       []string              `json:"-"`
-	Model          *ModelInfo            `json:"-"`
+	Id               IdUid                 `json:"id"`
+	LastPropertyId   IdUid                 `json:"lastPropertyId"`
+	Name             string                `json:"name"`
+	Flags            EntityFlags           `json:"flags,omitempty"`
+	Properties       []*Property           `json:"properties"`
+	Relations        []*StandaloneRelation `json:"relations,omitempty"`
+	UidRequest       bool                  `json:"-"` // used when the user gives an empty uid annotation
+	Meta             EntityMeta            `json:"-"`
+	CurrentlyPresent bool                  `json:"-"`
+	Comments         []string              `json:"-"`
+	Model            *ModelInfo            `json:"-"`
 }
 
 // CreateEntity constructs an Entity
@@ -252,6 +253,7 @@ func (entity *Entity) RemoveProperty(property *Property) error {
 	for index, prop := range entity.Properties {
 		if prop == property {
 			indexToRemove = index
+			break
 		}
 	}
 
@@ -316,6 +318,7 @@ func (entity *Entity) RemoveRelation(relation *StandaloneRelation) error {
 	for index, rel := range entity.Relations {
 		if rel == relation {
 			indexToRemove = index
+			break
 		}
 	}
 

@@ -273,6 +273,41 @@ func (model *ModelInfo) CreateEntity(name string) (*Entity, error) {
 	return entity, nil
 }
 
+// RemoveEntity removes an entity
+func (model *ModelInfo) RemoveEntity(entity *Entity) error {
+	var indexToRemove = -1
+	for index, e := range model.Entities {
+		if e == entity {
+			indexToRemove = index
+			break
+		}
+	}
+
+	if indexToRemove < 0 {
+		return fmt.Errorf("can't remove entity %s %s - not found", entity.Name, entity.Id)
+	}
+
+	// remove all properties and standalone relations
+	for len(entity.Properties) > 0 { // note: can't use "range" while removing
+		if err := entity.RemoveProperty(entity.Properties[0]); err != nil {
+			return err
+		}
+	}
+	for len(entity.Relations) > 0 { // note: can't use "range" while removing
+		if err := entity.RemoveRelation(entity.Relations[0]); err != nil {
+			return err
+		}
+	}
+
+	// remove from list
+	model.Entities = append(model.Entities[:indexToRemove], model.Entities[indexToRemove+1:]...)
+
+	// store the UID in the "retired" list so that it's not reused in the future
+	model.RetiredEntityUids = append(model.RetiredEntityUids, entity.Id.getUidSafe())
+
+	return nil
+}
+
 // GenerateUid generates a unique UID
 func (model *ModelInfo) GenerateUid() (result Uid, err error) {
 	if model.Rand == nil {

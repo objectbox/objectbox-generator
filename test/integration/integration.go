@@ -182,13 +182,12 @@ func (conf *CCppTestConf) Generate(t *testing.T, schemaName, schemaContents stri
 	var srcPath string
 
 	if len(schemaContents) != 0 {
-		tmpFile := filepath.Join(conf.Cmake.ConfDir, schemaName)
-		defer os.Remove(tmpFile)
-		srcPath = filepath.Join(conf.Cmake.ConfDir, "*.fbs")
+		srcPath = filepath.Join(conf.Cmake.ConfDir, schemaName)
+		defer os.Remove(srcPath)
 
-		assert.NoErr(t, ioutil.WriteFile(tmpFile, []byte(schemaContents), 0600))
+		assert.NoErr(t, ioutil.WriteFile(srcPath, []byte(schemaContents), 0600))
 	} else {
-		srcPath = "*.fbs"
+		srcPath = filepath.Join(conf.Cmake.ConfDir, "*.fbs")
 	}
 
 	var cGenerator = conf.Generator

@@ -26,6 +26,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -164,11 +165,41 @@ func createBinding(options Options, storedModel *model.ModelInfo) error {
 		if err = storedModel.Finalize(); err != nil {
 			return fmt.Errorf("model finalization failed: %s", err)
 		}
-		return options.CodeGenerator.WriteBindingFiles(filePath, options, storedModel)
+
+		if err = options.CodeGenerator.WriteBindingFiles(filePath, options, storedModel); err != nil {
+			return err
+		}
+
+		for _, entity := range storedModel.EntitiesWithMeta() {
+			entity.CurrentlyPresent = true
+		}
+
+		return nil
 	})
 }
 
 func createModel(options Options, modelInfo *model.ModelInfo) error {
+	// clean entities not present in the current run - ONLY if running for a path
+	if PathIsDirOrPattern(options.InPath) {
+		removedEntities := make([]*model.Entity, 0)
+		for _, entity := range modelInfo.Entities {
+			if !entity.CurrentlyPresent {
+				fmt.Printf("Removing missing entity %s %s from the model\n", entity.Name, entity.Id)
+				removedEntities = append(removedEntities, entity)
+			}
+		}
+
+		for _, entity := range removedEntities {
+			if err := modelInfo.RemoveEntity(entity); err != nil {
+				return fmt.Errorf("removing entity %s failed: %s", entity.Name, err)
+			}
+		}
+
+		if err := modelInfo.Finalize(); err != nil {
+			return fmt.Errorf("model finalization failed: %s", err)
+		}
+	}
+
 	if err := modelInfo.Write(); err != nil {
 		return fmt.Errorf("can't write model-info file %s: %s", options.ModelInfoFile, err)
 	}
