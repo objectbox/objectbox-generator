@@ -26,6 +26,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/objectbox/objectbox-generator/internal/generator"
 	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
@@ -47,4 +48,19 @@ func TestCircularDependencies(t *testing.T) {
 
 	// and check it doesn't contain the objectbox-go reference
 	assert.True(t, !strings.Contains(goMod, "github.com/objectbox/objectbox-go"))
+}
+
+func TestPathPatterns(t *testing.T) {
+	assert.True(t, generator.PathIsDirOrPattern("./..."))
+	assert.True(t, generator.PathIsDirOrPattern("relative/path/..."))
+	assert.True(t, generator.PathIsDirOrPattern("/absolute/path/..."))
+	cwd, err := os.Getwd()
+	assert.NoErr(t, err)
+	assert.True(t, generator.PathIsDirOrPattern(cwd))
+	assert.True(t, generator.PathIsDirOrPattern(filepath.Join(cwd, "...")))
+	assert.True(t, !generator.PathIsDirOrPattern(filepath.Join(cwd, "file.ext")))
+	assert.True(t, !generator.PathIsDirOrPattern("file.ext"))
+	assert.True(t, generator.PathIsDirOrPattern("file-[a-z].ext"))
+	assert.True(t, generator.PathIsDirOrPattern("/dir[012]/file.ext"))
+	assert.True(t, generator.PathIsDirOrPattern("*.ext"))
 }

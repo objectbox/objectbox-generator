@@ -60,6 +60,12 @@ func (GoGenerator) IsGeneratedFile(file string) bool {
 	return name == "objectbox-model.go" || strings.HasSuffix(name, ".obx.go")
 }
 
+func (GoGenerator) IsSourceFile(file string) bool {
+	// TODO: maybe we should look for the appropriate `//go:generate ....` comment in the file?
+	//  E.g. when the generator is launched for a whole directory/pattern...
+	return strings.HasSuffix(file, ".go")
+}
+
 func (goGen *GoGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) {
 	var f *file
 	var err error
