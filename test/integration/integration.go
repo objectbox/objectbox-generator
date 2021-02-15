@@ -122,7 +122,7 @@ func sourceExt(cpp bool) string {
 // CommonExecute executes the integration with the simple/common setup
 func (conf *CCppTestConf) CommonExecute(t *testing.T, lang cCppStandard) {
 	conf.CreateCMake(t, lang, "main."+sourceExt(lang.isCpp()))
-	conf.Generate(t, "", "")
+	conf.Generate(t, nil)
 	conf.Build(t)
 	conf.Run(t, nil)
 }
@@ -178,16 +178,24 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, lang cCppStandard, mainFile 
 }
 
 // Generate loads *.fbs files in the current dir (or the given schema file) and generates the code
-func (conf *CCppTestConf) Generate(t *testing.T, schemaName, schemaContents string) {
+func (conf *CCppTestConf) Generate(t *testing.T, schemas map[string]string) {
 	var srcPath string
 
-	if len(schemaContents) != 0 {
-		srcPath = filepath.Join(conf.Cmake.ConfDir, schemaName)
-		defer os.Remove(srcPath)
+	if len(schemas) != 0 {
+		for name, content := range schemas {
+			// passing an empty name and content is a trick to having multiple schames to enable wildcard generation.
+			if len(name) == 0 && len(content) == 0 {
+				continue
+			}
 
-		assert.NoErr(t, ioutil.WriteFile(srcPath, []byte(schemaContents), 0600))
+			srcPath = filepath.Join(conf.Cmake.ConfDir, name)
+			assert.NoErr(t, ioutil.WriteFile(srcPath, []byte(content), 0600))
+		}
+		if len(schemas) != 1 {
+			srcPath = filepath.Join(conf.Cmake.ConfDir, "*.fbs")
+		}
 	} else {
-		srcPath = filepath.Join(conf.Cmake.ConfDir, "*.fbs")
+		srcPath = "*.fbs"
 	}
 
 	var cGenerator = conf.Generator

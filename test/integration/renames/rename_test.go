@@ -48,10 +48,10 @@ func TestCpp(t *testing.T) {
 
 	// BEFORE RENAME start
 	conf.CreateCMake(t, integration.Cpp11, "step-1.cpp")
-	conf.Generate(t, "schema.fbs", `table OldEntityName {
+	conf.Generate(t, map[string]string{"schema.fbs": `table OldEntityName {
 	id:uint64;
 	oldPropertyName:int;
-}`)
+}`})
 	modelJSONFile := generator.ModelInfoFile(conf.Cmake.ConfDir)
 	modelInfo, err := model.LoadModelFromJSONFile(modelJSONFile)
 	assert.NoErr(t, err)
@@ -66,13 +66,12 @@ func TestCpp(t *testing.T) {
 
 	// AFTER RENAME start
 	conf.CreateCMake(t, integration.Cpp11, "step-2.cpp")
-	conf.Generate(t, "schema.fbs",
-		"/// objectbox: uid="+entityUid+`
+	conf.Generate(t, map[string]string{"schema.fbs": "/// objectbox: uid=" + entityUid + `
 table NewEntityName {
 	id:uint64;
-`+"/// objectbox: uid="+propertyUid+`
+` + "/// objectbox: uid=" + propertyUid + `
 	newPropertyName:int;
-}`)
+}`})
 	modelInfo, err = model.LoadModelFromJSONFile(modelJSONFile)
 	assert.NoErr(t, err)
 	assert.Eq(t, 1, len(modelInfo.Entities))

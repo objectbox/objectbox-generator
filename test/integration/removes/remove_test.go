@@ -22,7 +22,6 @@ package rename
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
@@ -37,14 +36,6 @@ func getUid(t *testing.T, id model.IdUid) model.Uid {
 	return uid
 }
 
-func generateForStep(t *testing.T, conf *integration.CCppTestConf, step, schemaContents string) {
-	conf.CreateCMake(t, integration.Cpp11, step+".cpp")
-	var schema = filepath.Join(conf.Cmake.ConfDir, "schema.fbs")
-	defer os.Remove(schema)
-	assert.NoErr(t, ioutil.WriteFile(schema, []byte(schemaContents), 0600))
-	conf.Generate(t, "", "")
-}
-
 func TestCpp(t *testing.T) {
 	dbDir, err := ioutil.TempDir("", "generator-test-db")
 	assert.NoErr(t, err)
@@ -55,7 +46,8 @@ func TestCpp(t *testing.T) {
 	defer conf.Cleanup()
 
 	// STEP-1 start
-	generateForStep(t, conf, "step-1", `
+	conf.CreateCMake(t, integration.Cpp11, "step-1.cpp")
+	conf.Generate(t, map[string]string{"": "", "schema.fbs": `
 /// This entity will be removed in step 2
 /// objectbox:relation(to=EntityB,name=standaloneRel)
 table EntityA {
@@ -71,8 +63,7 @@ table EntityA {
 table EntityB {
 	id:uint64;
 	name:string;
-}`)
-
+}`})
 	modelJSONFile := generator.ModelInfoFile(conf.Cmake.ConfDir)
 	modelInfo, err := model.LoadModelFromJSONFile(modelJSONFile)
 	assert.NoErr(t, err)
@@ -105,12 +96,12 @@ table EntityB {
 	// STEP-1 end
 
 	// STEP-2 start
-	generateForStep(t, conf, "step-2", `
+	conf.CreateCMake(t, integration.Cpp11, "step-2.cpp")
+	conf.Generate(t, map[string]string{"": "", "schema.fbs": `
 table EntityB {
 	id:uint64;
 	name:string;
-}`)
-
+}`})
 	modelInfo, err = model.LoadModelFromJSONFile(modelJSONFile)
 	assert.NoErr(t, err)
 	assert.Eq(t, 1, len(modelInfo.Entities))
