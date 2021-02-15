@@ -34,7 +34,8 @@ import (
 )
 
 type CGenerator struct {
-	PlainC bool
+	PlainC   bool
+	Optional string // std::optional, std::unique_ptr, std::shared_ptr
 }
 
 // BindingFiles returns names of binding files for the given entity file.
@@ -74,7 +75,7 @@ func (gen *CGenerator) ParseSource(sourceFile string) (*model.ModelInfo, error) 
 		return nil, err // already includes file name so no more context should be necessary
 	}
 
-	reader := fbSchemaReader{model: &model.ModelInfo{}}
+	reader := fbSchemaReader{model: &model.ModelInfo{}, optional: gen.Optional}
 	if err = reader.read(schemaReflection); err != nil {
 		return nil, fmt.Errorf("error generating model from schema %s: %s", sourceFile, err)
 	}

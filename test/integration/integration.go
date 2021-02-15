@@ -28,6 +28,8 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
@@ -37,6 +39,24 @@ import (
 	"github.com/objectbox/objectbox-generator/test/cmake"
 	"github.com/objectbox/objectbox-generator/test/comparison"
 )
+
+type cCppStandard string
+
+func (std cCppStandard) isCpp() bool {
+	return strings.HasPrefix(string(std), "C++")
+}
+
+func (std cCppStandard) year() (int, error) {
+	var prefixLen = 1
+	if std.isCpp() {
+		prefixLen = 3
+	}
+	num, err := strconv.ParseInt(string(std)[prefixLen:], 10, 64)
+	return int(num), err
+}
+
+const Cpp11 = cCppStandard("C++11")
+const Cpp17 = cCppStandard("C++17")
 
 // used during development to generate code into the source directory instead of temp
 var inSource = flag.Bool("insource", false, "Output generated code to the source dir for development")
@@ -75,21 +95,20 @@ func repoRoot(t *testing.T) string {
 // 	return
 // }
 
-func generateCCpp(t *testing.T, srcFile string, cpp bool, outDir string) {
+func generateCCpp(t *testing.T, srcFile string, outDir string, cGenerator *cgenerator.CGenerator) {
 	t.Logf("generating code for %s into %s", srcFile, outDir)
 	var options = generator.Options{
 		ModelInfoFile: path.Join(outDir, "objectbox-model.json"),
-		CodeGenerator: &cgenerator.CGenerator{
-			PlainC: !cpp,
-		},
-		InPath:  srcFile,
-		OutPath: outDir,
+		CodeGenerator: cGenerator,
+		InPath:        srcFile,
+		OutPath:       outDir,
 	}
 	assert.NoErr(t, generator.Process(options))
 }
 
 type CCppTestConf struct {
-	Cmake *cmake.Cmake
+	Cmake     *cmake.Cmake
+	Generator *cgenerator.CGenerator
 }
 
 func sourceExt(cpp bool) string {
@@ -101,9 +120,9 @@ func sourceExt(cpp bool) string {
 }
 
 // CommonExecute executes the integration with the simple/common setup
-func (conf *CCppTestConf) CommonExecute(t *testing.T, cpp bool) {
-	conf.CreateCMake(t, cpp, "main."+sourceExt(cpp))
-	conf.Generate(t, "")
+func (conf *CCppTestConf) CommonExecute(t *testing.T, lang cCppStandard) {
+	conf.CreateCMake(t, lang, "main."+sourceExt(lang.isCpp()))
+	conf.Generate(t, "", "")
 	conf.Build(t)
 	conf.Run(t, nil)
 }
@@ -115,27 +134,30 @@ func (conf *CCppTestConf) Cleanup() {
 }
 
 // CreateCMake creates temporary directories and configures the CMake project
-func (conf *CCppTestConf) CreateCMake(t *testing.T, cpp bool, mainFile string) {
+func (conf *CCppTestConf) CreateCMake(t *testing.T, lang cCppStandard, mainFile string) {
 	var testSrcDir string
 	var err error
-	if cpp {
+	if lang.isCpp() {
 		testSrcDir, err = filepath.Abs("cpp")
 	} else {
 		testSrcDir, err = filepath.Abs("c")
 	}
 	assert.NoErr(t, err)
 
+	langYear, err := lang.year()
+	assert.NoErr(t, err)
+
 	if conf.Cmake != nil {
 		t.Logf("Reusing the previous CMake configuration - just changing binary to %s", mainFile)
-		assert.Eq(t, cpp, conf.Cmake.IsCpp)
+		assert.Eq(t, lang.isCpp(), conf.Cmake.IsCpp)
 	} else {
 		conf.Cmake = &cmake.Cmake{
 			Name:        t.Name(),
 			IsCpp:       true,
-			Standard:    11,
+			Standard:    langYear,
 			IncludeDirs: append(build.IncludeDirs(repoRoot(t)), testSrcDir, filepath.Join(repoRoot(t), "test", "integration")),
 			LinkDirs:    build.LibDirs(repoRoot(t)),
-			LinkLibs:    []string{"objectbox"},
+			LinkLibs:    []string{"objectbox", "flatccrt"},
 		}
 		assert.NoErr(t, conf.Cmake.CreateTempDirs())
 	}
@@ -146,37 +168,40 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, cpp bool, mainFile string) {
 	}
 	conf.Cmake.IncludeDirs = append(conf.Cmake.IncludeDirs, conf.Cmake.ConfDir) // because of the generated files
 
-	if !cpp {
-		conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "flatccrt")
-	}
-
 	// Link the test executable statically on Windows or it won't execute in the temp dir (missing DLL)
 	if runtime.GOOS == "windows" {
 		conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "-static-libgcc")
-		if cpp {
+		if lang.isCpp() {
 			conf.Cmake.LinkLibs = append(conf.Cmake.LinkLibs, "-static-libstdc++")
 		}
 	}
 }
 
 // Generate loads *.fbs files in the current dir (or the given schema file) and generates the code
-func (conf *CCppTestConf) Generate(t *testing.T, schema string) {
+func (conf *CCppTestConf) Generate(t *testing.T, schemaName, schemaContents string) {
 	var inputFiles []string
 
-	if len(schema) != 0 {
-		tmpFile := filepath.Join(conf.Cmake.ConfDir, "schema.fbs")
+	if len(schemaContents) != 0 {
+		tmpFile := filepath.Join(conf.Cmake.ConfDir, schemaName)
 		defer os.Remove(tmpFile)
 		inputFiles = []string{tmpFile}
 
-		assert.NoErr(t, ioutil.WriteFile(tmpFile, []byte(schema), 0600))
+		assert.NoErr(t, ioutil.WriteFile(tmpFile, []byte(schemaContents), 0600))
 	} else {
 		var err error
 		inputFiles, err = filepath.Glob("*.fbs")
 		assert.NoErr(t, err)
 	}
 
+	var cGenerator = conf.Generator
+	if cGenerator == nil {
+		cGenerator = &cgenerator.CGenerator{
+			PlainC: !conf.Cmake.IsCpp,
+		}
+	}
+
 	for _, file := range inputFiles {
-		generateCCpp(t, file, conf.Cmake.IsCpp, conf.Cmake.ConfDir)
+		generateCCpp(t, file, conf.Cmake.ConfDir, cGenerator)
 	}
 }
 

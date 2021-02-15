@@ -33,6 +33,7 @@ import (
 type Field struct {
 	ModelProperty *model.Property
 	Name          string
+	Optional      string
 	IsSkipped     bool
 }
 
@@ -170,6 +171,10 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		if err := field.ModelProperty.SetIndex(); err != nil {
 			return err
 		}
+	}
+
+	if a["optional"] != nil {
+		field.Optional = a["optional"].Value
 	}
 
 	return nil

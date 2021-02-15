@@ -90,4 +90,7 @@ var funcMap = template.FuncMap{
 		}
 		return result
 	},
+	"IsOptionalPtr": func(optional string) bool {
+		return optional == "std::unique_ptr" || optional == "std::shared_ptr"
+	},
 }

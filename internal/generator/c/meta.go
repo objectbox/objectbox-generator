@@ -20,6 +20,7 @@
 package cgenerator
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -169,6 +170,35 @@ func (mp *fbsField) CppType() string {
 		cppType = "obx_id" // defined in objectbox.h
 	}
 	return cppType
+}
+
+// CppFbType returns C++ type name used in flatbuffers templated functions
+func (mp *fbsField) CppFbType() string {
+	var cppType = mp.CppType()
+	if cppType == "bool" {
+		cppType = "uint8_t"
+	}
+	return cppType
+}
+
+// CppTypeWithOptional returns full C++ type name, including wrapper if the value is not defined
+func (mp *fbsField) CppTypeWithOptional() (string, error) {
+	var cppType = mp.CppType()
+	if len(mp.Optional) != 0 {
+		if mp.ModelProperty.IsIdProperty() {
+			return "", fmt.Errorf("ID property must not be optional: %s.%s", mp.ModelProperty.Entity.Name, mp.ModelProperty.Name)
+		}
+		cppType = mp.Optional + "<" + cppType + ">"
+	}
+	return cppType, nil
+}
+
+// CppValOp returns field value access operator
+func (mp *fbsField) CppValOp() string {
+	if len(mp.Optional) != 0 {
+		return "->"
+	}
+	return "."
 }
 
 // FbIsVector returns true if the property is considered a vector type.

@@ -43,8 +43,8 @@ func TestCpp(t *testing.T) {
 	defer conf.Cleanup()
 
 	// BEFORE start
-	conf.CreateCMake(t, true, "step-1.cpp")
-	conf.Generate(t, `table EntityName {
+	conf.CreateCMake(t, integration.Cpp11, "step-1.cpp")
+	conf.Generate(t, "schema.fbs", `table EntityName {
 	id:uint64;
 	value:int;
 }`)
@@ -68,8 +68,8 @@ func TestCpp(t *testing.T) {
 	t.Logf("Changing property '%s' %s UID to %d",
 		modelInfo.Entities[0].Properties[1].Name, modelInfo.Entities[0].Properties[1].Id, newUid)
 	assert.NoErr(t, err)
-	conf.CreateCMake(t, true, "step-2.cpp")
-	conf.Generate(t,
+	conf.CreateCMake(t, integration.Cpp11, "step-2.cpp")
+	conf.Generate(t, "schema.fbs",
 		`table EntityName {
 	id:uint64;
 `+"/// objectbox: uid="+strconv.FormatInt(int64(newUid), 10)+`
