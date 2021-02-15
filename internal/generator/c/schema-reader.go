@@ -285,17 +285,24 @@ func parseAnnotations(str string, annotations *map[string]*binding.Annotation, s
 					return fmt.Errorf("invalid annotation details format, closing bracket ')' not found in `%s`", str[i+1:])
 				}
 				s.name = strings.TrimSpace(s.name)
-				if s.name != "relation" {
-					return fmt.Errorf("invalid annotation format: details only supported for `relation` annotations, found `%s`", s.name)
-				}
 				s.value.Details = make(map[string]*binding.Annotation)
-				if err := parseAnnotations(detailsStr, &s.value.Details, map[string]bool{"to": true, "name": true, "uid": true}); err != nil {
+				var supportedDetails map[string]bool
+				if s.name == "relation" {
+					supportedDetails = map[string]bool{"to": true, "name": true, "uid": true}
+				} else if s.name == "sync" {
+					supportedDetails = map[string]bool{"sharedGlobalIds": true}
+				} else {
+					return fmt.Errorf("invalid annotation format: details only supported for `relation` & `sync` annotations, found `%s`", s.name)
+				}
+				if err := parseAnnotations(detailsStr, &s.value.Details, supportedDetails); err != nil {
 					return err
 				}
-				if s.value.Details["name"] == nil {
-					return fmt.Errorf("invalid annotation format: relation name missing in `%s`", str)
+				if s.name == "relation" {
+					if s.value.Details["name"] == nil {
+						return fmt.Errorf("invalid annotation format: relation name missing in `%s`", str)
+					}
+					s.key = fmt.Sprintf("relation-%10d-%s", relationsCount(*annotations), s.value.Details["name"].Value)
 				}
-				s.key = fmt.Sprintf("relation-%10d-%s", relationsCount(*annotations), s.value.Details["name"].Value)
 				if err := s.finishAnnotation(annotations, supportedAnnotations); err != nil {
 					return err
 				}
