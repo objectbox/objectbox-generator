@@ -42,10 +42,27 @@ var CppBindingTemplateHeader = template.Must(template.New("binding-hpp").Funcs(f
 struct {{$entity.Meta.CppName}}_;
 
 {{PrintComments 0 $entity.Comments}}struct {{$entity.Meta.CppName}} {
-    using _OBX_MetaInfo = {{$entity.Meta.CppName}}_;
-	{{range $property := $entity.Properties}}
+	{{- range $property := $entity.Properties}}
 	{{PrintComments 1 $property.Comments}}{{$property.Meta.CppType}} {{$property.Meta.CppName}};
 	{{- end}}
+
+    struct _OBX_MetaInfo {
+		static constexpr obx_schema_id entityId() { return {{$entity.Id.GetId}}; }
+	
+		static void setObjectId({{$entity.Meta.CppName}}& object, obx_id newId) { object.{{$entity.IdProperty.Meta.CppName}} = newId; }
+	
+		/// Write given object to the FlatBufferBuilder
+		static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppName}}& object);
+	
+		/// Read an object from a valid FlatBuffer
+		static {{$entity.Meta.CppName}} fromFlatBuffer(const void* data, size_t size);
+	
+		/// Read an object from a valid FlatBuffer
+		static std::unique_ptr<{{$entity.Meta.CppName}}> newFromFlatBuffer(const void* data, size_t size);
+	
+		/// Read an object from a valid FlatBuffer
+		static void fromFlatBuffer(const void* data, size_t size, {{$entity.Meta.CppName}}& outObject);
+	};
 };
 
 struct {{$entity.Meta.CppName}}_ {
@@ -58,22 +75,6 @@ struct {{$entity.Meta.CppName}}_ {
 {{- range $relation := $entity.Relations}}
 	static const obx::RelationStandalone<{{$entity.Meta.CppName}}, {{$relation.Target.Meta.CppName}}> {{$relation.Meta.CppName}};
 {{- end}}
-
-    static constexpr obx_schema_id entityId() { return {{$entity.Id.GetId}}; }
-
-    static void setObjectId({{$entity.Meta.CppName}}& object, obx_id newId) { object.{{$entity.IdProperty.Meta.CppName}} = newId; }
-
-	/// Write given object to the FlatBufferBuilder
-	static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppName}}& object);
-
-	/// Read an object from a valid FlatBuffer
-	static {{$entity.Meta.CppName}} fromFlatBuffer(const void* data, size_t size);
-
-	/// Read an object from a valid FlatBuffer
-	static std::unique_ptr<{{$entity.Meta.CppName}}> newFromFlatBuffer(const void* data, size_t size);
-
-	/// Read an object from a valid FlatBuffer
-	static void fromFlatBuffer(const void* data, size_t size, {{$entity.Meta.CppName}}& outObject);
 };
 {{with $entity.Meta.CppNamespaceEnd}}{{.}}{{end -}}
 {{end}}

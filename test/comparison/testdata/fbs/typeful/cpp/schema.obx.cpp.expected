@@ -26,7 +26,7 @@ const obx::Property<Typeful, OBXPropertyType_Float> Typeful_::float_(21);
 const obx::Property<Typeful, OBXPropertyType_Double> Typeful_::double_(22);
 const obx::RelationProperty<Typeful, ns::AnnotatedEntity> Typeful_::relId(23);
 
-void Typeful_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& object) {
+void Typeful::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& object) {
     fbb.Clear();
     auto offsetstring = fbb.CreateString(object.string);
     auto offsetstringvector = fbb.CreateVectorOfStrings(object.stringvector);
@@ -61,19 +61,19 @@ void Typeful_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& 
     fbb.Finish(offset);
 }
 
-Typeful Typeful_::fromFlatBuffer(const void* data, size_t size) {
+Typeful Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
     Typeful object;
     fromFlatBuffer(data, size, object);
     return object;
 }
 
-std::unique_ptr<Typeful> Typeful_::newFromFlatBuffer(const void* data, size_t size) {
+std::unique_ptr<Typeful> Typeful::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
     auto object = std::unique_ptr<Typeful>(new Typeful());
     fromFlatBuffer(data, size, *object);
     return object;
 }
 
-void Typeful_::fromFlatBuffer(const void* data, size_t, Typeful& outObject) {
+void Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, Typeful& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.id = table->GetField<obx_id>(4, 0);
@@ -132,7 +132,7 @@ const obx::Property<ns::Annotated, OBXPropertyType_Int> ns::Annotated_::uid(9);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::typefuls(1);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::m2m(2);
 
-void ns::Annotated_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::Annotated& object) {
+void ns::Annotated::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::Annotated& object) {
     fbb.Clear();
     auto offsetfullName = fbb.CreateString(object.fullName);
     auto offsetunique = fbb.CreateString(object.unique);
@@ -154,19 +154,19 @@ void ns::Annotated_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns:
     fbb.Finish(offset);
 }
 
-ns::Annotated ns::Annotated_::fromFlatBuffer(const void* data, size_t size) {
+ns::Annotated ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
     ns::Annotated object;
     fromFlatBuffer(data, size, object);
     return object;
 }
 
-std::unique_ptr<ns::Annotated> ns::Annotated_::newFromFlatBuffer(const void* data, size_t size) {
+std::unique_ptr<ns::Annotated> ns::Annotated::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
     auto object = std::unique_ptr<ns::Annotated>(new ns::Annotated());
     fromFlatBuffer(data, size, *object);
     return object;
 }
 
-void ns::Annotated_::fromFlatBuffer(const void* data, size_t, ns::Annotated& outObject) {
+void ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::Annotated& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.identifier = table->GetField<obx_id>(4, 0);
@@ -199,7 +199,7 @@ void ns::Annotated_::fromFlatBuffer(const void* data, size_t, ns::Annotated& out
 const obx::Property<ns::TSDate, OBXPropertyType_Long> ns::TSDate_::id(1);
 const obx::Property<ns::TSDate, OBXPropertyType_Date> ns::TSDate_::timestamp(2);
 
-void ns::TSDate_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TSDate& object) {
+void ns::TSDate::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TSDate& object) {
     fbb.Clear();
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
     fbb.TrackField(4, fbb.PushElement<obx_id>(object.id));
@@ -209,19 +209,19 @@ void ns::TSDate_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TS
     fbb.Finish(offset);
 }
 
-ns::TSDate ns::TSDate_::fromFlatBuffer(const void* data, size_t size) {
+ns::TSDate ns::TSDate::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
     ns::TSDate object;
     fromFlatBuffer(data, size, object);
     return object;
 }
 
-std::unique_ptr<ns::TSDate> ns::TSDate_::newFromFlatBuffer(const void* data, size_t size) {
+std::unique_ptr<ns::TSDate> ns::TSDate::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
     auto object = std::unique_ptr<ns::TSDate>(new ns::TSDate());
     fromFlatBuffer(data, size, *object);
     return object;
 }
 
-void ns::TSDate_::fromFlatBuffer(const void* data, size_t, ns::TSDate& outObject) {
+void ns::TSDate::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::TSDate& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.id = table->GetField<obx_id>(4, 0);
@@ -232,7 +232,7 @@ void ns::TSDate_::fromFlatBuffer(const void* data, size_t, ns::TSDate& outObject
 const obx::Property<ns::TSDateNano, OBXPropertyType_Long> ns::TSDateNano_::id(1);
 const obx::Property<ns::TSDateNano, OBXPropertyType_DateNano> ns::TSDateNano_::timestamp(2);
 
-void ns::TSDateNano_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TSDateNano& object) {
+void ns::TSDateNano::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::TSDateNano& object) {
     fbb.Clear();
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
     fbb.TrackField(4, fbb.PushElement<obx_id>(object.id));
@@ -242,19 +242,19 @@ void ns::TSDateNano_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns
     fbb.Finish(offset);
 }
 
-ns::TSDateNano ns::TSDateNano_::fromFlatBuffer(const void* data, size_t size) {
+ns::TSDateNano ns::TSDateNano::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
     ns::TSDateNano object;
     fromFlatBuffer(data, size, object);
     return object;
 }
 
-std::unique_ptr<ns::TSDateNano> ns::TSDateNano_::newFromFlatBuffer(const void* data, size_t size) {
+std::unique_ptr<ns::TSDateNano> ns::TSDateNano::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
     auto object = std::unique_ptr<ns::TSDateNano>(new ns::TSDateNano());
     fromFlatBuffer(data, size, *object);
     return object;
 }
 
-void ns::TSDateNano_::fromFlatBuffer(const void* data, size_t, ns::TSDateNano& outObject) {
+void ns::TSDateNano::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::TSDateNano& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.id = table->GetField<obx_id>(4, 0);

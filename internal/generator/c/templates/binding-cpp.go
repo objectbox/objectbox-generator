@@ -39,7 +39,7 @@ const
 const obx::RelationStandalone<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, {{$relation.Target.Meta.CppNamespacePrefix}}{{$relation.Target.Meta.CppName}}> {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::{{$relation.Meta.CppName}}({{$relation.Id.GetId}});
 {{- end}}
 
-void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& object) {
+void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& object) {
 	fbb.Clear();
 	{{- range $property := $entity.Properties}}{{$factory := $property.Meta.FbOffsetFactory}}{{if $factory}}
 	auto offset{{$property.Meta.CppName}} = fbb.{{$factory}}(object.{{$property.Meta.CppName}});
@@ -56,19 +56,19 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::toFlatBuffer(
 	fbb.Finish(offset);
 }
 
-{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}} {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::fromFlatBuffer(const void* data, size_t size) {
+{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}} {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
 	{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}} object;
 	fromFlatBuffer(data, size, object);
 	return object;
 }
 
-std::unique_ptr<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}> {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::newFromFlatBuffer(const void* data, size_t size) {
+std::unique_ptr<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}> {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
 	auto object = std::unique_ptr<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}>(new {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}());
 	fromFlatBuffer(data, size, *object);
 	return object;
 }
 
-void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::fromFlatBuffer(const void* data, size_t, {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& outObject) {
+void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& outObject) {
 	const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
 	assert(table);
 	{{range $property := $entity.Properties}}
