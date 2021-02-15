@@ -29,6 +29,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"text/template"
 )
 
@@ -164,9 +165,13 @@ func (cmake *Cmake) Configure() ([]byte, []byte, error) {
 	}
 }
 
-// Configure runs cmake build step.
+// Build runs cmake build step.
 func (cmake *Cmake) Build() ([]byte, []byte, error) {
-	return cmakeExec(cmake.ConfDir, "--build", cmake.BuildDir)
+	return cmakeExec(cmake.ConfDir,
+		"--build", cmake.BuildDir,
+		"--target", cmake.Name,
+		"--",
+		"-j"+strconv.FormatInt(int64(runtime.NumCPU()/2), 10))
 }
 
 func cmakeExec(cwd string, args ...string) (stdOut []byte, stdErr []byte, err error) {
