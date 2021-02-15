@@ -53,10 +53,19 @@ type command struct {
 func (cmd command) ShowUsage() {
 	fmt.Fprint(flag.CommandLine.Output(), `Usage:
   objectbox-generator [flags] {path}
-      to generate the binding code for
-        * a single file (if path is a single file)
-        * a directory, non-recursive (if path is a directory), "clean" is performed first
-        * a glob path/path pattern (e.g. ./...), "clean" is performed first
+      * to execute "clean" action (see below) on the path, removing previously generated code and missing entities,
+      * and execute code generation on the path afterwards.
+
+      The given {path} can be one of the following:
+        * a directory - a non-recursive clean and generation is performed on the given directory,
+        * a glob path pattern (e.g. contains a "*") - performs clean and generation on the matching paths,
+        * a Go-style path pattern (e.g. "./..." - a recursive match of the current dir) - performs clean and generation on the matching paths,
+
+
+or
+  objectbox-generator [flags] {model/file/path.fbs}
+      to generate the binding code for a single file
+
 
 or
   objectbox-generator [flags] clean {path}
