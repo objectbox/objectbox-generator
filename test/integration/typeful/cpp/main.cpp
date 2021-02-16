@@ -64,3 +64,27 @@ TEST_CASE("CRUD", "") {
     REQUIRE(box.count() == 0);
     REQUIRE(box.isEmpty());
 }
+
+TEST_CASE("Self assigned IDs", "") {
+    Store store = testStore(true,  "c-cpp-tests-db");
+    auto box = store.box<Annotated>();
+
+    REQUIRE(box.isEmpty());
+
+	// can't use brace initializer here on some older compilers ¯\_(ツ)_/¯
+	Annotated item;
+	item.time = 11;
+    REQUIRE(box.put(item) == 1);
+
+    item.identifier = 25;
+    item.time = 99;
+    REQUIRE(box.put(item) == 25);
+
+    std::unique_ptr<Annotated> read = box.get(1);
+    REQUIRE(read != nullptr);
+    REQUIRE(read->time == 11);
+
+    read = box.get(25);
+    REQUIRE(read != nullptr);
+    REQUIRE(read->time == 99);
+}

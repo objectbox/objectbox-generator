@@ -73,6 +73,11 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 
 	if a["id"] != nil {
 		field.ModelProperty.AddFlag(model.PropertyFlagId)
+		if hasDetail, err := HasBooleanDetail(a, "id", "assignable"); err != nil {
+			return err
+		} else if hasDetail {
+			field.ModelProperty.AddFlag(model.PropertyFlagIdSelfAssignable)
+		}
 	}
 
 	if a["name"] != nil {

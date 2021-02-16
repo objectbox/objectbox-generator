@@ -62,7 +62,7 @@ static inline OBX_model* create_obx_model() {
     obx_model_entity(model, "AnnotatedEntity", 2, 2259404117704393152);
     obx_model_entity_flags(model, OBXEntityFlags_SYNC_ENABLED);
     obx_model_property(model, "identifier", OBXPropertyType_Long, 1, 6303220950515014660);
-    obx_model_property_flags(model, OBXPropertyFlags_ID);
+    obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_ID | OBXPropertyFlags_ID_SELF_ASSIGNABLE));
     obx_model_property(model, "name", OBXPropertyType_String, 2, 4035568504096476779);
     obx_model_property_flags(model, OBXPropertyFlags_INDEX_HASH);
     obx_model_property_index_id(model, 2, 959367522974354090);

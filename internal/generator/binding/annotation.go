@@ -32,6 +32,25 @@ type Annotation struct {
 	Details map[string]*Annotation
 }
 
+// HasDetail checks if the annotation has a "Detail" with the given name.
+func (a Annotation) HasDetail(name string) bool {
+	return a.Details != nil && a.Details[name] != nil
+}
+
+// HasBooleanDetail checks an annotation in the given map if it has a "Detail" with an empty value.
+func HasBooleanDetail(annotations map[string]*Annotation, parentAnnotation, name string) (bool, error) {
+	if annotations[parentAnnotation] != nil {
+		a := annotations[parentAnnotation]
+		if a.HasDetail(name) {
+			if len(a.Details[name].Value) != 0 {
+				return true, fmt.Errorf("'%s' annotation's '%s' attribute value must be empty", parentAnnotation, name)
+			}
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // ParseAnnotations parses annotations in any of the following formats.
 // name="name",index - creates two annotations, name and index, the former having a non-empty value
 // relation(name=manyToManyRelName,to=TargetEntity) - creates a single annotation relation with two items as details
@@ -70,6 +89,8 @@ func ParseAnnotations(str string, annotations *map[string]*Annotation, supported
 					supportedDetails = map[string]bool{"to": true, "name": true, "uid": true}
 				} else if s.name == "sync" {
 					supportedDetails = map[string]bool{"sharedglobalids": true}
+				} else if s.name == "id" {
+					supportedDetails = map[string]bool{"assignable": true}
 				} else {
 					return fmt.Errorf("invalid annotation format: details only supported for `relation` & `sync` annotations, found `%s`", s.name)
 				}
