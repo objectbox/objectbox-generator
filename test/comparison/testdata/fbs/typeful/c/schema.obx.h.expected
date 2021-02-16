@@ -18,8 +18,7 @@ static obx_id schema_obx_h_put_object(OBX_box* box, void* object,
 static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t));
 
 /// Internal function used in other generated functions to get a vTable offset for a given field.
-static flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt,
-                                                  size_t field);
+static flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt, size_t field);
 
 
 /// Entity documentation is copied
@@ -385,7 +384,12 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
     const flatbuffers_uoffset_t* val;
     size_t len;
 
-    *out_object = (Typeful) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+    // reset so that dangling pointers are freed properly on malloc() failures
+#ifdef __cplusplus
+    *out_object = {};
+#else
+    *out_object = (Typeful){0};
+#endif
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
         out_object->id = flatbuffers_uint64_read_from_pe(table + offset);
     }
@@ -672,7 +676,12 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     const flatbuffers_uoffset_t* val;
     size_t len;
 
-    *out_object = (ns_Annotated) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+    // reset so that dangling pointers are freed properly on malloc() failures
+#ifdef __cplusplus
+    *out_object = {};
+#else
+    *out_object = (ns_Annotated){0};
+#endif
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
         out_object->identifier = flatbuffers_uint64_read_from_pe(table + offset);
     }
@@ -865,7 +874,12 @@ static bool ns_TSDate_from_flatbuffer(const void* data, size_t size, ns_TSDate* 
     const flatbuffers_uoffset_t* val;
     size_t len;
 
-    *out_object = (ns_TSDate) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+    // reset so that dangling pointers are freed properly on malloc() failures
+#ifdef __cplusplus
+    *out_object = {};
+#else
+    *out_object = (ns_TSDate){0};
+#endif
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
         out_object->id = flatbuffers_uint64_read_from_pe(table + offset);
     }
@@ -967,7 +981,12 @@ static bool ns_TSDateNano_from_flatbuffer(const void* data, size_t size, ns_TSDa
     const flatbuffers_uoffset_t* val;
     size_t len;
 
-    *out_object = (ns_TSDateNano) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+    // reset so that dangling pointers are freed properly on malloc() failures
+#ifdef __cplusplus
+    *out_object = {};
+#else
+    *out_object = (ns_TSDateNano){0};
+#endif
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
         out_object->id = flatbuffers_uint64_read_from_pe(table + offset);
     }
@@ -1062,7 +1081,6 @@ static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatb
     return result;
 }
 
-static flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, 
-                                                  const flatbuffers_voffset_t* vt, size_t field) {
+static flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt, size_t field) {
     return (vs < sizeof(vt[0]) * (field + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + field + 2);
 }

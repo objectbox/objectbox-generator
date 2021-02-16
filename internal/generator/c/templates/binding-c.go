@@ -151,7 +151,12 @@ static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size
 	const flatbuffers_uoffset_t* val;
 	size_t len;
 
-	*out_object = ({{$entity.Meta.CName}}) {0}; // reset so that dangling pointers are freed properly on malloc() failures
+	// reset so that dangling pointers are freed properly on malloc() failures
+#ifdef __cplusplus
+	*out_object = {};
+#else
+	*out_object = ({{$entity.Meta.CName}}){0};{{/* Only works in C99, fails to compile on MSVC in a C++ project*/}}
+#endif
 	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type -}}
 	if ((offset = {{$.FileIdentifier}}_fb_field_offset(vs, vt, {{$property.FbSlot}}))) {
 	{{- if $property.Meta.FbIsVector}}
