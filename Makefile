@@ -14,7 +14,7 @@ build:			## Build all targets
 	CGO_ENABLED=1 go build ./cmd/objectbox-generator/
 
 test: 			## Test all targets
-	go test ./...
+	go test -timeout 1h ./...
 
 clean:			## Clean previous builds
 	go clean -cache ./..
