@@ -27,7 +27,6 @@ import (
 	"log"
 	"path"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -673,35 +672,7 @@ func parseAnnotations(tags string, annotations *map[string]*binding.Annotation, 
 		return nil
 	}
 
-	// tags are space or comma separated
-	for _, tag := range regexp.MustCompile("[ ,]+").Split(tags, -1) {
-		if len(tag) > 0 {
-			var name string
-			var value = &binding.Annotation{}
-
-			// if it contains a colon, it's a key:value pair
-			if i := strings.IndexRune(tag, ':'); i >= 0 {
-				name = tag[0:i]
-				value.Value = tag[i+1:]
-			} else {
-				// otherwise there's no value
-				name = tag
-			}
-
-			// names are case insensitive
-			name = strings.ToLower(name)
-
-			if (*annotations)[name] != nil {
-				return fmt.Errorf("duplicate annotation %s", name)
-			} else if !supportedAnnotations[name] {
-				return fmt.Errorf("unknown annotation %s", name)
-			} else {
-				(*annotations)[name] = value
-			}
-		}
-	}
-
-	return nil
+	return binding.ParseAnnotations(tags, annotations, supportedAnnotations)
 }
 
 func (property *Property) setBasicType(baseType string) error {
