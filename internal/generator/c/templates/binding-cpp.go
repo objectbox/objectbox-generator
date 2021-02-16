@@ -83,7 +83,7 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo:
 			{{- if $property.Meta.Optional}}
 			outObject.{{$property.Meta.CppName}}{{if IsOptionalPtr $property.Meta.Optional}}.reset(new {{$property.Meta.CppType}}({{else}} = {{$property.Meta.CppType}}(){{end}}{{template "field-value-assign-post" $property.Meta}};{{end}}
 			outObject.{{$property.Meta.CppName}}{{$property.Meta.CppValOp}}reserve(ptr->size());
-			for (size_t i = 0; i < ptr->size(); i++) {
+			for (flatbuffers::uoffset_t i = 0; i < ptr->size(); i++) {
 				auto* itemPtr = ptr->Get(i);
 				if (itemPtr) outObject.{{$property.Meta.CppName}}{{$property.Meta.CppValOp}}emplace_back(itemPtr->c_str());
 			}

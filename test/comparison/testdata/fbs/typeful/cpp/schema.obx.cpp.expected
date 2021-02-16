@@ -96,7 +96,7 @@ void Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, Typeful& o
         auto* ptr = table->GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*>(30);
         if (ptr) {
             outObject.stringvector.reserve(ptr->size());
-            for (size_t i = 0; i < ptr->size(); i++) {
+            for (flatbuffers::uoffset_t i = 0; i < ptr->size(); i++) {
                 auto* itemPtr = ptr->Get(i);
                 if (itemPtr) outObject.stringvector.emplace_back(itemPtr->c_str());
             }
