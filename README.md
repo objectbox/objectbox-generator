@@ -5,7 +5,7 @@
 
 # ObjectBox Generator
 
-Current version: 0.11.0
+Current version: 0.12.0
 
 ObjectBox is a superfast cross-platform object-oriented database.
 ObjectBox Generator produces binding code for ObjectBox C, C++ and Go APIs (more languages to be supported in the future).
@@ -14,7 +14,7 @@ This greatly simplifies using ObjectBox in your favourite language.
 ## Prerequisites/Installation
 
 Install the objectbox-generator by downloading the latest binary for your OS from [releases](https://github.com/objectbox/objectbox-generator/releases/latest).
-If you want, add it to $PATH for convenience.
+If you want, add it to `$PATH` for convenience.
 Alternatively, instead of downloading, you can build the generator yourself by cloning this repo and running `make`.
 To build yourself, you need a recent Go version, CMake and a C++11 tool chain.
 

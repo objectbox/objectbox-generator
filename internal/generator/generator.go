@@ -34,11 +34,11 @@ import (
 )
 
 // Version specifies the current generator version.
-const Version = "0.11.0"
+const Version = "0.12.0"
 
 // VersionId specifies the current generator version identifier.
 // It is used to validate generated code compatibility and is increased when there are changes in the generated code.
-// Internal generator changes that don't change the output do not cause an increase.
+// Internal generator changes that don't change the output (in an incompatible way) do not cause an increase.
 const VersionId = 5
 
 // ModelInfoFile returns the model info JSON file name in the given directory
