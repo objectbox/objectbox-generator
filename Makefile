@@ -13,6 +13,9 @@ all: depend build
 build:			## Build all targets
 	CGO_ENABLED=1 go build ./cmd/objectbox-generator/
 
+reinstall: build		## Update installed objectbox-generator
+	mv objectbox-generator "$(shell which objectbox-generator)"
+
 test: 			## Test all targets
 	go test -timeout 1h ./...
 
