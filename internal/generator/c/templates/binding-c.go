@@ -37,17 +37,15 @@ var CBindingTemplate = template.Must(template.New("binding-c").Funcs(funcMap).Pa
 #include "flatcc/flatcc_builder.h"
 #include "objectbox.h"
 
-/// Internal function used in other generated functions to put (write) explicitly typed objects 
+/// Internal function used in other generated functions to put (write) explicitly typed objects.
 static obx_id {{.FileIdentifier}}_put_object(OBX_box* box, void* object,
                              bool (*to_flatbuffer)(flatcc_builder_t*, const void*, void**, size_t*), OBXPutMode mode);
 
-/// Internal function used in other generated functions to get (read) explicitly typed objects
+/// Internal function used in other generated functions to get (read) explicitly typed objects.
 static void* {{.FileIdentifier}}_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t));
 
-flatbuffers_voffset_t {{.FileIdentifier}}_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt,
-                                                  size_t field) {
-    return (vs < sizeof(vt[0]) * (field + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + field + 2);
-}
+/// Internal function used in other generated functions to get a vTable offset for a given field.
+static flatbuffers_voffset_t {{.FileIdentifier}}_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt, size_t field);
 
 {{range $entity := .Model.EntitiesWithMeta}}
 {{PrintComments 0 $entity.Comments}}typedef struct {{$entity.Meta.CName}} {
@@ -302,5 +300,9 @@ static void* {{.FileIdentifier}}_get_object(OBX_box* box, obx_id id, void* (*fro
 
     obx_txn_close(tx);
     return result;
+}
+
+static flatbuffers_voffset_t {{.FileIdentifier}}_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt, size_t field) {
+    return (vs < sizeof(vt[0]) * (field + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + field + 2);
 }
 `))

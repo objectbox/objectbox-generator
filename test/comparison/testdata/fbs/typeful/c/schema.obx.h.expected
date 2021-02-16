@@ -10,17 +10,16 @@
 #include "flatcc/flatcc_builder.h"
 #include "objectbox.h"
 
-/// Internal function used in other generated functions to put (write) explicitly typed objects 
+/// Internal function used in other generated functions to put (write) explicitly typed objects.
 static obx_id schema_obx_h_put_object(OBX_box* box, void* object,
                              bool (*to_flatbuffer)(flatcc_builder_t*, const void*, void**, size_t*), OBXPutMode mode);
 
-/// Internal function used in other generated functions to get (read) explicitly typed objects
+/// Internal function used in other generated functions to get (read) explicitly typed objects.
 static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatbuffer)(const void*, size_t));
 
-flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt,
-                                                  size_t field) {
-    return (vs < sizeof(vt[0]) * (field + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + field + 2);
-}
+/// Internal function used in other generated functions to get a vTable offset for a given field.
+static flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt,
+                                                  size_t field);
 
 
 /// Entity documentation is copied
@@ -1061,4 +1060,9 @@ static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatb
 
     obx_txn_close(tx);
     return result;
+}
+
+static flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, 
+                                                  const flatbuffers_voffset_t* vt, size_t field) {
+    return (vs < sizeof(vt[0]) * (field + 3)) ? 0 : __flatbuffers_voffset_read_from_pe(vt + field + 2);
 }
