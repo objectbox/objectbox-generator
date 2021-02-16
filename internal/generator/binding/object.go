@@ -81,8 +81,8 @@ func (object *Object) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 		object.ModelEntity.AddFlag(model.EntityFlagSyncEnabled)
 
-		if a["sync"].Details != nil && a["sync"].Details["sharedGlobalIds"] != nil {
-			if len(a["sync"].Details["sharedGlobalIds"].Value) != 0 {
+		if a["sync"].Details != nil && a["sync"].Details["sharedglobalids"] != nil {
+			if len(a["sync"].Details["sharedglobalids"].Value) != 0 {
 				return fmt.Errorf("sync annotation's sharedGlobalIds attribute value must be empty")
 			}
 			object.ModelEntity.AddFlag(model.EntityFlagSharedGlobalIds)

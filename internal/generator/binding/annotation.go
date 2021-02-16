@@ -43,7 +43,7 @@ func ParseAnnotations(str string, annotations *map[string]*Annotation, supported
 	for i := 0; i < len(str); i++ {
 		var char = str[i]
 
-		if (char == '=' || char == '(') && !s.valueQuoted { // start a value
+		if !s.valueQuoted && (char == '=' || char == ':' || char == '(') { // start a value
 			if len(s.name) == 0 {
 				return fmt.Errorf("invalid annotation format: name expected before '%s' at position %d in `%s` ", string(char), i, str)
 			}
@@ -63,13 +63,13 @@ func ParseAnnotations(str string, annotations *map[string]*Annotation, supported
 				if len(detailsStr) == 0 {
 					return fmt.Errorf("invalid annotation details format, closing bracket ')' not found in `%s`", str[i+1:])
 				}
-				s.name = strings.TrimSpace(s.name)
+				s.name = strings.ToLower(strings.TrimSpace(s.name))
 				s.value.Details = make(map[string]*Annotation)
 				var supportedDetails map[string]bool
 				if s.name == "relation" {
 					supportedDetails = map[string]bool{"to": true, "name": true, "uid": true}
 				} else if s.name == "sync" {
-					supportedDetails = map[string]bool{"sharedGlobalIds": true}
+					supportedDetails = map[string]bool{"sharedglobalids": true}
 				} else {
 					return fmt.Errorf("invalid annotation format: details only supported for `relation` & `sync` annotations, found `%s`", s.name)
 				}
@@ -86,9 +86,23 @@ func ParseAnnotations(str string, annotations *map[string]*Annotation, supported
 					return err
 				}
 				s = annotationInProgress{} // reset
+			} else if j := skipSpacesUntil(str, i+1, func(c uint8) bool {
+				return c != ' '
+			}); j != i {
+				i = j - 1 // continue processing on the next non-space character
 			}
 
-		} else if char == ',' && !s.valueQuoted { // finish an annotation
+		} else if !s.valueQuoted && (char == ',' || char == ' ') { // finish an annotation on a separator
+			// A space may also be used before an equal sign, which means this isn't an annotation separator after all.
+			if char == ' ' {
+				// look ahead for a next character; if it's an equal sign, continue reading the same annotation
+				if j := skipSpacesUntil(str, i, func(c uint8) bool {
+					return c == '='
+				}); j != i {
+					i = j - 1 // continue processing on the equal sign
+					continue
+				}
+			}
 			if err := s.finishAnnotation(annotations, supportedAnnotations); err != nil {
 				return err
 			}
@@ -122,8 +136,22 @@ type annotationInProgress struct {
 	valueFinished bool
 }
 
+// Skips spaces until encountering an equal sign, returning the position of the equal sign if found, or the input `i` otherwise.
+func skipSpacesUntil(str string, i int, fn func(uint8) bool) int {
+	for j := i; j < len(str); j++ {
+		if str[j] == ' ' {
+			continue
+		} else if fn(str[j]) {
+			return j
+		} else {
+			break
+		}
+	}
+	return i
+}
+
 func (s *annotationInProgress) finishAnnotation(annotations *map[string]*Annotation, supportedAnnotations map[string]bool) error {
-	s.name = strings.TrimSpace(s.name)
+	s.name = strings.ToLower(strings.TrimSpace(s.name))
 	if len(s.name) == 0 {
 		return nil
 	}
