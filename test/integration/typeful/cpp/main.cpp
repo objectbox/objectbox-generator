@@ -72,7 +72,8 @@ TEST_CASE("Self assigned IDs", "") {
     REQUIRE(box.isEmpty());
 
 	// can't use brace initializer here on some older compilers ¯\_(ツ)_/¯
-	Annotated item;
+	Annotated item{};
+    item.identifier = 0;
 	item.time = 11;
     REQUIRE(box.put(item) == 1);
 
