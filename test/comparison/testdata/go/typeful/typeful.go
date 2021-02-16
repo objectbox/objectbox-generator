@@ -4,7 +4,7 @@ import "time"
 
 // Tests all available GO & ObjectBox types
 type Typeful struct {
-	Id           uint64 `objectbox:"id"` // NOTE ID is currently required
+	Id           uint64 `objectbox:"id(assignable)"` // NOTE ID is currently required
 	Int          int
 	Int8         int8
 	Int16        int16

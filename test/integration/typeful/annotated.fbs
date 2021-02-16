@@ -2,7 +2,7 @@
 table Annotated {
 	/// Objectbox requires an ID property.
 	/// It is recognized automatically if it has a right name ("id") or needs to be annotated otherwise.
-	/// objectbox:id
+	/// objectbox:id(assignable)
 	identifier:ulong;
 
 	/// objectbox:name="name",index
