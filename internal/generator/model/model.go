@@ -309,25 +309,19 @@ func (model *ModelInfo) RemoveEntity(entity *Entity) error {
 }
 
 // GenerateUid generates a unique UID
-func (model *ModelInfo) GenerateUid() (result Uid, err error) {
+func (model *ModelInfo) GenerateUid() (Uid, error) {
 	if model.Rand == nil {
 		return 0, errors.New("modelInfo.Rand not initialized")
 	}
 
-	result = 0
 	for i := 0; i < 1000; i++ {
-		t := Uid(model.Rand.Int63())
-		if !model.containsUid(t) {
-			result = t
-			break
+		candidate := Uid(model.Rand.Int63())
+		if candidate != 0 && !model.containsUid(candidate) {
+			return candidate, nil
 		}
 	}
 
-	if result == 0 {
-		err = fmt.Errorf("internal error = could not generate a unique UID")
-	}
-
-	return result, err
+	return Uid(0), errors.New("internal error = could not generate a unique UID")
 }
 
 // EntitiesWithMeta returns all entities with .Meta != nil - which usually means they're the ones processed in
