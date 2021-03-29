@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cVersion=0.12.0
+cVersion=0.13.0
 
 scriptDir=$(dirname "${BASH_SOURCE[0]}")
 
@@ -15,8 +15,8 @@ export installLibrary=false
 bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/main/download.sh) --quiet ${cVersion}
 
 echo "******** Collecting artifacts ********"
-cp -rfv download/testing/*objectbox*/include ./
-cp -rfv download/testing/*objectbox*/lib ./
+cp -rfv download/*objectbox*/include ./
+cp -rfv download/*objectbox*/lib ./
 rm -rfv download
 
 echo "Downloaded ObjectBox-C headers and library:"
