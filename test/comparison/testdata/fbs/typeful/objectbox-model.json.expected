@@ -131,7 +131,7 @@
           "name": "relId",
           "indexId": "1:2627038740284806767",
           "type": 11,
-          "flags": 8712,
+          "flags": 520,
           "relationTarget": "AnnotatedEntity"
         }
       ]
@@ -165,7 +165,7 @@
           "name": "relId",
           "indexId": "3:6745438398739480977",
           "type": 11,
-          "flags": 8712,
+          "flags": 520,
           "relationTarget": "Typeful"
         },
         {

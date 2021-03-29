@@ -59,7 +59,7 @@ func (taskRelEmbedded_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Property("Id", 6, 1, 7373105480197164748)
 	model.PropertyFlags(1)
 	model.Property("Group", 11, 2, 3287288577352441706)
-	model.PropertyFlags(8712)
+	model.PropertyFlags(520)
 	model.PropertyRelation("Group", 4, 3930927879439176946)
 	model.EntityLastPropertyId(2, 3287288577352441706)
 	model.Relation(1, 4706154865122290029, GroupBinding.Id, GroupBinding.Uid)

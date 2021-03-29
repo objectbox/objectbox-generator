@@ -80,11 +80,13 @@ func (property *Property) Validate() error {
 }
 
 func (property *Property) finalize() error {
-	if property.IsIdProperty() {
-		// IDs must not be tagged unsigned for compatibility reasons
+	if property.Type == PropertyTypeRelation || property.IsIdProperty() {
+		// IDs must not be tagged unsigned for model compatibility (across language bindings)
 		property.Flags = property.Flags & ^PropertyFlagUnsigned
+	}
 
-		// always stored as Long
+	if property.IsIdProperty() {
+		// always stored IDs as Long, regardless of their type in the code/declaration
 		property.Type = PropertyTypeLong
 	}
 

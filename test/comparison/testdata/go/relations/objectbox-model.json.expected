@@ -55,7 +55,7 @@
           "name": "Group",
           "indexId": "1:1543572285742637646",
           "type": 11,
-          "flags": 8712,
+          "flags": 520,
           "relationTarget": "Group"
         }
       ]
@@ -76,7 +76,7 @@
           "name": "Group",
           "indexId": "2:2518412263346885298",
           "type": 11,
-          "flags": 8712,
+          "flags": 520,
           "relationTarget": "Group"
         }
       ]
@@ -97,7 +97,7 @@
           "name": "Group",
           "indexId": "3:161231572858529631",
           "type": 11,
-          "flags": 8712,
+          "flags": 520,
           "relationTarget": "Group"
         }
       ]
@@ -118,7 +118,7 @@
           "name": "Group",
           "indexId": "4:3930927879439176946",
           "type": 11,
-          "flags": 8712,
+          "flags": 520,
           "relationTarget": "Group"
         }
       ],

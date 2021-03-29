@@ -20,7 +20,7 @@
           "name": "PropertyRel",
           "indexId": "1:3390393562759376202",
           "type": 11,
-          "flags": 8712,
+          "flags": 520,
           "relationTarget": "SyncedRelTarget"
         }
       ],
