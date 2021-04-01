@@ -190,7 +190,7 @@ var Typeful_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (typeful_EntityInfo) GeneratorVersion() int {
-	return 5
+	return 6
 }
 
 // AddToModel is called by ObjectBox during model build
@@ -636,7 +636,7 @@ var TSDate_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (tSDate_EntityInfo) GeneratorVersion() int {
-	return 5
+	return 6
 }
 
 // AddToModel is called by ObjectBox during model build
@@ -963,7 +963,7 @@ var TSDateNano_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (tSDateNano_EntityInfo) GeneratorVersion() int {
-	return 5
+	return 6
 }
 
 // AddToModel is called by ObjectBox during model build

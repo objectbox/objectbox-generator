@@ -50,7 +50,7 @@ var SyncedEntity_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (syncedEntity_EntityInfo) GeneratorVersion() int {
-	return 5
+	return 6
 }
 
 // AddToModel is called by ObjectBox during model build
@@ -419,7 +419,7 @@ var SyncedRelTarget_ = struct {
 
 // GeneratorVersion is called by ObjectBox to verify the compatibility of the generator used to generate this code
 func (syncedRelTarget_EntityInfo) GeneratorVersion() int {
-	return 5
+	return 6
 }
 
 // AddToModel is called by ObjectBox during model build
