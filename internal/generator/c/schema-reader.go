@@ -31,25 +31,25 @@ import (
 )
 
 var supportedEntityAnnotations = map[string]bool{
-	"transient": true,
 	"name":      true,
-	"uid":       true,
 	"relation":  true, // to-many, standalone
 	"sync":      true,
+	"transient": true,
+	"uid":       true,
 }
 
 var supportedPropertyAnnotations = map[string]bool{
-	"transient":    true,
 	"date":         true,
 	"date-nano":    true,
 	"id":           true,
+	"id-companion": true,
 	"index":        true,
-	"relation":     true, // to-one
 	"name":         true,
+	"optional":     true,
+	"relation":     true, // to-one
+	"transient":    true,
 	"uid":          true,
 	"unique":       true,
-	"id-companion": true,
-	"optional":     true,
 }
 
 // fbSchemaReader reads FlatBuffers schema and populates a model

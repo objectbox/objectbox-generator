@@ -38,10 +38,10 @@ type uid = uint64
 type id = uint32
 
 var supportedEntityAnnotations = map[string]bool{
-	"transient": true,
 	"name":      false, // TODO
-	"uid":       true,
 	"sync":      true,
+	"transient": true,
+	"uid":       true,
 }
 
 var supportedPropertyAnnotations = map[string]bool{
