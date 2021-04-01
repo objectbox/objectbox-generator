@@ -15,8 +15,10 @@ func ObjectBoxModel() *objectbox.Model {
 	model.RegisterBinding(AliasesBinding)
 	model.RegisterBinding(NillableBinding)
 	model.RegisterBinding(TypefulBinding)
-	model.LastEntityId(3, 959367522974354090)
-	model.LastIndexId(2, 8902041070398994519)
+	model.RegisterBinding(TSDateBinding)
+	model.RegisterBinding(TSDateNanoBinding)
+	model.LastEntityId(5, 1395437218309923052)
+	model.LastIndexId(3, 406703151708498928)
 
 	return model
 }

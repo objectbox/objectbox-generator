@@ -26,4 +26,15 @@ type Typeful struct {
 	Date         int64     `objectbox:"date index"`
 	Time         time.Time `objectbox:"date,index"`
 	Time2        time.Time // prints a warning, otherwise the same as with an annotation
+	TimeNano     time.Time `objectbox:"date-nano,index"`
+}
+
+type TSDate struct {
+	Id        uint64
+	timestamp int64 `objectbox:"id-companion,date"`
+}
+
+type TSDateNano struct {
+	Id        uint64
+	timestamp int64 `objectbox:"id-companion,date-nano"`
 }

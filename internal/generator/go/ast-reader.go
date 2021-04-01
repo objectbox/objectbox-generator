@@ -45,18 +45,20 @@ var supportedEntityAnnotations = map[string]bool{
 }
 
 var supportedPropertyAnnotations = map[string]bool{
-	"-":         true,
-	"converter": true,
-	"date":      true,
-	"id":        true,
-	"index":     true,
-	"inline":    true,
-	"lazy":      true,
-	"link":      true,
-	"name":      true,
-	"type":      true,
-	"uid":       true,
-	"unique":    true,
+	"-":            true,
+	"converter":    true,
+	"date":         true,
+	"date-nano":    true,
+	"id":           true,
+	"id-companion": true,
+	"index":        true,
+	"inline":       true,
+	"lazy":         true,
+	"link":         true,
+	"name":         true,
+	"type":         true,
+	"uid":          true,
+	"unique":       true,
 }
 
 // astReader contains information about the processed set of Entities
@@ -343,7 +345,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 
 		} else if field.Type == "time.Time" {
 			// first, try to handle time.Time struct - automatically set a converter if it's declared a date by the user
-			if property.annotations["date"] == nil {
+			if property.annotations["date"] == nil && property.annotations["date-nano"] == nil {
 				property.annotations["date"] = &binding.Annotation{}
 				propertyLog("Notice: time.Time is stored and read using millisecond precision in UTC by default on", property)
 				log.Printf("To silence this notice either define your own converter using `converter` and " +
@@ -359,6 +361,9 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 
 			if property.annotations["converter"] == nil {
 				var converter = "objectbox.TimeInt64Convert"
+				if property.annotations["date-nano"] != nil {
+					converter = "objectbox.NanoTimeInt64Convert"
+				}
 				property.Converter = &converter
 				property.annotations["type"] = &binding.Annotation{Value: "int64"}
 			}
