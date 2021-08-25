@@ -22,11 +22,10 @@ package model
 import "fmt"
 
 // CheckRelationCycles finds relations cycles
-func (model *ModelInfo) CheckRelationCycles() error {
+func CheckRelationCycles(entities ...*Entity) error {
 	// DFS cycle check, storing relation path in the recursion stack
-	var recursionStack = make(map[*Entity]bool)
-	for _, entity := range model.Entities {
-		if err := entity.checkRelationCycles(&recursionStack, entity.Name); err != nil {
+	for _, entity := range entities {
+		if err := entity.checkRelationCycles(&map[*Entity]bool{}, entity.Name); err != nil {
 			return err
 		}
 	}
@@ -39,6 +38,11 @@ func (entity *Entity) checkRelationCycles(recursionStack *map[*Entity]bool, path
 
 	// to-many relations
 	for _, rel := range entity.Relations {
+		// lazy loading breaks the cycle preventing reads, no need to validate it
+		if rel.IsLazyLoaded {
+			continue
+		}
+
 		if err := checkRelationCycle(recursionStack, path+"."+rel.Name, rel.Target); err != nil {
 			return err
 		}

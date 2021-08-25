@@ -85,10 +85,43 @@ func (goGen *GoGenerator) ParseSource(sourceFile string) (*model.ModelInfo, erro
 	return goGen.binding.model, nil
 }
 
+// Update backlink specifications (source property name)
+func resolveBacklinks(mergedModel *model.ModelInfo) error {
+	for _, entity := range mergedModel.Entities {
+		if !entity.CurrentlyPresent {
+			continue
+		}
+		for _, field := range entity.Meta.(*Entity).Fields {
+			if field.Backlink == nil || len(field.Backlink.SourceProperty) != 0 {
+				continue
+			}
+			if srcEntity, err := mergedModel.FindEntityByName(field.Backlink.SourceEntity); err != nil {
+				return fmt.Errorf("backlink %v.%v source lookup failed: %v", entity.Name, field.Name, err)
+			} else {
+				for _, prop := range srcEntity.Properties {
+					if prop.RelationTarget == entity.Name {
+						if len(field.Backlink.SourceProperty) == 0 {
+							field.Backlink.SourceProperty = prop.Name
+						} else {
+							return fmt.Errorf("backlink %v.%v matches multiple source properties: %v and %v",
+								entity.Name, field.Name, field.Backlink.SourceProperty, prop.Name)
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func (goGen *GoGenerator) WriteBindingFiles(sourceFile string, options generator.Options, mergedModel *model.ModelInfo) error {
 	// NOTE: find a better place for this check - we only want to do it for some languages
 	// should be called after generator calls storedMode.Finalize()
-	if err := mergedModel.CheckRelationCycles(); err != nil {
+	if err := model.CheckRelationCycles(mergedModel.Entities...); err != nil {
+		return err
+	}
+
+	if err := resolveBacklinks(mergedModel); err != nil {
 		return err
 	}
 
@@ -154,7 +187,7 @@ func (goGen *GoGenerator) WriteModelBindingFile(options generator.Options, model
 	}
 
 	if formattedSource, err := format.Source(modelSource); err != nil {
-		// we just store error but still writ the file so that we can check it manually
+		// we just store error but still write the file so that we can check it manually
 		err2 = fmt.Errorf("failed to format generated model file %s: %s", modelFile, err)
 	} else {
 		modelSource = formattedSource

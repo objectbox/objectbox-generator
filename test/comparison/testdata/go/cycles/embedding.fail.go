@@ -1,6 +1,6 @@
 package object
 
-// ERROR = can't prepare bindings for cycles/embedding.fail.go: embedded struct cycle detected: EmbeddingChainA.EmbeddingChainB.EmbeddingChainC on property EmbeddingChainA found in EmbeddingChainA.EmbeddingChainB.EmbeddingChainC
+// ERROR = can't prepare bindings for cycles/embedding.fail.go: property EmbeddingChainA.EmbeddingChainB.EmbeddingChainC.EmbeddingChainA: embedded struct cycle detected: EmbeddingChainA.EmbeddingChainB.EmbeddingChainC
 
 type EmbeddingChainA struct {
 	Id uint64
