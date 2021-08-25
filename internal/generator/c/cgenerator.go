@@ -129,7 +129,8 @@ func (gen *CGenerator) generateBindingFile(bindingFile, headerFile string, m *mo
 		GeneratorVersion int
 		FileIdentifier   string
 		HeaderFile       string
-	}{m, generator.VersionId, fileIdentifier, filepath.Base(headerFile)}
+		Optional         string
+	}{m, generator.VersionId, fileIdentifier, filepath.Base(headerFile), gen.Optional}
 
 	var tpl *template.Template
 

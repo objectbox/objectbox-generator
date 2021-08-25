@@ -31,6 +31,11 @@ var CppBindingTemplateHeader = template.Must(template.New("binding-hpp").Funcs(f
 
 #include <cstdbool>
 #include <cstdint>
+{{- if eq "std::optional" .Optional}} 
+#include <optional>
+{{- else if .Optional}}
+#include <memory>
+{{end}}
 
 #include "flatbuffers/flatbuffers.h"
 #include "objectbox.h"
