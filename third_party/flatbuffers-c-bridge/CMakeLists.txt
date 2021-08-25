@@ -24,7 +24,7 @@ add_library(${PROJECT_NAME} STATIC
         ${FLATBUFFERS_SRC_DIR}/src/idl_gen_kotlin.cpp
         ${FLATBUFFERS_SRC_DIR}/src/idl_gen_go.cpp
         ${FLATBUFFERS_SRC_DIR}/src/idl_gen_java.cpp
-        ${FLATBUFFERS_SRC_DIR}/src/idl_gen_js_ts.cpp
+        ${FLATBUFFERS_SRC_DIR}/src/idl_gen_ts.cpp
         ${FLATBUFFERS_SRC_DIR}/src/idl_gen_php.cpp
         ${FLATBUFFERS_SRC_DIR}/src/idl_gen_python.cpp
         ${FLATBUFFERS_SRC_DIR}/src/idl_gen_lobster.cpp
@@ -45,10 +45,11 @@ add_library(${PROJECT_NAME} STATIC
         ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/java_generator.h
         ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/java_generator.cc
         ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/python_generator.h
-        ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/python_private_generator.h
         ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/python_generator.cc
         ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/swift_generator.h
         ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/swift_generator.cc
+        ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/ts_generator.h
+        ${FLATBUFFERS_SRC_DIR}/grpc/src/compiler/ts_generator.cc
         )
 target_link_libraries(${PROJECT_NAME} PUBLIC flatbuffers)
 target_include_directories(${PROJECT_NAME} PRIVATE include ${FLATBUFFERS_SRC_DIR}/grpc)

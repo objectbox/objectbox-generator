@@ -1,6 +1,5 @@
 /*
- *
- * Copyright 2015 gRPC authors.
+ * Copyright 2017 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +12,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-#ifndef GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H
-#define GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H
+#ifndef FLATBUFFERS_PCH_H_
+#define FLATBUFFERS_PCH_H_
 
+// stl
+#include <cstdint>
+#include <cstring>
+#include <algorithm>
+#include <list>
+#include <string>
 #include <utility>
+#include <iomanip>
+#include <map>
+#include <memory>
+#include <limits>
+#include <stack>
+#include <vector>
+#include <type_traits>
 
-#include "src/compiler/config.h"
-#include "src/compiler/schema_interface.h"
+// flatbuffers
+#include "flatbuffers/util.h"
 
-namespace grpc_python_generator {
-
-grpc::string Generate(grpc_generator::File *file,
-                      const grpc_generator::Service *service);
-}  // namespace grpc_python_generator
-
-#endif  // GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H
+#endif // FLATBUFFERS_PCH_H_

@@ -1,6 +1,6 @@
 # Cmake FetchContent is nice to use but not supported in pre-v3.11 cmake.
 # Instead we keep a copy of some FB sources in this repository.
-# Current version: 1.12.0
+# Current version: 2.0.0
 
 set(FLATBUFFERS_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/flatbuffers)
 
