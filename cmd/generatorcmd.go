@@ -79,7 +79,9 @@ func getArgs(impl generatorCommand) (clean bool, options generator.Options) {
 	flag.Usage = impl.ShowUsage
 	impl.ConfigureFlags()
 	flag.StringVar(&options.OutPath, "out", "", "output path for generated source files")
-	flag.StringVar(&options.ModelInfoFile, "persist", "", "path to the model information persistence file (JSON)")
+	flag.StringVar(&options.ModelInfoFile, "model", "", "path to the model information persistence file (JSON)")
+	// TODO remove in v0.15.0 or later
+	flag.StringVar(&options.ModelInfoFile, "persist", "", "[DEPRECATED, use 'model'] path to the model information persistence file (JSON)")
 	flag.BoolVar(&printVersion, "version", false, "print the generator version info")
 	flag.BoolVar(&printHelp, "help", false, "print this help")
 	flag.Parse()
