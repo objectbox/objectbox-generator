@@ -17,6 +17,13 @@ func GetRootAsEnum(buf []byte, offset flatbuffers.UOffsetT) *Enum {
 	return x
 }
 
+func GetSizePrefixedRootAsEnum(buf []byte, offset flatbuffers.UOffsetT) *Enum {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Enum{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *Enum) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

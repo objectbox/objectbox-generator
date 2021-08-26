@@ -17,6 +17,13 @@ func GetRootAsField(buf []byte, offset flatbuffers.UOffsetT) *Field {
 	return x
 }
 
+func GetSizePrefixedRootAsField(buf []byte, offset flatbuffers.UOffsetT) *Field {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Field{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *Field) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
@@ -168,8 +175,20 @@ func (rcv *Field) DocumentationLength() int {
 	return 0
 }
 
+func (rcv *Field) Optional() bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	if o != 0 {
+		return rcv._tab.GetBool(o + rcv._tab.Pos)
+	}
+	return false
+}
+
+func (rcv *Field) MutateOptional(n bool) bool {
+	return rcv._tab.MutateBoolSlot(26, n)
+}
+
 func FieldStart(builder *flatbuffers.Builder) {
-	builder.StartObject(11)
+	builder.StartObject(12)
 }
 func FieldAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(name), 0)
@@ -209,6 +228,9 @@ func FieldAddDocumentation(builder *flatbuffers.Builder, documentation flatbuffe
 }
 func FieldStartDocumentationVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
+}
+func FieldAddOptional(builder *flatbuffers.Builder, optional bool) {
+	builder.PrependBoolSlot(11, optional, false)
 }
 func FieldEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

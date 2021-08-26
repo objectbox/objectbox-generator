@@ -17,6 +17,13 @@ func GetRootAsSchema(buf []byte, offset flatbuffers.UOffsetT) *Schema {
 	return x
 }
 
+func GetSizePrefixedRootAsSchema(buf []byte, offset flatbuffers.UOffsetT) *Schema {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Schema{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *Schema) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
@@ -115,8 +122,20 @@ func (rcv *Schema) ServicesLength() int {
 	return 0
 }
 
+func (rcv *Schema) AdvancedFeatures() AdvancedFeatures {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
+	if o != 0 {
+		return AdvancedFeatures(rcv._tab.GetUint64(o + rcv._tab.Pos))
+	}
+	return 0
+}
+
+func (rcv *Schema) MutateAdvancedFeatures(n AdvancedFeatures) bool {
+	return rcv._tab.MutateUint64Slot(16, uint64(n))
+}
+
 func SchemaStart(builder *flatbuffers.Builder) {
-	builder.StartObject(6)
+	builder.StartObject(7)
 }
 func SchemaAddObjects(builder *flatbuffers.Builder, objects flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(objects), 0)
@@ -144,6 +163,9 @@ func SchemaAddServices(builder *flatbuffers.Builder, services flatbuffers.UOffse
 }
 func SchemaStartServicesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
+}
+func SchemaAddAdvancedFeatures(builder *flatbuffers.Builder, advancedFeatures AdvancedFeatures) {
+	builder.PrependUint64Slot(6, uint64(advancedFeatures), 0)
 }
 func SchemaEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

@@ -17,6 +17,13 @@ func GetRootAsRPCCall(buf []byte, offset flatbuffers.UOffsetT) *RPCCall {
 	return x
 }
 
+func GetSizePrefixedRootAsRPCCall(buf []byte, offset flatbuffers.UOffsetT) *RPCCall {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &RPCCall{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *RPCCall) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

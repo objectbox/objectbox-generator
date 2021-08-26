@@ -17,6 +17,13 @@ func GetRootAsService(buf []byte, offset flatbuffers.UOffsetT) *Service {
 	return x
 }
 
+func GetSizePrefixedRootAsService(buf []byte, offset flatbuffers.UOffsetT) *Service {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Service{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *Service) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
