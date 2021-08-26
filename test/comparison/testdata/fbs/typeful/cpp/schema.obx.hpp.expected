@@ -206,3 +206,38 @@ struct TSDateNano_ {
 };
 }  // namespace ns
 
+
+namespace ns {
+struct WithEnums_;
+
+struct WithEnums {
+    obx_id id;
+    uint8_t color;
+    uint32_t flags;
+
+    struct _OBX_MetaInfo {
+        static constexpr obx_schema_id entityId() { return 5; }
+    
+        static void setObjectId(WithEnums& object, obx_id newId) { object.id = newId; }
+    
+        /// Write given object to the FlatBufferBuilder
+        static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const WithEnums& object);
+    
+        /// Read an object from a valid FlatBuffer
+        static WithEnums fromFlatBuffer(const void* data, size_t size);
+    
+        /// Read an object from a valid FlatBuffer
+        static std::unique_ptr<WithEnums> newFromFlatBuffer(const void* data, size_t size);
+    
+        /// Read an object from a valid FlatBuffer
+        static void fromFlatBuffer(const void* data, size_t size, WithEnums& outObject);
+    };
+};
+
+struct WithEnums_ {
+    static const obx::Property<WithEnums, OBXPropertyType_Long> id;
+    static const obx::Property<WithEnums, OBXPropertyType_Byte> color;
+    static const obx::Property<WithEnums, OBXPropertyType_Int> flags;
+};
+}  // namespace ns
+

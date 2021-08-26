@@ -85,3 +85,21 @@ table TSDateNano {
 	/// objectbox:id-companion,date-nano
 	timestamp    : int64	;
 }
+
+enum Flags: uint(bit_flags) {
+    a,
+    b,
+}
+
+enum Color : ubyte {
+	none,
+    blue,
+    green,
+    red
+}
+
+table WithEnums  {
+	id: uint64;
+	color: Color;
+	flags: Flags;
+}
