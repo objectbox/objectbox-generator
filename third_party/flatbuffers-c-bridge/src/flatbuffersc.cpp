@@ -44,8 +44,12 @@ FBS_bytes* fbs_schema_parse_file(const char* filename, const char** out_error) {
         options.binary_schema_comments = true;  // include doc comments in the binary schema
 
         flatbuffers::Parser parser(options);
-        if (!parser.Parse(contents.c_str(), nullptr, filename)) {
+        {
+          std::string fileDir = flatbuffers::StripFileName(filename);
+          std::vector<const char *> includeDirs = {fileDir.c_str(), nullptr};
+          if (!parser.Parse(contents.c_str(), includeDirs.data(), filename)) {
             throw std::runtime_error(parser.error_);
+          }
         }
 
         if (!parser.error_.empty()) {

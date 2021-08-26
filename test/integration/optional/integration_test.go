@@ -78,19 +78,24 @@ func TestCppAndC(t *testing.T) {
 	conf := &integration.CCppTestConf{}
 	defer conf.Cleanup()
 	conf.CreateCMake(t, integration.Cpp17, "main.cpp")
-	conf.Generate(t, map[string]string{"rel.fbs": "table RelTarget {id: uint64;}"})
+	conf.SchemaPath = conf.WriteSchemas(t, map[string]string{"rel.fbs": "table RelTarget {id: uint64;}"})
+	conf.Generate(t)
 
 	conf.Generator = &cgenerator.CGenerator{Optional: "std::optional"}
-	conf.Generate(t, map[string]string{"std-optional.fbs": "table Optional {" + optionalSchemaFields + "}"})
+	conf.SchemaPath = conf.WriteSchemas(t, map[string]string{"std-optional.fbs": "table Optional {" + optionalSchemaFields + "}"})
+	conf.Generate(t)
 
 	conf.Generator = &cgenerator.CGenerator{Optional: "std::unique_ptr"}
-	conf.Generate(t, map[string]string{"std-unique_ptr.fbs": "table UniquePtr {" + optionalSchemaFields + "}"})
+	conf.SchemaPath = conf.WriteSchemas(t, map[string]string{"std-unique_ptr.fbs": "table UniquePtr {" + optionalSchemaFields + "}"})
+	conf.Generate(t)
 
 	conf.Generator = &cgenerator.CGenerator{Optional: "std::shared_ptr"}
-	conf.Generate(t, map[string]string{"std-shared_ptr.fbs": "table SharedPtr {" + optionalSchemaFields + "}"})
+	conf.SchemaPath = conf.WriteSchemas(t, map[string]string{"std-shared_ptr.fbs": "table SharedPtr {" + optionalSchemaFields + "}"})
+	conf.Generate(t)
 
 	conf.Generator = &cgenerator.CGenerator{PlainC: true, Optional: "ptr"}
-	conf.Generate(t, map[string]string{"c-ptr.fbs": "table PlainCPtr {" + optionalSchemaFields + "}"})
+	conf.SchemaPath = conf.WriteSchemas(t, map[string]string{"c-ptr.fbs": "table PlainCPtr {" + optionalSchemaFields + "}"})
+	conf.Generate(t)
 
 	conf.Build(t)
 	conf.Run(t, nil)

@@ -1,0 +1,3 @@
+include "other/other.fbs";
+
+table Entity { id: uint64; value: Values; }
