@@ -48,6 +48,12 @@ func mergeBindingWithModelInfo(currentModel *model.ModelInfo, storedModel *model
 	currentModel.LastIndexId = storedModel.LastIndexId
 	currentModel.LastRelationId = storedModel.LastRelationId
 
+	if currentModel.Meta != nil {
+		storedModel.Meta = currentModel.Meta.Merge(storedModel)
+	} else {
+		storedModel.Meta = nil
+	}
+
 	return nil
 }
 

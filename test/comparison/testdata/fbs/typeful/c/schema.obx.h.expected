@@ -20,6 +20,18 @@ static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatb
 /// Internal function used in other generated functions to get a vTable offset for a given field.
 static flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt, size_t field);
 
+typedef enum {
+    ns_Color_none = 0,
+    ns_Color_blue = 1,
+    ns_Color_green = 2,
+    ns_Color_red = 3,
+} ns_Color;
+
+typedef enum {
+    ns_Flags_a = 1,
+    ns_Flags_b = 2,
+} ns_Flags;
+
 
 /// Entity documentation is copied
 /// into the generated output
@@ -223,8 +235,8 @@ static void ns_TSDateNano_free(ns_TSDateNano* object);
 
 typedef struct ns_WithEnums {
     obx_id id;
-    uint8_t color;
-    uint32_t flags;
+    ns_Color color;
+    ns_Flags flags;
     
 } ns_WithEnums;
 

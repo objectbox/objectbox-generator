@@ -62,6 +62,7 @@ type ModelInfo struct {
 
 	file *os.File   // file handle, locked while the model is open
 	Rand *rand.Rand `json:"-"` // seeded random number generator
+	Meta ModelMeta  `json:"-"`
 }
 
 var defaultModel = ModelInfo{

@@ -9,6 +9,25 @@
 #include "objectbox.h"
 #include "objectbox.hpp"
 
+namespace ns {
+enum class Color : uint8_t {
+    none = 0,
+    blue = 1,
+    green = 2,
+    red = 3,
+};
+}  // namespace ns
+
+
+namespace ns {
+enum class Flags : uint32_t {
+    a = 1,
+    b = 2,
+};
+FLATBUFFERS_DEFINE_BITMASK_OPERATORS(Flags, uint32_t)
+}  // namespace ns
+
+
 namespace ns { struct AnnotatedEntity; }
 
 struct Typeful_;
@@ -212,8 +231,8 @@ struct WithEnums_;
 
 struct WithEnums {
     obx_id id;
-    uint8_t color;
-    uint32_t flags;
+    ns::Color color;
+    ns::Flags flags;
 
     struct _OBX_MetaInfo {
         static constexpr obx_schema_id entityId() { return 5; }
