@@ -103,7 +103,7 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo:
 			{{- end}};
 	}{{- else}}outObject.{{$property.Meta.CppName}}
 		{{- template "field-value-assign-pre" $property.Meta -}}
-		table->GetField<{{$property.Meta.CppFbType}}>({{- $property.FbvTableOffset}}, static_cast<{{$property.Meta.CppFbType}}>({{$property.Meta.FbDefaultValue}})){{if eq "bool" $property.Meta.CppType}} != 0{{end}}
+		table->GetField<{{$property.Meta.CppFbType}}>({{- $property.FbvTableOffset}}, {{$property.Meta.FbDefaultValue}}){{if eq "bool" $property.Meta.CppType}} != 0{{end}}
 		{{- template "field-value-assign-post" $property.Meta}};
 	{{- end}}
 	{{end}}

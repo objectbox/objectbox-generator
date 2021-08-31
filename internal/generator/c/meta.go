@@ -154,10 +154,19 @@ func (mp *fbsField) CppType() string {
 		cppType = cppType + "<" + fbsTypeToCppType[fbsType.Element()] + ">"
 	} else if (mp.ModelProperty.IsIdProperty() || mp.ModelProperty.Type == model.PropertyTypeRelation) && cppType == "uint64_t" {
 		cppType = "obx_id" // defined in objectbox.h
-	} else if enumIndex := fbsType.Index(); isEnumSupportedType(baseType) && enumIndex >= 0 {
+	} else if enumIndex := mp.enumIndex(); enumIndex >= 0 {
 		cppType = strings.ReplaceAll(string(mp.fbsModel.Enums[enumIndex].enum.Name()), ".", "::")
 	}
 	return cppType
+}
+
+func (mp *fbsField) enumIndex() int {
+	var fbsType = mp.fbsField.Type(nil)
+	var baseType = fbsType.BaseType()
+	if isEnumSupportedType(baseType) {
+		return int(fbsType.Index())
+	}
+	return -1
 }
 
 // CppFbType returns C++ type name used in flatbuffers templated functions
@@ -260,6 +269,9 @@ func (mp *fbsField) FbDefaultValue() string {
 		return "0.0f"
 	case model.PropertyTypeDouble:
 		return "0.0"
+	}
+	if enumIndex := mp.enumIndex(); enumIndex >= 0 {
+		return fmt.Sprintf("static_cast<%s>(0)", mp.CppFbType())
 	}
 	return "0"
 }
