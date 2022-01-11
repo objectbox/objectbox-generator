@@ -27,7 +27,7 @@ To get started, have a look at the projects based on your language of choice:
 # License
 
 ```
-Copyright (C) 2020 ObjectBox Ltd. All rights reserved.
+Copyright (C) 2022 ObjectBox Ltd. All rights reserved.
 https://objectbox.io
 This file is part of ObjectBox Generator.
 
@@ -40,7 +40,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
-along with ObjectBox Generator.  If not, see <http://www.gnu.org/licenses/>.
+along with ObjectBox Generator.  If not, see <https://www.gnu.org/licenses/>.
 ```
 
 Note: GPL only applies to the Generator itself and not to generated code.
