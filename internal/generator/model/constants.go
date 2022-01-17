@@ -77,18 +77,23 @@ var PropertyFlagNames = map[PropertyFlags]string{
 type PropertyType int8
 
 const (
-	PropertyTypeBool         PropertyType = 1
-	PropertyTypeByte         PropertyType = 2
-	PropertyTypeShort        PropertyType = 3
-	PropertyTypeChar         PropertyType = 4
-	PropertyTypeInt          PropertyType = 5
-	PropertyTypeLong         PropertyType = 6
-	PropertyTypeFloat        PropertyType = 7
-	PropertyTypeDouble       PropertyType = 8
-	PropertyTypeString       PropertyType = 9
-	PropertyTypeDate         PropertyType = 10
-	PropertyTypeRelation     PropertyType = 11
-	PropertyTypeDateNano     PropertyType = 12
+	PropertyTypeBool   PropertyType = 1
+	PropertyTypeByte   PropertyType = 2
+	PropertyTypeShort  PropertyType = 3
+	PropertyTypeChar   PropertyType = 4
+	PropertyTypeInt    PropertyType = 5
+	PropertyTypeLong   PropertyType = 6
+	PropertyTypeFloat  PropertyType = 7
+	PropertyTypeDouble PropertyType = 8
+	PropertyTypeString PropertyType = 9
+	// Date/time stored as a 64 bit long representing milliseconds since 1970-01-01 (unix epoch).
+	PropertyTypeDate     PropertyType = 10
+	PropertyTypeRelation PropertyType = 11
+	// High precision date/time stored as a 64 bit long representing nanoseconds since 1970-01-01 (unix epoch).
+	PropertyTypeDateNano PropertyType = 12
+	// "Flexible" type, which may contain scalars (integers, floating points), strings or containers (lists and maps).
+	// Note: a flex map must use string keys.
+	PropertyTypeFlex         PropertyType = 13
 	PropertyTypeByteVector   PropertyType = 23
 	PropertyTypeStringVector PropertyType = 30
 )
@@ -107,6 +112,7 @@ var PropertyTypeNames = map[PropertyType]string{
 	PropertyTypeDate:         "Date",
 	PropertyTypeRelation:     "Relation",
 	PropertyTypeDateNano:     "DateNano",
+	PropertyTypeFlex:         "Flex",
 	PropertyTypeByteVector:   "ByteVector",
 	PropertyTypeStringVector: "StringVector",
 }
