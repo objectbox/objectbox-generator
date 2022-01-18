@@ -124,13 +124,33 @@ func (gen *CGenerator) generateBindingFile(bindingFile, headerFile string, m *mo
 	var fileIdentifier = strings.ToLower(filepath.Base(bindingFile))
 	fileIdentifier = replaceSpecialChars.Replace(fileIdentifier)
 
+	// Remove flex properties only for binding code generation:
+	// create a (shallow) copy of the ModelInfo struct,
+	// create copies of each Entity and replace the list
+	// of properties with a filtered one.
+	storedModelCopy := *m
+	storedModelCopy.Entities = nil
+	for _, e := range m.Entities {
+		entityCopy := *e
+		storedModelCopy.Entities = append(storedModelCopy.Entities, &entityCopy)
+	}
+	for _, e := range storedModelCopy.Entities {
+		var filteredProperties []*model.Property
+		for _, p := range e.Properties {
+			if p.Meta == nil || !p.Meta.(*fbsField).IsFlex {
+				filteredProperties = append(filteredProperties, p)
+			}
+		}
+		e.Properties = filteredProperties
+	}
+
 	var tplArguments = struct {
 		Model            *model.ModelInfo
 		GeneratorVersion int
 		FileIdentifier   string
 		HeaderFile       string
 		Optional         string
-	}{m, generator.VersionId, fileIdentifier, filepath.Base(headerFile), gen.Optional}
+	}{&storedModelCopy, generator.VersionId, fileIdentifier, filepath.Base(headerFile), gen.Optional}
 
 	var tpl *template.Template
 

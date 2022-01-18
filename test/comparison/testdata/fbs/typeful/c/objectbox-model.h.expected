@@ -85,9 +85,10 @@ static inline OBX_model* create_obx_model() {
     obx_model_property(model, "uid", OBXPropertyType_Int, 9, 6972732843819909978);
     obx_model_property_flags(model, (OBXPropertyFlags) (OBXPropertyFlags_INDEXED | OBXPropertyFlags_UNIQUE));
     obx_model_property_index_id(model, 8, 5558237345453186302);
+    obx_model_property(model, "flexValue", OBXPropertyType_Flex, 10, 7845762441295307478);
     obx_model_relation(model, 1, 7845762441295307478, 1, 8717895732742165505);
     obx_model_relation(model, 2, 771642788862502430, 1, 8717895732742165505);
-    obx_model_entity_last_property_id(model, 9, 6972732843819909978);
+    obx_model_entity_last_property_id(model, 10, 7845762441295307478);
     
     obx_model_entity(model, "TSDate", 3, 6050128673802995827);
     obx_model_property(model, "id", OBXPropertyType_Long, 1, 8514850266767180993);
