@@ -27,7 +27,10 @@ import (
 	"github.com/objectbox/objectbox-generator/test/assert"
 )
 
-// used during development of generator to overwrite the "golden" files
+// Use during development of generator to easily update (= overwrite) the expected files.
+// Note that it is expected for UIDs to change if there is no initial model file,
+// and UIDs to remain the same based on index as the UID seed is kept the same across tests
+// (see generator.Options in test-all.go).
 var overwriteExpected = flag.Bool("update", false,
 	"Update all '.expected' files with the generated content. "+
 		"It's up to the developer to actually check before committing whether the newly generated files are correct")
