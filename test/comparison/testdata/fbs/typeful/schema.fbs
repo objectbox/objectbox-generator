@@ -68,6 +68,10 @@ table Annotated {
 	/// unique on string without index type implies HASH index
 	/// objectbox:unique
 	uid:int;
+
+	/// mark byte vector as flexible type
+	/// objectbox:flex
+	flexValue:[byte];
 }
 
 /// objectbox: transient

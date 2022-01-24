@@ -41,6 +41,7 @@ var supportedEntityAnnotations = map[string]bool{
 var supportedPropertyAnnotations = map[string]bool{
 	"date":         true,
 	"date-nano":    true,
+	"flex":         true,
 	"id":           true,
 	"id-companion": true,
 	"index":        true,

@@ -35,6 +35,7 @@ type Field struct {
 	Name          string
 	Optional      string
 	IsSkipped     bool
+	IsFlex        bool
 }
 
 func CreateField(prop *model.Property) *Field {
@@ -108,6 +109,15 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 			return fmt.Errorf("invalid underlying type '%v' for ID companion field; expecting date/date-nano", model.PropertyTypeNames[field.ModelProperty.Type])
 		}
 		field.ModelProperty.AddFlag(model.PropertyFlagIdCompanion)
+	}
+
+	if a["flex"] != nil {
+		if field.ModelProperty.Type != model.PropertyTypeByteVector {
+			return errors.New("flex must be used with type [byte]")
+		}
+		// Overwrite recognized type.
+		field.ModelProperty.Type = model.PropertyTypeFlex
+		field.IsFlex = true
 	}
 
 	if a["unique"] != nil {
