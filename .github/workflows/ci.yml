@@ -1,7 +1,11 @@
-# Note: can't use build matrix because our steps are not cross-platform...
 name: CI
 
-on: [push, pull_request]
+# Avoid duplicate builds for pull requests, allow manual trigger.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
 
 defaults:
   run:
