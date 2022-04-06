@@ -26,12 +26,13 @@ import (
 
 // StandaloneRelation in a model
 type StandaloneRelation struct {
-	Id         IdUid                  `json:"id"`
-	Name       string                 `json:"name"`
-	Target     *Entity                `json:"-"` // TODO consider changing to TargetName, nothing else seems to be used.
-	TargetId   IdUid                  `json:"targetId"`
-	UidRequest bool                   `json:"-"` // used when the user gives an empty uid annotation // TODO test
-	Meta       StandaloneRelationMeta `json:"-"`
+	Id           IdUid                  `json:"id"`
+	Name         string                 `json:"name"`
+	Target       *Entity                `json:"-"` // TODO consider changing to TargetName, nothing else seems to be used.
+	TargetId     IdUid                  `json:"targetId"`
+	UidRequest   bool                   `json:"-"` // used when the user gives an empty uid annotation // TODO test
+	Meta         StandaloneRelationMeta `json:"-"`
+	IsLazyLoaded bool                   `json:"-"` // internal, used when checking for relation cycles (to allow the cycle)
 
 	entity *Entity
 }
@@ -74,4 +75,9 @@ func (relation *StandaloneRelation) Validate() error {
 func (relation *StandaloneRelation) SetTarget(entity *Entity) {
 	relation.Target = entity
 	relation.TargetId = entity.Id
+}
+
+// RelatedEntityName gets the relation target entity name
+func (relation *StandaloneRelation) RelatedEntityName() string {
+	return relation.Target.Name
 }

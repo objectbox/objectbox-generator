@@ -166,12 +166,12 @@ func createBinding(options Options, storedModel *model.ModelInfo) error {
 			return fmt.Errorf("model finalization failed: %s", err)
 		}
 
-		if err = options.CodeGenerator.WriteBindingFiles(filePath, options, storedModel); err != nil {
-			return err
-		}
-
 		for _, entity := range storedModel.EntitiesWithMeta() {
 			entity.CurrentlyPresent = true
+		}
+
+		if err = options.CodeGenerator.WriteBindingFiles(filePath, options, storedModel); err != nil {
+			return err
 		}
 
 		return nil

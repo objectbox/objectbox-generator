@@ -97,8 +97,10 @@ func (group_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byte) (interface{}
 	var propId = table.GetUint64Slot(4, 0)
 
 	return &Group{
-		Id:   propId,
-		Name: fbutils.GetStringSlot(table, 6),
+		Id:          propId,
+		Name:        fbutils.GetStringSlot(table, 6),
+		TaskRelPtrs: nil, // use GroupBox::FetchTaskRelPtrs() to fetch this lazy-loaded relation backlink,
+
 	}, nil
 }
 
@@ -206,6 +208,34 @@ func (box *GroupBox) GetAll() ([]*Group, error) {
 		return nil, err
 	}
 	return objects.([]*Group), nil
+}
+
+// FetchTaskRelPtrs reads source objects back-linked by relation TaskRelPtr::Group.
+// It will "GetManyExisting()" all related TaskRelPtr objects for each source object
+// and set sourceObject.TaskRelPtrs to the slice of related objects, as currently stored in DB.
+func (box *GroupBox) FetchTaskRelPtrs(sourceObjects ...*Group) error {
+	var slices = make([][]*TaskRelPtr, len(sourceObjects))
+	err := box.ObjectBox.RunInReadTx(func() error {
+		// collect slices before setting the source objects' fields
+		// this keeps all the sourceObjects untouched in case there's an error during any of the requests
+		for k, object := range sourceObjects {
+			rIds, err := BoxForTaskRelPtr(box.ObjectBox).RelationBackLinkIds(TaskRelPtr_.Group, object.Id)
+			if err == nil {
+				slices[k], err = BoxForTaskRelPtr(box.ObjectBox).GetManyExisting(rIds...)
+			}
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err == nil { // update the field on all objects if we got all slices
+		for k := range sourceObjects {
+			sourceObjects[k].TaskRelPtrs = slices[k]
+		}
+	}
+	return err
 }
 
 // Remove deletes a single object
