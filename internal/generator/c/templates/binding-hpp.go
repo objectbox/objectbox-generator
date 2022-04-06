@@ -40,9 +40,22 @@ var CppBindingTemplateHeader = template.Must(template.New("binding-hpp").Funcs(f
 #include "flatbuffers/flatbuffers.h"
 #include "objectbox.h"
 #include "objectbox.hpp"
+{{- range $enum := .Model.Meta.Enums}}
+{{with CppNamespaceStart $enum.Namespace}}
+{{.}}{{end}}
+enum class {{$enum.Name}} : {{$enum.UnderlyingCppType}} {
+	{{- range $value := $enum.Values}}
+	{{String $value.Name}} = {{$value.Value}},
+	{{- end}}
+};
+{{- if $enum.HasAttribute "bit_flags"}}
+FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{$enum.Name}}, {{$enum.UnderlyingCppType}})
+{{- end}}
+{{with CppNamespaceEnd $enum.Namespace}}{{.}}{{end -}}
+{{end}}
 {{range $entity := .Model.EntitiesWithMeta}}
 {{$entity.Meta.PreDeclareCppRelTargets -}}
-{{with $entity.Meta.CppNamespaceStart}}
+{{with CppNamespaceStart $entity.Meta.Namespace}}
 {{.}}{{end}}
 struct {{$entity.Meta.CppName}}_;
 
@@ -81,6 +94,6 @@ struct {{$entity.Meta.CppName}}_ {
 	static const obx::RelationStandalone<{{$entity.Meta.CppName}}, {{$relation.Target.Meta.CppName}}> {{$relation.Meta.CppName}};
 {{- end}}
 };
-{{with $entity.Meta.CppNamespaceEnd}}{{.}}{{end -}}
+{{with CppNamespaceEnd $entity.Meta.Namespace}}{{.}}{{end -}}
 {{end}}
 `))

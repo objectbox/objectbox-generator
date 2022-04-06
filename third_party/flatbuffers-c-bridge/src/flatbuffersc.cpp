@@ -42,6 +42,7 @@ FBS_bytes* fbs_schema_parse_file(const char* filename, const char** out_error) {
 
         auto options = flatbuffers::IDLOptions();
         options.binary_schema_comments = true;  // include doc comments in the binary schema
+        options.binary_schema_builtins = true;  // include attributes
 
         flatbuffers::Parser parser(options);
         if (!parser.Parse(contents.c_str(), nullptr, filename)) {

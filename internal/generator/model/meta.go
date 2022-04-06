@@ -19,6 +19,12 @@
 
 package model
 
+// ModelMeta provides a way for bindings to provide additional information to other users of ModelInfo
+type ModelMeta interface {
+	// Merge produces new ModelMeta based on its internal state and given model
+	Merge(model *ModelInfo) ModelMeta
+}
+
 // EntityMeta provides a way for bindings to provide additional information to other users of Entity
 type EntityMeta interface {
 	// Merge produces new EntityMeta based on its internal state and given entity

@@ -46,14 +46,20 @@ static void* {{.FileIdentifier}}_get_object(OBX_box* box, obx_id id, void* (*fro
 
 /// Internal function used in other generated functions to get a vTable offset for a given field.
 static flatbuffers_voffset_t {{.FileIdentifier}}_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt, size_t field);
-
+{{range $enum := .Model.Meta.Enums}}
+typedef enum {
+	{{- range $value := $enum.Values}}
+	{{with CNamespace $enum.Namespace}}{{.}}_{{end}}{{$enum.Name}}_{{String $value.Name}} = {{$value.Value}},
+	{{- end}}
+} {{with CNamespace $enum.Namespace}}{{.}}_{{end}}{{$enum.Name}};
+{{end}}
 {{range $entity := .Model.EntitiesWithMeta}}
 {{PrintComments 0 $entity.Comments}}typedef struct {{$entity.Meta.CName}} {
 	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type -}}
 	{{PrintComments 1 $property.Comments}}{{if $property.Meta.FbIsVector}}{{$property.Meta.CElementType}}* {{$property.Meta.CppName}};
 	{{- if or (eq $propType "StringVector") (eq $propType "ByteVector")}}
 	size_t {{$property.Meta.CppName}}_len;{{end}}
-	{{else}}{{$property.Meta.CppType}}{{if $property.Meta.Optional}}*{{end}} {{$property.Meta.CppName}};
+	{{else}}{{CNamespace $property.Meta.CppType}}{{if $property.Meta.Optional}}*{{end}} {{$property.Meta.CppName}};
 	{{end}}{{end}}
 } {{$entity.Meta.CName}};
 
