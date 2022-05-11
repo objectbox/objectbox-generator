@@ -7,66 +7,69 @@ import "strconv"
 type BaseType int8
 
 const (
-	BaseTypeNone   BaseType = 0
-	BaseTypeUType  BaseType = 1
-	BaseTypeBool   BaseType = 2
-	BaseTypeByte   BaseType = 3
-	BaseTypeUByte  BaseType = 4
-	BaseTypeShort  BaseType = 5
-	BaseTypeUShort BaseType = 6
-	BaseTypeInt    BaseType = 7
-	BaseTypeUInt   BaseType = 8
-	BaseTypeLong   BaseType = 9
-	BaseTypeULong  BaseType = 10
-	BaseTypeFloat  BaseType = 11
-	BaseTypeDouble BaseType = 12
-	BaseTypeString BaseType = 13
-	BaseTypeVector BaseType = 14
-	BaseTypeObj    BaseType = 15
-	BaseTypeUnion  BaseType = 16
-	BaseTypeArray  BaseType = 17
+	BaseTypeNone        BaseType = 0
+	BaseTypeUType       BaseType = 1
+	BaseTypeBool        BaseType = 2
+	BaseTypeByte        BaseType = 3
+	BaseTypeUByte       BaseType = 4
+	BaseTypeShort       BaseType = 5
+	BaseTypeUShort      BaseType = 6
+	BaseTypeInt         BaseType = 7
+	BaseTypeUInt        BaseType = 8
+	BaseTypeLong        BaseType = 9
+	BaseTypeULong       BaseType = 10
+	BaseTypeFloat       BaseType = 11
+	BaseTypeDouble      BaseType = 12
+	BaseTypeString      BaseType = 13
+	BaseTypeVector      BaseType = 14
+	BaseTypeObj         BaseType = 15
+	BaseTypeUnion       BaseType = 16
+	BaseTypeArray       BaseType = 17
+	BaseTypeMaxBaseType BaseType = 18
 )
 
 var EnumNamesBaseType = map[BaseType]string{
-	BaseTypeNone:   "None",
-	BaseTypeUType:  "UType",
-	BaseTypeBool:   "Bool",
-	BaseTypeByte:   "Byte",
-	BaseTypeUByte:  "UByte",
-	BaseTypeShort:  "Short",
-	BaseTypeUShort: "UShort",
-	BaseTypeInt:    "Int",
-	BaseTypeUInt:   "UInt",
-	BaseTypeLong:   "Long",
-	BaseTypeULong:  "ULong",
-	BaseTypeFloat:  "Float",
-	BaseTypeDouble: "Double",
-	BaseTypeString: "String",
-	BaseTypeVector: "Vector",
-	BaseTypeObj:    "Obj",
-	BaseTypeUnion:  "Union",
-	BaseTypeArray:  "Array",
+	BaseTypeNone:        "None",
+	BaseTypeUType:       "UType",
+	BaseTypeBool:        "Bool",
+	BaseTypeByte:        "Byte",
+	BaseTypeUByte:       "UByte",
+	BaseTypeShort:       "Short",
+	BaseTypeUShort:      "UShort",
+	BaseTypeInt:         "Int",
+	BaseTypeUInt:        "UInt",
+	BaseTypeLong:        "Long",
+	BaseTypeULong:       "ULong",
+	BaseTypeFloat:       "Float",
+	BaseTypeDouble:      "Double",
+	BaseTypeString:      "String",
+	BaseTypeVector:      "Vector",
+	BaseTypeObj:         "Obj",
+	BaseTypeUnion:       "Union",
+	BaseTypeArray:       "Array",
+	BaseTypeMaxBaseType: "MaxBaseType",
 }
 
 var EnumValuesBaseType = map[string]BaseType{
-	"None":   BaseTypeNone,
-	"UType":  BaseTypeUType,
-	"Bool":   BaseTypeBool,
-	"Byte":   BaseTypeByte,
-	"UByte":  BaseTypeUByte,
-	"Short":  BaseTypeShort,
-	"UShort": BaseTypeUShort,
-	"Int":    BaseTypeInt,
-	"UInt":   BaseTypeUInt,
-	"Long":   BaseTypeLong,
-	"ULong":  BaseTypeULong,
-	"Float":  BaseTypeFloat,
-	"Double": BaseTypeDouble,
-	"String": BaseTypeString,
-	"Vector": BaseTypeVector,
-	"Obj":    BaseTypeObj,
-	"Union":  BaseTypeUnion,
-	"Array":  BaseTypeArray,
+	"None":        BaseTypeNone,
+	"UType":       BaseTypeUType,
+	"Bool":        BaseTypeBool,
+	"Byte":        BaseTypeByte,
+	"UByte":       BaseTypeUByte,
+	"Short":       BaseTypeShort,
+	"UShort":      BaseTypeUShort,
+	"Int":         BaseTypeInt,
+	"UInt":        BaseTypeUInt,
+	"Long":        BaseTypeLong,
+	"ULong":       BaseTypeULong,
+	"Float":       BaseTypeFloat,
+	"Double":      BaseTypeDouble,
+	"String":      BaseTypeString,
+	"Vector":      BaseTypeVector,
+	"Obj":         BaseTypeObj,
+	"Union":       BaseTypeUnion,
+	"Array":       BaseTypeArray,
+	"MaxBaseType": BaseTypeMaxBaseType,
 }
 
 func (v BaseType) String() string {

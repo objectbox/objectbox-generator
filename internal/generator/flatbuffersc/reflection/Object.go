@@ -17,6 +17,13 @@ func GetRootAsObject(buf []byte, offset flatbuffers.UOffsetT) *Object {
 	return x
 }
 
+func GetSizePrefixedRootAsObject(buf []byte, offset flatbuffers.UOffsetT) *Object {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Object{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
 func (rcv *Object) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
