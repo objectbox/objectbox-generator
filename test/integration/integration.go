@@ -109,6 +109,7 @@ func generateCCpp(t *testing.T, srcPath string, outDir string, cGenerator *cgene
 type CCppTestConf struct {
 	Cmake     *cmake.Cmake
 	Generator *cgenerator.CGenerator
+	SchemaPath string
 }
 
 func sourceExt(cpp bool) string {
@@ -122,7 +123,7 @@ func sourceExt(cpp bool) string {
 // CommonExecute executes the integration with the simple/common setup
 func (conf *CCppTestConf) CommonExecute(t *testing.T, lang cCppStandard) {
 	conf.CreateCMake(t, lang, "main."+sourceExt(lang.isCpp()))
-	conf.Generate(t, nil)
+	conf.Generate(t)
 	conf.Build(t)
 	conf.Run(t, nil)
 }
@@ -177,24 +178,28 @@ func (conf *CCppTestConf) CreateCMake(t *testing.T, lang cCppStandard, mainFile 
 	}
 }
 
-// Generate loads *.fbs files in the current dir (or the given schema file) and generates the code
-func (conf *CCppTestConf) Generate(t *testing.T, schemas map[string]string) {
+func (conf *CCppTestConf) WriteSchemas(t *testing.T, schemas map[string]string) string {
 	var srcPath string
 
-	if len(schemas) != 0 {
-		for name, content := range schemas {
-			// passing an empty name and content is a trick to having multiple schames to enable wildcard generation.
-			if len(name) == 0 && len(content) == 0 {
-				continue
-			}
+	for name, content := range schemas {
+		// passing an empty name and content is a trick to having multiple schames to enable wildcard generation.
+		if len(name) == 0 && len(content) == 0 {
+			continue
+		}
 
-			srcPath = filepath.Join(conf.Cmake.ConfDir, name)
-			assert.NoErr(t, ioutil.WriteFile(srcPath, []byte(content), 0600))
-		}
-		if len(schemas) != 1 {
-			srcPath = filepath.Join(conf.Cmake.ConfDir, "*.fbs")
-		}
-	} else {
+		srcPath = filepath.Join(conf.Cmake.ConfDir, name)
+		assert.NoErr(t, ioutil.WriteFile(srcPath, []byte(content), 0600))
+	}
+	if len(schemas) != 1 {
+		srcPath = filepath.Join(conf.Cmake.ConfDir, "*.fbs")
+	}
+	return srcPath
+}
+
+// Generate loads .fbs files specified by conf.SchemaPath and generates the code
+func (conf *CCppTestConf) Generate(t *testing.T) {
+	var srcPath = conf.SchemaPath
+	if len(srcPath) == 0 {
 		srcPath = "*.fbs"
 	}
 

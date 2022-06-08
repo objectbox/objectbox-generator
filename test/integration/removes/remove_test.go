@@ -47,7 +47,7 @@ func TestCpp(t *testing.T) {
 
 	// STEP-1 start
 	conf.CreateCMake(t, integration.Cpp11, "step-1.cpp")
-	conf.Generate(t, map[string]string{"": "", "schema.fbs": `
+	conf.SchemaPath = conf.WriteSchemas(t, map[string]string{"": "", "schema.fbs": `
 /// This entity will be removed in step 2
 /// objectbox:relation(to=EntityB,name=standaloneRel)
 table EntityA {
@@ -64,6 +64,7 @@ table EntityB {
 	id:uint64;
 	name:string;
 }`})
+	conf.Generate(t)
 	modelJSONFile := generator.ModelInfoFile(conf.Cmake.ConfDir)
 	modelInfo, err := model.LoadModelFromJSONFile(modelJSONFile)
 	assert.NoErr(t, err)
@@ -97,11 +98,12 @@ table EntityB {
 
 	// STEP-2 start
 	conf.CreateCMake(t, integration.Cpp11, "step-2.cpp")
-	conf.Generate(t, map[string]string{"": "", "schema.fbs": `
+	conf.SchemaPath = conf.WriteSchemas(t, map[string]string{"": "", "schema.fbs": `
 table EntityB {
 	id:uint64;
 	name:string;
 }`})
+	conf.Generate(t)
 	modelInfo, err = model.LoadModelFromJSONFile(modelJSONFile)
 	assert.NoErr(t, err)
 	assert.Eq(t, 1, len(modelInfo.Entities))
