@@ -1,0 +1,11 @@
+# https://docs.gitlab.com/ce/ci/yaml/
+
+build:
+  tags: [ x64, linux, docker ]
+  image: 
+    name: objectboxio/buildenv-generator-ubuntu:2024-02-22
+    pull_policy: [always, if-not-present]
+  script:
+    - make
+    - make test-depend
+    - make test
