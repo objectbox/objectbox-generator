@@ -20,7 +20,8 @@ test: 			## Test all targets
 	go test -timeout 1h ./...
 
 clean:			## Clean previous builds
-	go clean -cache ./..
+	go clean -cache
+	go clean ./..
 	rm -f objectbox-generator
 	rm -f objectbox-generator.exe
 	rm -rf third_party/flatbuffers-c-bridge/cmake-build
