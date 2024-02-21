@@ -68,7 +68,7 @@ Typeful Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
 }
 
 std::unique_ptr<Typeful> Typeful::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::make_unique<Typeful>();
+    auto object = std::unique_ptr<Typeful>(new Typeful());
     fromFlatBuffer(data, size, *object);
     return object;
 }
@@ -161,7 +161,7 @@ ns::Annotated ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, siz
 }
 
 std::unique_ptr<ns::Annotated> ns::Annotated::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::make_unique<ns::Annotated>();
+    auto object = std::unique_ptr<ns::Annotated>(new ns::Annotated());
     fromFlatBuffer(data, size, *object);
     return object;
 }
@@ -216,7 +216,7 @@ ns::TSDate ns::TSDate::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t si
 }
 
 std::unique_ptr<ns::TSDate> ns::TSDate::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::make_unique<ns::TSDate>();
+    auto object = std::unique_ptr<ns::TSDate>(new ns::TSDate());
     fromFlatBuffer(data, size, *object);
     return object;
 }
@@ -249,7 +249,7 @@ ns::TSDateNano ns::TSDateNano::_OBX_MetaInfo::fromFlatBuffer(const void* data, s
 }
 
 std::unique_ptr<ns::TSDateNano> ns::TSDateNano::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::make_unique<ns::TSDateNano>();
+    auto object = std::unique_ptr<ns::TSDateNano>(new ns::TSDateNano());
     fromFlatBuffer(data, size, *object);
     return object;
 }

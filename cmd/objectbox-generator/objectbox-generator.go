@@ -29,11 +29,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/objectbox/objectbox-generator/cmd"
+	generatorcmd "github.com/objectbox/objectbox-generator/cmd"
 	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/internal/generator/c"
+	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc"
-	"github.com/objectbox/objectbox-generator/internal/generator/go"
+	gogenerator "github.com/objectbox/objectbox-generator/internal/generator/go"
 )
 
 func main() {
@@ -86,7 +86,8 @@ Available flags:
 func (cmd *command) ConfigureFlags() {
 	cmd.langs = make(map[string]*bool)
 	cmd.langs["c"] = flag.Bool("c", false, "generate plain C code")
-	cmd.langs["cpp"] = flag.Bool("cpp", false, "generate C++ code")
+	cmd.langs["cpp"] = flag.Bool("cpp", false, "generate C++ code (at least C++14)")
+	cmd.langs["cpp11"] = flag.Bool("cpp11", false, "generate C++11 code")
 	cmd.langs["go"] = flag.Bool("go", false, "generate Go code")
 
 	// for c++ generator
@@ -113,13 +114,21 @@ func (cmd *command) ParseFlags(remainingPosArgs *[]string, options *generator.Op
 		options.CodeGenerator = &gogenerator.GoGenerator{}
 	case "c":
 		options.CodeGenerator = &cgenerator.CGenerator{
-			PlainC:   true,
-			Optional: "ptr", // dummy value for checks to evaluate to true if "optional" annotation is used
+			PlainC:      true,
+			LangVersion: -1,    // unspecified, take the default
+			Optional:    "ptr", // dummy value for checks to evaluate to true if "optional" annotation is used
 		}
 	case "cpp":
 		options.CodeGenerator = &cgenerator.CGenerator{
-			PlainC:   false,
-			Optional: *cmd.optional,
+			PlainC:      false,
+			LangVersion: 14,
+			Optional:    *cmd.optional,
+		}
+	case "cpp11":
+		options.CodeGenerator = &cgenerator.CGenerator{
+			PlainC:      false,
+			LangVersion: 11,
+			Optional:    *cmd.optional,
 		}
 	default:
 		return errors.New("you must specify an output language")

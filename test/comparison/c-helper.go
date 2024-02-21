@@ -27,7 +27,7 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/internal/generator/c"
+	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/assert"
 	"github.com/objectbox/objectbox-generator/test/build"
 	"github.com/objectbox/objectbox-generator/test/cmake"
@@ -80,7 +80,11 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 
 	var mainFile string
 	if cmak.IsCpp {
-		cmak.Standard = 11
+		if conf.targetLang == "cpp11" {
+			cmak.Standard = 11
+		} else {
+			cmak.Standard = 14
+		}
 		mainFile = path.Join(cmak.ConfDir, "main.cpp")
 	} else {
 		cmak.Standard = 99
