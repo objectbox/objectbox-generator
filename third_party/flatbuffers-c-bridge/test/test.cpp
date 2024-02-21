@@ -96,7 +96,7 @@ TEST_CASE("flatc-main", "") {
     Error error;
 
     REQUIRE(fbs_flatc({}, 0, error.ptr()) != 0);
-    REQUIRE(error.text == std::string("missing input files"));
+    REQUIRE(error.text == std::string("Need to provide at least one argument."));
 
     const char* generatedFile = "schema_generated.h";
     remove(generatedFile);
