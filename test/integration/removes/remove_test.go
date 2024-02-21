@@ -46,7 +46,7 @@ func TestCpp(t *testing.T) {
 	defer conf.Cleanup()
 
 	// STEP-1 start
-	conf.CreateCMake(t, integration.Cpp11, "step-1.cpp")
+	conf.CreateCMake(t, integration.CppDefault, "step-1.cpp")
 	conf.Generate(t, map[string]string{"": "", "schema.fbs": `
 /// This entity will be removed in step 2
 /// objectbox:relation(to=EntityB,name=standaloneRel)
@@ -96,7 +96,7 @@ table EntityB {
 	// STEP-1 end
 
 	// STEP-2 start
-	conf.CreateCMake(t, integration.Cpp11, "step-2.cpp")
+	conf.CreateCMake(t, integration.CppDefault, "step-2.cpp")
 	conf.Generate(t, map[string]string{"": "", "schema.fbs": `
 table EntityB {
 	id:uint64;

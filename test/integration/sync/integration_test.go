@@ -28,5 +28,5 @@ import (
 func TestCpp(t *testing.T) {
 	conf := &integration.CCppTestConf{}
 	defer conf.Cleanup()
-	conf.CommonExecute(t, integration.Cpp11)
+	conf.CommonExecute(t, integration.CppDefault)
 }

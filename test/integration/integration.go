@@ -33,7 +33,7 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/internal/generator/c"
+	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/assert"
 	"github.com/objectbox/objectbox-generator/test/build"
 	"github.com/objectbox/objectbox-generator/test/cmake"
@@ -56,7 +56,10 @@ func (std cCppStandard) year() (int, error) {
 }
 
 const Cpp11 = cCppStandard("C++11")
+const Cpp14 = cCppStandard("C++14")
 const Cpp17 = cCppStandard("C++17")
+
+const CppDefault = Cpp14
 
 // used during development to generate code into the source directory instead of temp
 var inSource = flag.Bool("insource", false, "Output generated code to the source dir for development")
