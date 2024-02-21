@@ -276,6 +276,17 @@ func (mp *fbsField) FbDefaultValue() string {
 	return "0"
 }
 
+// FbIsFloatingPoint returns true if type is float or double
+func (mp *fbsField) FbIsFloatingPoint() bool {
+	switch mp.ModelProperty.Type {
+	case model.PropertyTypeFloat:
+		return true
+	case model.PropertyTypeDouble:
+		return true
+	}
+	return false
+}
+
 // Try to determine the namespace of the target entity but don't fail if we can't because it's declared in a different
 // file. Assume no namespace in that case and hope for the best.
 func (mp *fbsField) relTargetNamespace() string {
