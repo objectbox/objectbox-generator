@@ -24,7 +24,7 @@ fi
 mkdir -pv "${tmpDir}"
 
 printf "\n******** Generating Go code ********\n"
-${flatc} --go -o "${tmpDir}" "${repoDir}"/third_party/flatbuffers-c-bridge/cmake-build/_deps/flatbuffers-*-src/reflection/reflection.fbs
+${flatc} --go -o "${tmpDir}" "${repoDir}"/third_party/flatbuffers-c-bridge/third_party/flatbuffers/reflection/reflection.fbs
 echo "Generated files:"
 ls "${tmpDir}/reflection"
 
