@@ -49,9 +49,15 @@ FBS_bytes* fbs_schema_parse_file(const char* filename, const char** out_error) {
         }
 
         if (!parser.error_.empty()) {
-            // TODO flatc.cpp issues a warning in this case...
-            // Warn(parser.error_, false);
-            throw std::runtime_error(parser.error_);
+            bool ignore = false;
+            if (parser.has_warning_) {
+                if (parser.error_.find("warning: field names should be lowercase snake_case, got:") != std::string::npos) {
+                    ignore = true;
+                }
+            }
+            if (!ignore) {
+                throw std::runtime_error(parser.error_);
+            }
         }
 
         parser.Serialize();
