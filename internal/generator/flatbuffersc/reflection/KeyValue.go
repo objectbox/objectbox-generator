@@ -3,6 +3,7 @@
 package reflection
 
 import (
+	"bytes"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
@@ -15,6 +16,21 @@ func GetRootAsKeyValue(buf []byte, offset flatbuffers.UOffsetT) *KeyValue {
 	x := &KeyValue{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func FinishKeyValueBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
+func GetSizePrefixedRootAsKeyValue(buf []byte, offset flatbuffers.UOffsetT) *KeyValue {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &KeyValue{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
+func FinishSizePrefixedKeyValueBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
 }
 
 func (rcv *KeyValue) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -32,6 +48,38 @@ func (rcv *KeyValue) Key() []byte {
 		return rcv._tab.ByteVector(o + rcv._tab.Pos)
 	}
 	return nil
+}
+
+func KeyValueKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
+	obj1 := &KeyValue{}
+	obj2 := &KeyValue{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
+	return string(obj1.Key()) < string(obj2.Key())
+}
+
+func (rcv *KeyValue) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation-4:])
+	start := flatbuffers.UOffsetT(0)
+	bKey := []byte(key)
+	for span != 0 {
+		middle := span / 2
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
+		obj := &KeyValue{}
+		obj.Init(buf, tableOffset)
+		comp := bytes.Compare(obj.Key(), bKey)
+		if comp > 0 {
+			span = middle
+		} else if comp < 0 {
+			middle += 1
+			start += middle
+			span -= middle
+		} else {
+			rcv.Init(buf, tableOffset)
+			return true
+		}
+	}
+	return false
 }
 
 func (rcv *KeyValue) Value() []byte {

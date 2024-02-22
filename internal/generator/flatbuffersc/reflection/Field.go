@@ -3,6 +3,7 @@
 package reflection
 
 import (
+	"bytes"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
@@ -15,6 +16,21 @@ func GetRootAsField(buf []byte, offset flatbuffers.UOffsetT) *Field {
 	x := &Field{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func FinishFieldBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
+func GetSizePrefixedRootAsField(buf []byte, offset flatbuffers.UOffsetT) *Field {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Field{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
+func FinishSizePrefixedFieldBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
 }
 
 func (rcv *Field) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -32,6 +48,38 @@ func (rcv *Field) Name() []byte {
 		return rcv._tab.ByteVector(o + rcv._tab.Pos)
 	}
 	return nil
+}
+
+func FieldKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
+	obj1 := &Field{}
+	obj2 := &Field{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
+	return string(obj1.Name()) < string(obj2.Name())
+}
+
+func (rcv *Field) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation-4:])
+	start := flatbuffers.UOffsetT(0)
+	bKey := []byte(key)
+	for span != 0 {
+		middle := span / 2
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
+		obj := &Field{}
+		obj.Init(buf, tableOffset)
+		comp := bytes.Compare(obj.Name(), bKey)
+		if comp > 0 {
+			span = middle
+		} else if comp < 0 {
+			middle += 1
+			start += middle
+			span -= middle
+		} else {
+			rcv.Init(buf, tableOffset)
+			return true
+		}
+	}
+	return false
 }
 
 func (rcv *Field) Type(obj *Type) *Type {
@@ -143,6 +191,15 @@ func (rcv *Field) Attributes(obj *KeyValue, j int) bool {
 	return false
 }
 
+func (rcv *Field) AttributesByKey(obj *KeyValue, key string) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
+	}
+	return false
+}
+
 func (rcv *Field) AttributesLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
 	if o != 0 {
@@ -168,8 +225,48 @@ func (rcv *Field) DocumentationLength() int {
 	return 0
 }
 
+func (rcv *Field) Optional() bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	if o != 0 {
+		return rcv._tab.GetBool(o + rcv._tab.Pos)
+	}
+	return false
+}
+
+func (rcv *Field) MutateOptional(n bool) bool {
+	return rcv._tab.MutateBoolSlot(26, n)
+}
+
+/// Number of padding octets to always add after this field. Structs only.
+func (rcv *Field) Padding() uint16 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
+	if o != 0 {
+		return rcv._tab.GetUint16(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+/// Number of padding octets to always add after this field. Structs only.
+func (rcv *Field) MutatePadding(n uint16) bool {
+	return rcv._tab.MutateUint16Slot(28, n)
+}
+
+/// If the field uses 64-bit offsets.
+func (rcv *Field) Offset64() bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(30))
+	if o != 0 {
+		return rcv._tab.GetBool(o + rcv._tab.Pos)
+	}
+	return false
+}
+
+/// If the field uses 64-bit offsets.
+func (rcv *Field) MutateOffset64(n bool) bool {
+	return rcv._tab.MutateBoolSlot(30, n)
+}
+
 func FieldStart(builder *flatbuffers.Builder) {
-	builder.StartObject(11)
+	builder.StartObject(14)
 }
 func FieldAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(name), 0)
@@ -209,6 +306,15 @@ func FieldAddDocumentation(builder *flatbuffers.Builder, documentation flatbuffe
 }
 func FieldStartDocumentationVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
+}
+func FieldAddOptional(builder *flatbuffers.Builder, optional bool) {
+	builder.PrependBoolSlot(11, optional, false)
+}
+func FieldAddPadding(builder *flatbuffers.Builder, padding uint16) {
+	builder.PrependUint16Slot(12, padding, 0)
+}
+func FieldAddOffset64(builder *flatbuffers.Builder, offset64 bool) {
+	builder.PrependBoolSlot(13, offset64, false)
 }
 func FieldEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
