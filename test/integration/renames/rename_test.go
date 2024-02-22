@@ -47,7 +47,7 @@ func TestCpp(t *testing.T) {
 	defer conf.Cleanup()
 
 	// BEFORE RENAME start
-	conf.CreateCMake(t, integration.Cpp11, "step-1.cpp")
+	conf.CreateCMake(t, integration.CppDefault, "step-1.cpp")
 	conf.Generate(t, map[string]string{"schema.fbs": `table OldEntityName {
 	id:uint64;
 	oldPropertyName:int;
@@ -65,7 +65,7 @@ func TestCpp(t *testing.T) {
 	// BEFORE RENAME end
 
 	// AFTER RENAME start
-	conf.CreateCMake(t, integration.Cpp11, "step-2.cpp")
+	conf.CreateCMake(t, integration.CppDefault, "step-2.cpp")
 	conf.Generate(t, map[string]string{"schema.fbs": "/// objectbox: uid=" + entityUid + `
 table NewEntityName {
 	id:uint64;

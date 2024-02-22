@@ -23,8 +23,8 @@ import (
 	"testing"
 
 	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/internal/generator/c"
-	"github.com/objectbox/objectbox-generator/internal/generator/go"
+	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
+	gogenerator "github.com/objectbox/objectbox-generator/internal/generator/go"
 )
 
 type testHelper interface {
@@ -52,7 +52,8 @@ type testSpec struct {
 }
 
 var confs = map[string]testSpec{
-	"fbs-c":   {"c", ".fbs", []string{".obx.h"}, &cgenerator.CGenerator{PlainC: true}, &cTestHelper{cpp: false}},
-	"fbs-cpp": {"cpp", ".fbs", []string{".obx.hpp", ".obx.cpp"}, &cgenerator.CGenerator{PlainC: false}, &cTestHelper{cpp: true}},
-	"go":      {"go", ".go", []string{".obx.go"}, &gogenerator.GoGenerator{}, &goTestHelper{}},
+	"fbs-c":     {"c", ".fbs", []string{".obx.h"}, &cgenerator.CGenerator{PlainC: true, LangVersion: -1}, &cTestHelper{cpp: false}},
+	"fbs-cpp":   {"cpp", ".fbs", []string{".obx.hpp", ".obx.cpp"}, &cgenerator.CGenerator{PlainC: false, LangVersion: 14}, &cTestHelper{cpp: true}},
+	"fbs-cpp11": {"cpp11", ".fbs", []string{".obx.hpp", ".obx.cpp"}, &cgenerator.CGenerator{PlainC: false, LangVersion: 11}, &cTestHelper{cpp: true}},
+	"go":        {"go", ".go", []string{".obx.go"}, &gogenerator.GoGenerator{}, &goTestHelper{}},
 }

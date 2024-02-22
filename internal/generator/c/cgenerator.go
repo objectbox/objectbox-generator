@@ -34,8 +34,9 @@ import (
 )
 
 type CGenerator struct {
-	PlainC   bool
-	Optional string // std::optional, std::unique_ptr, std::shared_ptr
+	PlainC      bool
+	LangVersion int    // -1: unset, cpp: 11, 14, 17
+	Optional    string // std::optional, std::unique_ptr, std::shared_ptr
 }
 
 // BindingFiles returns names of binding files for the given entity file.
@@ -130,7 +131,8 @@ func (gen *CGenerator) generateBindingFile(bindingFile, headerFile string, m *mo
 		FileIdentifier   string
 		HeaderFile       string
 		Optional         string
-	}{m, generator.VersionId, fileIdentifier, filepath.Base(headerFile), gen.Optional}
+		LangVersion      int
+	}{m, generator.VersionId, fileIdentifier, filepath.Base(headerFile), gen.Optional, gen.LangVersion}
 
 	var tpl *template.Template
 

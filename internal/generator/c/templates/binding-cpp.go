@@ -67,7 +67,11 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo:
 }
 
 std::unique_ptr<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}> {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
+	{{- if ge $.LangVersion 14 }}
+	auto object = std::make_unique<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}>();
+	{{- else}}
 	auto object = std::unique_ptr<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}>(new {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}());
+	{{- end}}
 	fromFlatBuffer(data, size, *object);
 	return object;
 }
