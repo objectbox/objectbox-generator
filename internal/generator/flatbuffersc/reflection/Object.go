@@ -3,6 +3,7 @@
 package reflection
 
 import (
+	"bytes"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
@@ -15,6 +16,21 @@ func GetRootAsObject(buf []byte, offset flatbuffers.UOffsetT) *Object {
 	x := &Object{}
 	x.Init(buf, n+offset)
 	return x
+}
+
+func FinishObjectBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
+func GetSizePrefixedRootAsObject(buf []byte, offset flatbuffers.UOffsetT) *Object {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &Object{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
+func FinishSizePrefixedObjectBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
 }
 
 func (rcv *Object) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -34,6 +50,38 @@ func (rcv *Object) Name() []byte {
 	return nil
 }
 
+func ObjectKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
+	obj1 := &Object{}
+	obj2 := &Object{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
+	return string(obj1.Name()) < string(obj2.Name())
+}
+
+func (rcv *Object) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation-4:])
+	start := flatbuffers.UOffsetT(0)
+	bKey := []byte(key)
+	for span != 0 {
+		middle := span / 2
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
+		obj := &Object{}
+		obj.Init(buf, tableOffset)
+		comp := bytes.Compare(obj.Name(), bKey)
+		if comp > 0 {
+			span = middle
+		} else if comp < 0 {
+			middle += 1
+			start += middle
+			span -= middle
+		} else {
+			rcv.Init(buf, tableOffset)
+			return true
+		}
+	}
+	return false
+}
+
 func (rcv *Object) Fields(obj *Field, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
@@ -42,6 +90,15 @@ func (rcv *Object) Fields(obj *Field, j int) bool {
 		x = rcv._tab.Indirect(x)
 		obj.Init(rcv._tab.Bytes, x)
 		return true
+	}
+	return false
+}
+
+func (rcv *Object) FieldsByKey(obj *Field, key string) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
 	}
 	return false
 }
@@ -102,6 +159,15 @@ func (rcv *Object) Attributes(obj *KeyValue, j int) bool {
 	return false
 }
 
+func (rcv *Object) AttributesByKey(obj *KeyValue, key string) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
+	}
+	return false
+}
+
 func (rcv *Object) AttributesLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
 	if o != 0 {
@@ -127,8 +193,18 @@ func (rcv *Object) DocumentationLength() int {
 	return 0
 }
 
+/// File that this Object is declared in.
+func (rcv *Object) DeclarationFile() []byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
+	if o != 0 {
+		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+	}
+	return nil
+}
+
+/// File that this Object is declared in.
 func ObjectStart(builder *flatbuffers.Builder) {
-	builder.StartObject(7)
+	builder.StartObject(8)
 }
 func ObjectAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(name), 0)
@@ -159,6 +235,9 @@ func ObjectAddDocumentation(builder *flatbuffers.Builder, documentation flatbuff
 }
 func ObjectStartDocumentationVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
+}
+func ObjectAddDeclarationFile(builder *flatbuffers.Builder, declarationFile flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(7, flatbuffers.UOffsetT(declarationFile), 0)
 }
 func ObjectEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

@@ -17,6 +17,21 @@ func GetRootAsEnumVal(buf []byte, offset flatbuffers.UOffsetT) *EnumVal {
 	return x
 }
 
+func FinishEnumValBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
+func GetSizePrefixedRootAsEnumVal(buf []byte, offset flatbuffers.UOffsetT) *EnumVal {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &EnumVal{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	return x
+}
+
+func FinishSizePrefixedEnumValBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
+}
+
 func (rcv *EnumVal) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
@@ -46,17 +61,41 @@ func (rcv *EnumVal) MutateValue(n int64) bool {
 	return rcv._tab.MutateInt64Slot(6, n)
 }
 
-func (rcv *EnumVal) Object(obj *Object) *Object {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
-	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
-		if obj == nil {
-			obj = new(Object)
+func EnumValKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
+	obj1 := &EnumVal{}
+	obj2 := &EnumVal{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
+	return obj1.Value() < obj2.Value()
+}
+
+func (rcv *EnumVal) LookupByKey(key int64, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation-4:])
+	start := flatbuffers.UOffsetT(0)
+	for span != 0 {
+		middle := span / 2
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
+		obj := &EnumVal{}
+		obj.Init(buf, tableOffset)
+		val := obj.Value()
+		comp := 0
+		if val > key {
+			comp = 1
+		} else if val < key {
+			comp = -1
 		}
-		obj.Init(rcv._tab.Bytes, x)
-		return obj
+		if comp > 0 {
+			span = middle
+		} else if comp < 0 {
+			middle += 1
+			start += middle
+			span -= middle
+		} else {
+			rcv.Init(buf, tableOffset)
+			return true
+		}
 	}
-	return nil
+	return false
 }
 
 func (rcv *EnumVal) UnionType(obj *Type) *Type {
@@ -89,17 +128,43 @@ func (rcv *EnumVal) DocumentationLength() int {
 	return 0
 }
 
+func (rcv *EnumVal) Attributes(obj *KeyValue, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		x += flatbuffers.UOffsetT(j) * 4
+		x = rcv._tab.Indirect(x)
+		obj.Init(rcv._tab.Bytes, x)
+		return true
+	}
+	return false
+}
+
+func (rcv *EnumVal) AttributesByKey(obj *KeyValue, key string) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
+	}
+	return false
+}
+
+func (rcv *EnumVal) AttributesLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
 func EnumValStart(builder *flatbuffers.Builder) {
-	builder.StartObject(5)
+	builder.StartObject(6)
 }
 func EnumValAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(name), 0)
 }
 func EnumValAddValue(builder *flatbuffers.Builder, value int64) {
 	builder.PrependInt64Slot(1, value, 0)
-}
-func EnumValAddObject(builder *flatbuffers.Builder, object flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(2, flatbuffers.UOffsetT(object), 0)
 }
 func EnumValAddUnionType(builder *flatbuffers.Builder, unionType flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(3, flatbuffers.UOffsetT(unionType), 0)
@@ -108,6 +173,12 @@ func EnumValAddDocumentation(builder *flatbuffers.Builder, documentation flatbuf
 	builder.PrependUOffsetTSlot(4, flatbuffers.UOffsetT(documentation), 0)
 }
 func EnumValStartDocumentationVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
+func EnumValAddAttributes(builder *flatbuffers.Builder, attributes flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(5, flatbuffers.UOffsetT(attributes), 0)
+}
+func EnumValStartAttributesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
 }
 func EnumValEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

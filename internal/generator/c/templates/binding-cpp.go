@@ -52,7 +52,7 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo:
 	{{range $property := $entity.Properties}}
 	{{- if $property.Meta.Optional}}if (object.{{$property.Meta.CppName}}) {{end}}
 	{{- if $property.Meta.FbOffsetFactory}}fbb.AddOffset({{$property.FbvTableOffset}}, offset{{$property.Meta.CppName}});
-	{{- else}}fbb.TrackField({{$property.FbvTableOffset}}, fbb.PushElement<{{$property.Meta.CppFbType}}>({{template "field-value" $property.Meta}}{{if eq "bool" $property.Meta.CppType}} ? 1 : 0{{end}}));
+	{{- else}}fbb.AddElement({{$property.FbvTableOffset}}, {{template "field-value" $property.Meta}}{{if eq "bool" $property.Meta.CppType}} ? 1 : 0{{end}});
 	{{- end}}
 	{{end -}}
 	flatbuffers::Offset<flatbuffers::Table> offset;
