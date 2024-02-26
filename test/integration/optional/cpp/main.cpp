@@ -13,6 +13,7 @@
 #include "std-shared_ptr-as-null.obx.hpp"
 #include "std-unique_ptr.obx.hpp"
 #include "std-unique_ptr-as-null.obx.hpp"
+#include "as-null.obx.hpp"
 
 using namespace obx;
 
@@ -126,36 +127,63 @@ template<typename Entity> void testOptionalValues() {
     REQUIRE(read->double_.value() == src->double_.value());
     REQUIRE(read->relId.value() == src->relId.value());
 }
+
+template<typename Entity> void testOptionalEmptyNaN(bool asValue) {
+
+    Store store = testStore(true, "c-cpp-tests-db");
+    Box<Entity> box(store);
+
+    obx_id id = box.put(Entity());
+    std::unique_ptr<Entity> src = box.get(id);;
+    REQUIRE(src);
+
+    src->string  = "";
+    src->float32 = std::nanf("1");
+    src->float64 = std::nan("2");
+    src->double_ = std::nan("-3");
+    src->float_  = std::nanf("-4");
+    src->int_    = 23;
+
+    box.put(*src);
+ 
+    // Update entity by empty-string/NaN 
+    Entity updated;
+    updated.string = "foo";
+    updated.float32 = 1.0f;
+    updated.float64 = 2.0;
+    updated.double_ = 4.0;
+    updated.float_  = 4.0f;
+    updated.int_    = 42;
+
+    box.get(id,updated);
+
+    if(asValue) {
+        REQUIRE(updated.string.has_value());
+        REQUIRE(updated.float32.has_value());
+        REQUIRE(updated.float64.has_value());
+        REQUIRE(updated.double_.has_value());
+        REQUIRE(updated.float_.has_value());
+    } else { // as-null
+        REQUIRE_FALSE(updated.string.has_value());
+        REQUIRE_FALSE(updated.float32.has_value());
+        REQUIRE_FALSE(updated.float64.has_value());
+        REQUIRE_FALSE(updated.double_.has_value());
+        REQUIRE_FALSE(updated.float_.has_value());
+    }
+
+    // Others always update as value:
+    REQUIRE(updated.int_.has_value());
+    REQUIRE(*updated.int_ == 23);
+}
+
 } // namespace
 
 TEST_CASE("Optional") {
     SECTION("Values") {
         testOptionalValues<Optional>();
     }
-    SECTION("Empty/NaN as values") {
-        Store store = testStore(true, "c-cpp-tests-db");
-        Box<Optional> box(store);
-        // no values inserted -> no values loaded
-        obx_id id = box.put(Optional());
-
-        std::unique_ptr<Optional> src = box.get(id);
-        REQUIRE(src);
-
-        src->string = "";
-        src->float32 = std::nanf("1");
-        src->float64 = std::nan("2");
-        src->double_ = std::nan("-3");
-        src->float_  = std::nanf("-4");
-
-        box.put(*src);
-        std::unique_ptr<Optional> read = box.get(id);
-        REQUIRE(read);
-
-        REQUIRE(read->string.has_value());
-        REQUIRE(read->float32.has_value());
-        REQUIRE(read->float64.has_value());
-        REQUIRE(read->double_.has_value());
-        REQUIRE(read->float_.has_value());
+    SECTION("Empty/NaN as value") {
+        testOptionalEmptyNaN<Optional>(true);
     }
 }
 
@@ -164,28 +192,7 @@ TEST_CASE("OptionalAsNull") {
         testOptionalValues<OptionalAsNull>();
     }
     SECTION("Empty/NaN as null") {
-        Store store = testStore(true, "c-cpp-tests-db");
-        Box<OptionalAsNull> box(store);
-        // no values inserted -> no values loaded
-        obx_id id = box.put(OptionalAsNull());
-        std::unique_ptr<OptionalAsNull> src = box.get(id);;
-        REQUIRE(src);
-
-        src->string  = "";
-        src->float32 = std::nanf("1");
-        src->float64 = std::nan("2");
-        src->double_ = std::nan("-3");
-        src->float_  = std::nanf("-4");
-
-        box.put(*src);
-        std::unique_ptr<OptionalAsNull> read = box.get(id);
-        REQUIRE(read);
-
-        REQUIRE_FALSE(read->string.has_value());
-        REQUIRE_FALSE(read->float32.has_value());
-        REQUIRE_FALSE(read->float64.has_value());
-        REQUIRE_FALSE(read->double_.has_value());
-        REQUIRE_FALSE(read->float_.has_value());
+        testOptionalEmptyNaN<OptionalAsNull>(false);
     }
 }
 
@@ -298,87 +305,81 @@ void testPtrValues() {
     REQUIRE(*read->double_ == *src->double_);
     REQUIRE(*read->relId == *src->relId);
 }
+
+template <typename Entity>
+void testPtrEmptyNaN(bool asValue) {
+    // Check for optional pointer types with "..-as-null" flag.
+    
+    // Create an asNull Empty/Null object in store
+    Store store = testStore(true, "c-cpp-tests-db");
+    Box<Entity> box(store);
+
+    obx_id id = box.put(Entity());
+    std::unique_ptr<Entity> nulled = box.get(id);
+    REQUIRE(nulled);
+
+    // Reset to Empty/NaN
+    nulled->string.reset( new std::string("") );
+    nulled->float32.reset( new float( std::nanf("1") ) );
+    nulled->float64.reset( new double( std::nan("2") ) );
+    nulled->double_.reset( new double( std::nan("-3") ) );
+    nulled->float_.reset( new float( std::nanf("-4") ) );
+    nulled->int_.reset( new int(23) );
+
+    box.put(*nulled);
+
+    // Update
+    Entity update;
+
+    // Set values
+    update.string.reset(new std::string("foo"));
+    update.float32.reset(new float(1.0f));
+    update.float64.reset(new double(2.0));
+    update.double_.reset(new double(4.0));
+    update.float_.reset(new float(4.0f));
+    update.int_.reset(new int(42));
+
+    // Update
+    box.get(id,update);
+
+    if(asValue) {
+        REQUIRE(update.string.operator bool());
+        REQUIRE(update.float32.operator bool());
+        REQUIRE(update.float64.operator bool());
+        REQUIRE(update.double_.operator bool());
+        REQUIRE(update.float_.operator bool());    
+    } else { // as-null
+        REQUIRE_FALSE(update.string.operator bool());
+        REQUIRE_FALSE(update.float32.operator bool());
+        REQUIRE_FALSE(update.float64.operator bool());
+        REQUIRE_FALSE(update.double_.operator bool());
+        REQUIRE_FALSE(update.float_.operator bool());    
+    }
+    // Always as Value:
+    REQUIRE(update.int_.operator bool());
+    REQUIRE(*update.int_ == 23);
+}   
 }  // namespace
 
 TEST_CASE("UniquePtr") {
-    
     SECTION("Values") {
         static_assert(std::is_same<decltype(UniquePtr::int_), std::unique_ptr<int32_t>>::value, "must be std::unique_ptr");
         testPtrValues<UniquePtr>();
     }
-
-    SECTION("Empty/NaN") {
-        Store store = testStore(true, "c-cpp-tests-db");
-        Box<UniquePtr> box(store);
-
-        // no values inserted -> no values loaded
-        obx_id id = box.put(UniquePtr());
-        std::unique_ptr<UniquePtr> read = box.get(id);
-        REQUIRE(read);
-        REQUIRE_FALSE(read->string.operator bool());
-        REQUIRE_FALSE(read->float32.operator bool());
-        REQUIRE_FALSE(read->float64.operator bool());
-        REQUIRE_FALSE(read->float_.operator bool());
-        REQUIRE_FALSE(read->double_.operator bool());
-        std::unique_ptr<UniquePtr> src = std::move(read);
-
-        src->string.reset(new std::string(""));
-        src->float32.reset(new float(std::nanf("1")));
-        src->float64.reset(new double(std::nan("2")));
-        src->float_.reset(new float(std::nanf("3")));
-        src->double_.reset(new double(std::nan("4")));
-
-        box.put(*src);
-        read = box.get(id);
-        REQUIRE(read);
-
-        REQUIRE(read->string.operator bool());
-        REQUIRE(read->float32.operator bool());
-        REQUIRE(read->float64.operator bool());
-        REQUIRE(read->float_.operator bool());
-        REQUIRE(read->double_.operator bool());
+    SECTION("Empty/NaN as value") {
+        testPtrEmptyNaN<UniquePtr>(true);
     }
 }
 
 TEST_CASE("UniquePtrAsNull") {
-
     SECTION("Values") {
         static_assert(std::is_same<decltype(UniquePtrAsNull::int_), std::unique_ptr<int32_t>>::value, "must be std::unique_ptr");
         testPtrValues<UniquePtrAsNull>();
     }
 
-    SECTION("Empty/NaN") {
-        Store store = testStore(true, "c-cpp-tests-db");
-        Box<UniquePtrAsNull> box(store);
-
-        // no values inserted -> no values loaded
-        obx_id id = box.put(UniquePtrAsNull());
-        std::unique_ptr<UniquePtrAsNull> read = box.get(id);
-        REQUIRE(read);
-        REQUIRE_FALSE(read->string.operator bool());
-        REQUIRE_FALSE(read->float32.operator bool());
-        REQUIRE_FALSE(read->float64.operator bool());
-        REQUIRE_FALSE(read->float_.operator bool());
-        REQUIRE_FALSE(read->double_.operator bool());
-        std::unique_ptr<UniquePtrAsNull> src = std::move(read);
-
-        src->string.reset(new std::string(""));
-        src->float32.reset(new float(std::nanf("1")));
-        src->float64.reset(new double(std::nan("2")));
-        src->float_.reset(new float(std::nanf("3")));
-        src->double_.reset(new double(std::nan("4")));
-
-        box.put(*src);
-        read = box.get(id);
-        REQUIRE(read);
-
-        REQUIRE_FALSE(read->string.operator bool());
-        REQUIRE_FALSE(read->float32.operator bool());
-        REQUIRE_FALSE(read->float64.operator bool());
-        REQUIRE_FALSE(read->float_.operator bool());
-        REQUIRE_FALSE(read->double_.operator bool());
+    SECTION("Empty/NaN as null") {
+        testPtrEmptyNaN<UniquePtrAsNull>(false);
     }
-
 }
 
 TEST_CASE("SharedPtr") {
@@ -388,36 +389,8 @@ TEST_CASE("SharedPtr") {
         testPtrValues<SharedPtr>();
     }
 
-    SECTION("Empty/NaN") {
-        Store store = testStore(true, "c-cpp-tests-db");
-        Box<SharedPtr> box(store);
-
-        // no values inserted -> no values loaded
-        obx_id id = box.put(SharedPtr());
-        std::unique_ptr<SharedPtr> read = box.get(id);
-        REQUIRE(read);
-        REQUIRE_FALSE(read->string.operator bool());
-        REQUIRE_FALSE(read->float32.operator bool());
-        REQUIRE_FALSE(read->float64.operator bool());
-        REQUIRE_FALSE(read->float_.operator bool());
-        REQUIRE_FALSE(read->double_.operator bool());
-        std::unique_ptr<SharedPtr> src = std::move(read);
-
-        src->string.reset(new std::string(""));
-        src->float32.reset(new float(std::nanf("1")));
-        src->float64.reset(new double(std::nan("2")));
-        src->float_.reset(new float(std::nanf("3")));
-        src->double_.reset(new double(std::nan("4")));
-
-        box.put(*src);
-        read = box.get(id);
-        REQUIRE(read);
-
-        REQUIRE(read->string.operator bool());
-        REQUIRE(read->float32.operator bool());
-        REQUIRE(read->float64.operator bool());
-        REQUIRE(read->float_.operator bool());
-        REQUIRE(read->double_.operator bool());
+    SECTION("Empty/NaN as value") {
+        testPtrEmptyNaN<SharedPtr>(true);
     }
 }
 
@@ -428,37 +401,54 @@ TEST_CASE("SharedPtrAsNull") {
         testPtrValues<SharedPtrAsNull>();
     }
 
-    SECTION("Empty/NaN") {
-        Store store = testStore(true, "c-cpp-tests-db");
-        Box<SharedPtrAsNull> box(store);
-
-        // no values inserted -> no values loaded
-        obx_id id = box.put(SharedPtrAsNull());
-        std::unique_ptr<SharedPtrAsNull> read = box.get(id);
-        REQUIRE(read);
-        REQUIRE_FALSE(read->string.operator bool());
-        REQUIRE_FALSE(read->float32.operator bool());
-        REQUIRE_FALSE(read->float64.operator bool());
-        REQUIRE_FALSE(read->float_.operator bool());
-        REQUIRE_FALSE(read->double_.operator bool());
-        std::unique_ptr<SharedPtrAsNull> src = std::move(read);
-
-        src->string.reset(new std::string(""));
-        src->float32.reset(new float(std::nanf("1")));
-        src->float64.reset(new double(std::nan("2")));
-        src->float_.reset(new float(std::nanf("3")));
-        src->double_.reset(new double(std::nan("4")));
-
-        box.put(*src);
-        read = box.get(id);
-        REQUIRE(read);
-
-        REQUIRE_FALSE(read->string.operator bool());
-        REQUIRE_FALSE(read->float32.operator bool());
-        REQUIRE_FALSE(read->float64.operator bool());
-        REQUIRE_FALSE(read->float_.operator bool());
-        REQUIRE_FALSE(read->double_.operator bool());
+    SECTION("Empty/NaN as null") {
+        testPtrEmptyNaN<SharedPtrAsNull>(false);
     }
+}
+
+TEST_CASE("TypefulAsNull") {
+    Store store = testStore(true, "c-cpp-tests-db");
+    Box<AsNull> box(store);
+
+    obx_id id = box.put(AsNull());
+
+    std::unique_ptr<AsNull> src = box.get(id);
+    REQUIRE(src);
+
+    // Initialize strings as "empty", float/double as NaN
+    src->string = "";
+    src->float32 = std::nanf("1");
+    src->float64 = std::nan("2");
+    src->double_ = std::nan("-3");
+    src->float_  = std::nanf("-4");
+    src->int_    = 23;
+
+    // Put Entity
+    box.put(*src);
+    std::unique_ptr<AsNull> read = box.get(id);
+    REQUIRE(read);
+
+    // Initialize "updated" entity with values ("non-empty" and valid floating-point numbers)
+    AsNull updated;
+    updated.string = "foo";
+    updated.float32 = 1.0f;
+    updated.float64 = 2.0;
+    updated.double_ = 4.0;
+    updated.float_  = 4.0f;
+    updated.int_    = 42;
+
+    // Update 
+    box.get(id,updated);
+
+    // Empty/NaN fields update fields to null values
+    REQUIRE(updated.string.empty());
+    REQUIRE(updated.float32 == 0.0f);
+    REQUIRE(updated.float64 == 0.0);
+    REQUIRE(updated.double_ == 0.0);
+    REQUIRE(updated.float_  == 0.0f);
+
+    // Others are set to value
+    REQUIRE(updated.int_ == 23);
 }
 
 namespace {

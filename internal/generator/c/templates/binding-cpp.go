@@ -87,6 +87,39 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo:
 	const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
 	assert(table);
 	{{range $property := $entity.Properties}}
+	{{- if eq "std::string" $property.Meta.CppType -}}
+	{
+		auto* ptr = table->GetPointer<const flatbuffers::String*>({{$property.FbvTableOffset}});
+		if (ptr) {
+			outObject.{{$property.Meta.CppName}}
+				{{- if $property.Meta.Optional}}
+					{{- if IsOptionalPtr $.Optional -}}
+						.reset(new std::string(ptr->c_str(), ptr->size()));
+					{{- else -}}
+						.emplace(ptr->c_str(), ptr->size());
+					{{- end}}
+				{{- else -}}
+					.assign(ptr->c_str(), ptr->size());
+				{{- end}}
+		} else {
+			outObject.{{$property.Meta.CppName}}
+			{{- if $property.Meta.Optional -}}
+				.reset();
+			{{- else -}}
+				.clear();
+			{{- end}}
+		}
+	}
+	{{else if and ( and $.NaNAsNull $property.Meta.Optional ) $property.Meta.FbIsFloatingPoint }}
+		if (table->CheckField({{$property.FbvTableOffset}})) {
+			outObject.{{$property.Meta.CppName}}
+			{{- template "field-value-assign-pre" $property.Meta -}}
+			table->GetField<{{$property.Meta.CppFbType}}>({{- $property.FbvTableOffset}}, {{$property.Meta.FbDefaultValue}}){{if eq "bool" $property.Meta.CppType}} != 0{{end}}
+			{{- template "field-value-assign-post" $property.Meta}};
+		} else {
+			outObject.{{$property.Meta.CppName}}.reset();
+		}
+	{{- else}}
 	{{- if $property.Meta.Optional}}if (table->CheckField({{$property.FbvTableOffset}})) {{end}}
 	{{- if eq "std::vector<std::string>" $property.Meta.CppType}}{
 		auto* ptr = table->GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*>({{$property.FbvTableOffset}});
@@ -99,12 +132,6 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo:
 				if (itemPtr) outObject.{{$property.Meta.CppName}}{{$property.Meta.CppValOp}}emplace_back(itemPtr->c_str());
 			}
 		}
-	}{{else if eq "std::string" $property.Meta.CppType}}{
-		auto* ptr = table->GetPointer<const flatbuffers::String*>({{$property.FbvTableOffset}});
-		if (ptr) outObject.{{$property.Meta.CppName}}
-			{{- if $property.Meta.Optional}}{{template "field-value-assign-pre" $property.Meta}}ptr->c_str(){{template "field-value-assign-post" $property.Meta}}
-			{{- else}}.assign(ptr->c_str())
-			{{- end}};
 	}{{else if $property.Meta.FbIsVector}}{
 		auto* ptr = table->GetPointer<const {{$property.Meta.FbOffsetType}}*>({{$property.FbvTableOffset}});
 		if (ptr) outObject.{{$property.Meta.CppName}}
@@ -118,6 +145,7 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo:
 		{{- template "field-value-assign-post" $property.Meta}};
 	{{- end}}
 	{{end}}
+	{{- end}}
 }
 {{end}}
 `))
