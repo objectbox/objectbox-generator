@@ -1,11 +1,42 @@
 # https://docs.gitlab.com/ce/ci/yaml/
 
-build:
+.build:
   tags: [ x64, linux, docker ]
   image: 
-    name: objectboxio/buildenv-generator-ubuntu:2024-02-22
+    name: objectboxio/buildenv-generator-ubuntu:2024-02-26
     pull_policy: [always, if-not-present]
+
+# Available go versions in objectboxio/buildenv-generator-ubuntu:2024-02-26:
+#
+# Version | Location (GOROOT)     | Notes
+# ------- | --------------------- | -------------------------------------------------
+# 1.18.1  | /usr/lib/go-1.18      | (Ubuntu 22.04 package)
+# 1.22.0  | /usr/local/go1.22     | Manual installed version (default first on PATH)
+# 1.19.13 | /root/sdk/go1.19.13   | Additional version installed via go install
+
+#
+b:go1.18:
+  extends: [ .build ]
   script:
+    - export PATH=/usr/lib/go-1.18/bin:$PATH
+    - make info
+    - make
+    - make test-depend
+    - make test
+
+b:go1.19:
+  extends: [ .build ]
+  script:
+    - export PATH=/root/sdk/go1.19.13/bin:$PATH
+    - make info
+    - make
+    - make test-depend
+    - make test
+
+b:go1.22:
+  extends: [ .build ]
+  script:
+    - make info
     - make
     - make test-depend
     - make test
