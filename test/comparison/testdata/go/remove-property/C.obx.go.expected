@@ -310,7 +310,8 @@ func (asyncBox *CAsyncBox) Remove(object *C) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all C which Id is either 42 or 47:
-// 		box.Query(C_.Id.In(42, 47)).Find()
+//
+// box.Query(C_.Id.In(42, 47)).Find()
 type CQuery struct {
 	*objectbox.Query
 }

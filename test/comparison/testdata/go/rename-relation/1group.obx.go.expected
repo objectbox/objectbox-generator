@@ -311,7 +311,8 @@ func (asyncBox *GroupAsyncBox) Remove(object *Group) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all Group which Id is either 42 or 47:
-// 		box.Query(Group_.Id.In(42, 47)).Find()
+//
+// box.Query(Group_.Id.In(42, 47)).Find()
 type GroupQuery struct {
 	*objectbox.Query
 }

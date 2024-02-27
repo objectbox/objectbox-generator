@@ -328,7 +328,8 @@ func (asyncBox *GroupByValAsyncBox) Remove(object *GroupByVal) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all GroupByVal which Id is either 42 or 47:
-// 		box.Query(GroupByVal_.Id.In(42, 47)).Find()
+//
+// box.Query(GroupByVal_.Id.In(42, 47)).Find()
 type GroupByValQuery struct {
 	*objectbox.Query
 }

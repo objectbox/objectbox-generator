@@ -365,7 +365,8 @@ func (asyncBox *AliasesAsyncBox) Remove(object *Aliases) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all Aliases which Id is either 42 or 47:
-// 		box.Query(Aliases_.Id.In(42, 47)).Find()
+//
+// box.Query(Aliases_.Id.In(42, 47)).Find()
 type AliasesQuery struct {
 	*objectbox.Query
 }

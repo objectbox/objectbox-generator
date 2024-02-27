@@ -341,7 +341,8 @@ func (asyncBox *BAsyncBox) Remove(object *B) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all B which Id is either 42 or 47:
-// 		box.Query(B_.Id.In(42, 47)).Find()
+//
+// box.Query(B_.Id.In(42, 47)).Find()
 type BQuery struct {
 	*objectbox.Query
 }

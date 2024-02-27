@@ -311,7 +311,8 @@ func (asyncBox *ChangeUidAsyncBox) Remove(object *ChangeUid) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all ChangeUid which Id is either 42 or 47:
-// 		box.Query(ChangeUid_.Id.In(42, 47)).Find()
+//
+// box.Query(ChangeUid_.Id.In(42, 47)).Find()
 type ChangeUidQuery struct {
 	*objectbox.Query
 }

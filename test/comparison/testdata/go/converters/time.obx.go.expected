@@ -323,7 +323,8 @@ func (asyncBox *TimeEntityAsyncBox) Remove(object *TimeEntity) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all TimeEntity which Id is either 42 or 47:
-// 		box.Query(TimeEntity_.Id.In(42, 47)).Find()
+//
+// box.Query(TimeEntity_.Id.In(42, 47)).Find()
 type TimeEntityQuery struct {
 	*objectbox.Query
 }
