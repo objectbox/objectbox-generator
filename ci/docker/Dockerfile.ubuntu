@@ -3,3 +3,15 @@ RUN apt-get update && \
     apt-get install -y make cmake golang git curl ccache && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Installation of additional go versions from ubuntu's go1.18 via 
+#     go install golang.org/dl/go1.19.13@latest 
+# fails with 
+#     [...]/version.go:537:38: undefined: signalsToIgnore
+# Thus, installation of a recent go version manually and add older versions afterwards
+
+RUN curl -sS -L --fail https://go.dev/dl/go1.22.0.linux-amd64.tar.gz | tar xz -v --one-top-level=go1.22 --strip-components 1 -C /usr/local
+ENV PATH=/root/go/bin:/usr/local/go1.22/bin:$PATH
+
+RUN go install golang.org/dl/go1.19.13@latest 
+RUN go1.19.13 download

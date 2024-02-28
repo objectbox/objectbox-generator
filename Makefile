@@ -35,3 +35,5 @@ test-depend: depend		## Build test dependencies
 	./third_party/flatcc/build.sh
 	./third_party/objectbox-c/get-objectbox-c.sh
 
+info:
+	go version
