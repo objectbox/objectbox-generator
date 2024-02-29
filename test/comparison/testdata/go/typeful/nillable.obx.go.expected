@@ -574,7 +574,8 @@ func (asyncBox *NillableAsyncBox) Remove(object *Nillable) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all Nillable which Id is either 42 or 47:
-// 		box.Query(Nillable_.Id.In(42, 47)).Find()
+//
+// box.Query(Nillable_.Id.In(42, 47)).Find()
 type NillableQuery struct {
 	*objectbox.Query
 }

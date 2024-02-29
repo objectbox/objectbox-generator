@@ -307,7 +307,8 @@ func (asyncBox *RuneIdEntityAsyncBox) Remove(object *RuneIdEntity) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all RuneIdEntity which Id is either 42 or 47:
-// 		box.Query(RuneIdEntity_.Id.In(42, 47)).Find()
+//
+// box.Query(RuneIdEntity_.Id.In(42, 47)).Find()
 type RuneIdEntityQuery struct {
 	*objectbox.Query
 }

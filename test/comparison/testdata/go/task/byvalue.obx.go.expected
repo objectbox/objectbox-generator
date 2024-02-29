@@ -328,7 +328,8 @@ func (asyncBox *TaskByValueAsyncBox) Remove(object *TaskByValue) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all TaskByValue which Id is either 42 or 47:
-// 		box.Query(TaskByValue_.Id.In(42, 47)).Find()
+//
+// box.Query(TaskByValue_.Id.In(42, 47)).Find()
 type TaskByValueQuery struct {
 	*objectbox.Query
 }
@@ -680,7 +681,8 @@ func (asyncBox *TaskStringByValueAsyncBox) Remove(object *TaskStringByValue) err
 // Query provides a way to search stored objects
 //
 // For example, you can find all TaskStringByValue which Id is either 42 or 47:
-// 		box.Query(TaskStringByValue_.Id.In(42, 47)).Find()
+//
+// box.Query(TaskStringByValue_.Id.In(42, 47)).Find()
 type TaskStringByValueQuery struct {
 	*objectbox.Query
 }

@@ -366,7 +366,8 @@ func (asyncBox *TaskRelEmbeddedAsyncBox) Remove(object *TaskRelEmbedded) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all TaskRelEmbedded which Id is either 42 or 47:
-// 		box.Query(TaskRelEmbedded_.Id.In(42, 47)).Find()
+//
+// box.Query(TaskRelEmbedded_.Id.In(42, 47)).Find()
 type TaskRelEmbeddedQuery struct {
 	*objectbox.Query
 }

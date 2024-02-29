@@ -613,7 +613,8 @@ func (asyncBox *{{$entity.Name}}AsyncBox) Remove(object *{{$entity.Name}}) error
 // Query provides a way to search stored objects
 //
 // For example, you can find all {{$entity.Name}} which {{$entity.IdProperty.Meta.Name}} is either 42 or 47:
-// 		box.Query({{$entity.Name}}_.{{$entity.IdProperty.Meta.Name}}.In(42, 47)).Find()
+// 
+// box.Query({{$entity.Name}}_.{{$entity.IdProperty.Meta.Name}}.In(42, 47)).Find()
 type {{$entity.Name}}Query struct {
 	*objectbox.Query
 }

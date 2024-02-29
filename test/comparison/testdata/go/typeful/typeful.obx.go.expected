@@ -577,7 +577,8 @@ func (asyncBox *TypefulAsyncBox) Remove(object *Typeful) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all Typeful which Id is either 42 or 47:
-// 		box.Query(Typeful_.Id.In(42, 47)).Find()
+//
+// box.Query(Typeful_.Id.In(42, 47)).Find()
 type TypefulQuery struct {
 	*objectbox.Query
 }
@@ -904,7 +905,8 @@ func (asyncBox *TSDateAsyncBox) Remove(object *TSDate) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all TSDate which Id is either 42 or 47:
-// 		box.Query(TSDate_.Id.In(42, 47)).Find()
+//
+// box.Query(TSDate_.Id.In(42, 47)).Find()
 type TSDateQuery struct {
 	*objectbox.Query
 }
@@ -1231,7 +1233,8 @@ func (asyncBox *TSDateNanoAsyncBox) Remove(object *TSDateNano) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all TSDateNano which Id is either 42 or 47:
-// 		box.Query(TSDateNano_.Id.In(42, 47)).Find()
+//
+// box.Query(TSDateNano_.Id.In(42, 47)).Find()
 type TSDateNanoQuery struct {
 	*objectbox.Query
 }

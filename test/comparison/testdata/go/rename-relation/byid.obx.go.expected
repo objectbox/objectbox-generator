@@ -315,7 +315,8 @@ func (asyncBox *TaskRelIdAsyncBox) Remove(object *TaskRelId) error {
 // Query provides a way to search stored objects
 //
 // For example, you can find all TaskRelId which Id is either 42 or 47:
-// 		box.Query(TaskRelId_.Id.In(42, 47)).Find()
+//
+// box.Query(TaskRelId_.Id.In(42, 47)).Find()
 type TaskRelIdQuery struct {
 	*objectbox.Query
 }
