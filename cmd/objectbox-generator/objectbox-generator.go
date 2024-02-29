@@ -46,8 +46,10 @@ func main() {
 
 // implements generatorcmd.generatorCommand
 type command struct {
-	langs    map[string]*bool
-	optional *string
+	langs                map[string]*bool
+	optional             *string
+	empty_string_as_null *bool // pointers due to flag API (https://pkg.go.dev/flag#Bool)
+	nan_as_null          *bool
 }
 
 func (cmd command) ShowUsage() {
@@ -92,6 +94,8 @@ func (cmd *command) ConfigureFlags() {
 
 	// for c++ generator
 	cmd.optional = flag.String("optional", "", "C++ wrapper type to use for fields annotated \"optional\"; one of: std::optional, std::unique_ptr, std::shared_ptr")
+	cmd.empty_string_as_null = flag.Bool("empty-string-as-null", false, "C++: empty strings are treated as 0 (null)")
+	cmd.nan_as_null = flag.Bool("nan-as-null", false, "C++: NaNs are treated as 0 (null)")
 }
 
 func (cmd *command) ParseFlags(remainingPosArgs *[]string, options *generator.Options) error {
@@ -120,15 +124,19 @@ func (cmd *command) ParseFlags(remainingPosArgs *[]string, options *generator.Op
 		}
 	case "cpp":
 		options.CodeGenerator = &cgenerator.CGenerator{
-			PlainC:      false,
-			LangVersion: 14,
-			Optional:    *cmd.optional,
+			PlainC:            false,
+			LangVersion:       14,
+			Optional:          *cmd.optional,
+			EmptyStringAsNull: *cmd.empty_string_as_null,
+			NaNAsNull:         *cmd.nan_as_null,
 		}
 	case "cpp11":
 		options.CodeGenerator = &cgenerator.CGenerator{
-			PlainC:      false,
-			LangVersion: 11,
-			Optional:    *cmd.optional,
+			PlainC:            false,
+			LangVersion:       11,
+			Optional:          *cmd.optional,
+			EmptyStringAsNull: *cmd.empty_string_as_null,
+			NaNAsNull:         *cmd.nan_as_null,
 		}
 	default:
 		return errors.New("you must specify an output language")

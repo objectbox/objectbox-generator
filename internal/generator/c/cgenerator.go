@@ -34,9 +34,11 @@ import (
 )
 
 type CGenerator struct {
-	PlainC      bool
-	LangVersion int    // -1: unset, cpp: 11, 14, 17
-	Optional    string // std::optional, std::unique_ptr, std::shared_ptr
+	PlainC            bool
+	LangVersion       int    // -1: unset, cpp: 11, 14, 17
+	Optional          string // std::optional, std::unique_ptr, std::shared_ptr
+	EmptyStringAsNull bool
+	NaNAsNull         bool
 }
 
 // BindingFiles returns names of binding files for the given entity file.
@@ -126,13 +128,15 @@ func (gen *CGenerator) generateBindingFile(bindingFile, headerFile string, m *mo
 	fileIdentifier = replaceSpecialChars.Replace(fileIdentifier)
 
 	var tplArguments = struct {
-		Model            *model.ModelInfo
-		GeneratorVersion int
-		FileIdentifier   string
-		HeaderFile       string
-		Optional         string
-		LangVersion      int
-	}{m, generator.VersionId, fileIdentifier, filepath.Base(headerFile), gen.Optional, gen.LangVersion}
+		Model             *model.ModelInfo
+		GeneratorVersion  int
+		FileIdentifier    string
+		HeaderFile        string
+		Optional          string
+		LangVersion       int
+		EmptyStringAsNull bool
+		NaNAsNull         bool
+	}{m, generator.VersionId, fileIdentifier, filepath.Base(headerFile), gen.Optional, gen.LangVersion, gen.EmptyStringAsNull, gen.NaNAsNull}
 
 	var tpl *template.Template
 

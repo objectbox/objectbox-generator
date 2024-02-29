@@ -32,6 +32,9 @@ var CppBindingTemplate = template.Must(template.New("binding-cpp").Funcs(funcMap
 {{define "field-value-assign-post"}}{{if IsOptionalPtr .Optional}})){{end}}{{end -}}
 
 #include "{{.HeaderFile}}"
+{{if .NaNAsNull}}
+#include <cmath>
+{{end -}}
 {{range $entity := .Model.EntitiesWithMeta}}
 {{- range $property := $entity.Properties}}
 const 
@@ -46,13 +49,17 @@ const obx::RelationStandalone<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.
 void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& object) {
 	fbb.Clear();
 	{{- range $property := $entity.Properties}}{{$factory := $property.Meta.FbOffsetFactory}}{{if $factory}}
-	auto offset{{$property.Meta.CppName}} = {{if $property.Meta.Optional}}!object.{{$property.Meta.CppName}} ? 0 : {{end}}fbb.{{$factory}}({{template "field-value" $property.Meta}});
+	auto offset{{$property.Meta.CppName}} =
+		{{- if $property.Meta.Optional}} !object.{{$property.Meta.CppName}} ? 0 : {{end -}}
+		{{- if and $.EmptyStringAsNull (eq "std::string" $property.Meta.CppType) }} ({{template "field-value" $property.Meta}}).empty() ? 0 : 
+		{{- end }} fbb.{{$factory}}({{template "field-value" $property.Meta}});
 	{{- end}}{{end}}
 	flatbuffers::uoffset_t fbStart = fbb.StartTable();
 	{{range $property := $entity.Properties}}
 	{{- if $property.Meta.Optional}}if (object.{{$property.Meta.CppName}}) {{end}}
 	{{- if $property.Meta.FbOffsetFactory}}fbb.AddOffset({{$property.FbvTableOffset}}, offset{{$property.Meta.CppName}});
-	{{- else}}fbb.AddElement({{$property.FbvTableOffset}}, {{template "field-value" $property.Meta}}{{if eq "bool" $property.Meta.CppType}} ? 1 : 0{{end}});
+	{{- else -}}
+		{{- if and $.NaNAsNull $property.Meta.FbIsFloatingPoint -}} if (!std::isnan({{template "field-value" $property.Meta}})) {{end -}} fbb.AddElement({{$property.FbvTableOffset}}, {{template "field-value" $property.Meta}}{{if eq "bool" $property.Meta.CppType}} ? 1 : 0{{end}});
 	{{- end}}
 	{{end -}}
 	flatbuffers::Offset<flatbuffers::Table> offset;

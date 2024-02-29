@@ -22,7 +22,7 @@ package typeful
 import (
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/c"
+	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/test/integration"
 )
 
@@ -83,11 +83,20 @@ func TestCppAndC(t *testing.T) {
 	conf.Generator = &cgenerator.CGenerator{Optional: "std::optional"}
 	conf.Generate(t, map[string]string{"std-optional.fbs": "table Optional {" + optionalSchemaFields + "}"})
 
+	conf.Generator = &cgenerator.CGenerator{Optional: "std::optional", EmptyStringAsNull: true, NaNAsNull: true}
+	conf.Generate(t, map[string]string{"std-optional-as-null.fbs": "table OptionalAsNull {" + optionalSchemaFields + "}"})
+
 	conf.Generator = &cgenerator.CGenerator{Optional: "std::unique_ptr"}
 	conf.Generate(t, map[string]string{"std-unique_ptr.fbs": "table UniquePtr {" + optionalSchemaFields + "}"})
 
+	conf.Generator = &cgenerator.CGenerator{Optional: "std::unique_ptr", EmptyStringAsNull: true, NaNAsNull: true}
+	conf.Generate(t, map[string]string{"std-unique_ptr-as-null.fbs": "table UniquePtrAsNull {" + optionalSchemaFields + "}"})
+
 	conf.Generator = &cgenerator.CGenerator{Optional: "std::shared_ptr"}
 	conf.Generate(t, map[string]string{"std-shared_ptr.fbs": "table SharedPtr {" + optionalSchemaFields + "}"})
+
+	conf.Generator = &cgenerator.CGenerator{Optional: "std::shared_ptr", EmptyStringAsNull: true, NaNAsNull: true}
+	conf.Generate(t, map[string]string{"std-shared_ptr-as-null.fbs": "table SharedPtrAsNull {" + optionalSchemaFields + "}"})
 
 	conf.Generator = &cgenerator.CGenerator{PlainC: true, Optional: "ptr"}
 	conf.Generate(t, map[string]string{"c-ptr.fbs": "table PlainCPtr {" + optionalSchemaFields + "}"})
