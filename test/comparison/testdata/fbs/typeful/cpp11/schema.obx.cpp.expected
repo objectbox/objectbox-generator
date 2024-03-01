@@ -104,6 +104,8 @@ void Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, Typeful& o
                 auto* itemPtr = ptr->Get(i);
                 if (itemPtr) outObject.stringvector.emplace_back(itemPtr->c_str());
             }
+        } else {
+            outObject.stringvector.clear();
         }
     }
     outObject.byte = table->GetField<int8_t>(32, 0);
@@ -111,17 +113,22 @@ void Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, Typeful& o
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<int8_t>*>(36);
         if (ptr) outObject.bytevector.assign(ptr->begin(), ptr->end());
+        else {
+            outObject.bytevector.clear();
+        }
     }
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<uint8_t>*>(38);
         if (ptr) outObject.ubytevector.assign(ptr->begin(), ptr->end());
+        else {
+            outObject.ubytevector.clear();
+        }
     }
     outObject.float32 = table->GetField<float>(40, 0.0f);
     outObject.float64 = table->GetField<double>(42, 0.0);
     outObject.float_ = table->GetField<float>(44, 0.0f);
     outObject.double_ = table->GetField<double>(46, 0.0);
     outObject.relId = table->GetField<obx_id>(48, 0);
-    
 }
 
 const obx::Property<ns::Annotated, OBXPropertyType_Long> ns::Annotated_::identifier(1);
@@ -217,7 +224,6 @@ void ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::
         }
     }
     outObject.uid = table->GetField<int32_t>(20, 0);
-    
 }
 
 const obx::Property<ns::TSDate, OBXPropertyType_Long> ns::TSDate_::id(1);
@@ -250,7 +256,6 @@ void ns::TSDate::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::TSD
     assert(table);
     outObject.id = table->GetField<obx_id>(4, 0);
     outObject.timestamp = table->GetField<int64_t>(6, 0);
-    
 }
 
 const obx::Property<ns::TSDateNano, OBXPropertyType_Long> ns::TSDateNano_::id(1);
@@ -283,6 +288,5 @@ void ns::TSDateNano::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns:
     assert(table);
     outObject.id = table->GetField<obx_id>(4, 0);
     outObject.timestamp = table->GetField<int64_t>(6, 0);
-    
 }
 
