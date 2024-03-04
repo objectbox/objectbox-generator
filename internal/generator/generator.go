@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 ObjectBox Ltd. All rights reserved.
+ * Copyright (C) 2018-2024 ObjectBox Ltd. All rights reserved.
  * https://objectbox.io
  *
  * This file is part of ObjectBox Generator.
@@ -34,10 +34,12 @@ import (
 )
 
 // Version specifies the current generator version.
-const Version = "0.13.0"
+const Version = "0.14.0"
 
 // VersionId specifies the current generator version identifier.
 // It is used to validate generated code compatibility and is increased when there are changes in the generated code.
+// This validation seems to be limited to Go: the generated code "knows" its version,
+// and thus we can check at runtime if the generated code matches the lib version.
 // Internal generator changes that don't change the output (in an incompatible way) do not cause an increase.
 const VersionId = 6
 
