@@ -32,16 +32,16 @@ func TestLibExists(t *testing.T) {
 		t.SkipNow()
 	}
 
-	err := cmake.LibraryExists("nonsense", nil, nil, nil)
+	err := cmake.LibraryExists("nonsense", nil, nil, nil, nil)
 	assert.Err(t, err)
 
-	err = cmake.LibraryExists("", []string{"non-existent-lib/include.h"}, nil, nil)
+	err = cmake.LibraryExists("", []string{"non-existent-lib/include.h"}, nil, nil, nil)
 	assert.Err(t, err)
 
 	if runtime.GOOS == "windows" {
-		err = cmake.LibraryExists("", []string{"array"}, nil, nil)
+		err = cmake.LibraryExists("", []string{"array"}, nil, nil, nil)
 	} else {
-		err = cmake.LibraryExists("stdc++", []string{"array"}, nil, nil)
+		err = cmake.LibraryExists("stdc++", []string{"array"}, nil, nil, nil)
 	}
 	assert.NoErr(t, err)
 }

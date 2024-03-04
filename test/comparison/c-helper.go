@@ -104,6 +104,7 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 	{ // write main.c/cpp to the conf dir - a simple one, just include all sources
 		var mainSrc = ""
 		if cmak.IsCpp {
+			mainSrc = mainSrc + "#define OBX_CPP_FILE\n"
 			mainSrc = mainSrc + "#include \"objectbox.hpp\"\n"
 		} else {
 			mainSrc = mainSrc + "#include \"objectbox.h\"\n"

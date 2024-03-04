@@ -1,5 +1,7 @@
 #define CATCH_CONFIG_MAIN
 
+#define OBX_CPP_FILE
+
 #include <type_traits>
 
 #include "c-ptr.obx.h"

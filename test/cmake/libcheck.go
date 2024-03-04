@@ -26,7 +26,7 @@ import (
 )
 
 // LibraryExists tries to compile a simple program linking to the given library
-func LibraryExists(name string, includeFiles, includeDirs, linkDirs []string) error {
+func LibraryExists(name string, includeFiles, includeDirs, linkDirs, predefines []string) error {
 	build := Cmake{
 		Name:        "check-" + name,
 		IsCpp:       true,
@@ -51,6 +51,11 @@ func LibraryExists(name string, includeFiles, includeDirs, linkDirs []string) er
 	{ // write main.cpp
 		mainPath := filepath.Join(build.ConfDir, build.Files[0])
 		var mainSrc string
+		if len(predefines) > 0 {
+			for _, predefine := range predefines {
+				mainSrc = mainSrc + "#define " + predefine + "\n"
+			}
+		}
 		if len(includeFiles) > 0 {
 			for _, inc := range includeFiles {
 				mainSrc = mainSrc + "#include <" + inc + ">\n"

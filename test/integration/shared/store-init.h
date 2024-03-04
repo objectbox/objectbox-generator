@@ -9,7 +9,10 @@ obx::Store testStore(bool removeBeforeOpening, const char* dbDir = nullptr) {
     	if (!dbDir) throw std::invalid_argument("dbDir environment variable not given");
     }
     if (removeBeforeOpening) obx_remove_db_files(dbDir);
-    obx::Store::Options options(create_obx_model());
-    options.directory(dbDir);
+    obx::Options options;
+    options
+        .model(create_obx_model())
+        .directory(dbDir)
+    ;
     return obx::Store(options);
 }
