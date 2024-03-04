@@ -91,3 +91,15 @@ TEST_CASE("Self assigned IDs", "") {
     REQUIRE(read != nullptr);
     REQUIRE(read->time == 99);
 }
+
+TEST_CASE("update-entity", "") {
+    Store store = testStore(true, "c-cpp-tests-db");
+    auto box = store.box<Typeful>();
+    Typeful myObj1{.int_ = 23};
+    obx_id id = box.put(myObj1);
+
+    Typeful myObj2{.int_ = 42, .string = "foobar"};
+    box.get(id, myObj2);
+    REQUIRE(myObj2.int_ == 23);
+    REQUIRE(myObj2.string.empty());
+}

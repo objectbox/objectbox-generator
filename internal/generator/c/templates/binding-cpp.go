@@ -36,15 +36,15 @@ var CppBindingTemplate = template.Must(template.New("binding-cpp").Funcs(funcMap
 #include <cmath>
 {{end -}}
 {{range $entity := .Model.EntitiesWithMeta}}
-{{- range $property := $entity.Properties}}
+	{{- range $property := $entity.Properties}}
 const 
-	{{- if $property.RelationTarget}} obx::RelationProperty<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, {{$property.Meta.CppNameRelationTarget}}>
-	{{- else}} obx::Property<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, OBXPropertyType_{{PropTypeName $property.Type}}>
-	{{- end}} {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::{{$property.Meta.CppName}}({{$property.Id.GetId}});
-{{- end}}
-{{- range $relation := $entity.Relations}}
+		{{- if $property.RelationTarget}} obx::RelationProperty<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, {{$property.Meta.CppNameRelationTarget}}>
+		{{- else}} obx::Property<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, OBXPropertyType_{{PropTypeName $property.Type}}>
+		{{- end}} {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::{{$property.Meta.CppName}}({{$property.Id.GetId}});
+	{{- end}}
+	{{- range $relation := $entity.Relations}}
 const obx::RelationStandalone<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}, {{$relation.Target.Meta.CppNamespacePrefix}}{{$relation.Target.Meta.CppName}}> {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}_::{{$relation.Meta.CppName}}({{$relation.Id.GetId}});
-{{- end}}
+	{{- end}}
 
 void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& object) {
 	fbb.Clear();
@@ -86,38 +86,78 @@ std::unique_ptr<{{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}> {{$
 void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}& outObject) {
 	const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
 	assert(table);
-	{{range $property := $entity.Properties}}
-	{{- if $property.Meta.Optional}}if (table->CheckField({{$property.FbvTableOffset}})) {{end}}
-	{{- if eq "std::vector<std::string>" $property.Meta.CppType}}{
+	{{- range $property := $entity.Properties}}
+		{{- if eq "std::string" $property.Meta.CppType}}
+	{
+		auto* ptr = table->GetPointer<const flatbuffers::String*>({{$property.FbvTableOffset}});
+		if (ptr) {
+			outObject.{{$property.Meta.CppName}}
+				{{- if $property.Meta.Optional}}
+					{{- if IsOptionalPtr $.Optional -}}
+						.reset(new std::string(ptr->c_str(), ptr->size()));
+					{{- else -}}
+						.emplace(ptr->c_str(), ptr->size());
+					{{- end}}
+				{{- else -}}
+					.assign(ptr->c_str(), ptr->size());
+				{{- end}}
+		} else {
+			outObject.{{$property.Meta.CppName}}
+			{{- if $property.Meta.Optional -}}
+				.reset();
+			{{- else -}}
+				.clear();
+			{{- end}}
+		}
+	}
+		{{- else if eq "std::vector<std::string>" $property.Meta.CppType}}
+	{
 		auto* ptr = table->GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*>({{$property.FbvTableOffset}});
 		if (ptr) {
 			{{- if $property.Meta.Optional}}
-			outObject.{{$property.Meta.CppName}}{{if IsOptionalPtr $property.Meta.Optional}}.reset(new {{$property.Meta.CppType}}({{else}} = {{$property.Meta.CppType}}(){{end}}{{template "field-value-assign-post" $property.Meta}};{{end}}
+			outObject.{{$property.Meta.CppName}}{{if IsOptionalPtr $property.Meta.Optional}}.reset(new {{$property.Meta.CppType}}({{else}} = {{$property.Meta.CppType}}(){{end}}{{template "field-value-assign-post" $property.Meta}};
+			{{- end}}
 			outObject.{{$property.Meta.CppName}}{{$property.Meta.CppValOp}}reserve(ptr->size());
 			for (flatbuffers::uoffset_t i = 0; i < ptr->size(); i++) {
 				auto* itemPtr = ptr->Get(i);
 				if (itemPtr) outObject.{{$property.Meta.CppName}}{{$property.Meta.CppValOp}}emplace_back(itemPtr->c_str());
 			}
+		} else {
+			outObject.{{$property.Meta.CppName}}
+			{{- if $property.Meta.Optional -}}
+				.reset();
+			{{- else -}}
+				.clear();
+			{{- end}}
 		}
-	}{{else if eq "std::string" $property.Meta.CppType}}{
-		auto* ptr = table->GetPointer<const flatbuffers::String*>({{$property.FbvTableOffset}});
-		if (ptr) outObject.{{$property.Meta.CppName}}
-			{{- if $property.Meta.Optional}}{{template "field-value-assign-pre" $property.Meta}}ptr->c_str(){{template "field-value-assign-post" $property.Meta}}
-			{{- else}}.assign(ptr->c_str())
-			{{- end}};
-	}{{else if $property.Meta.FbIsVector}}{
+	}
+		{{- else if $property.Meta.FbIsVector}}
+	{
 		auto* ptr = table->GetPointer<const {{$property.Meta.FbOffsetType}}*>({{$property.FbvTableOffset}});
 		if (ptr) outObject.{{$property.Meta.CppName}}
 			{{- if IsOptionalPtr $property.Meta.Optional}}{{template "field-value-assign-pre" $property.Meta}}ptr->begin(), ptr->end(){{template "field-value-assign-post" $property.Meta}}
 			{{- else if $property.Meta.Optional}} = {{$property.Meta.CppType}}(ptr->begin(), ptr->end())
 			{{- else}}.assign(ptr->begin(), ptr->end())
 			{{- end}};
-	}{{- else}}outObject.{{$property.Meta.CppName}}
-		{{- template "field-value-assign-pre" $property.Meta -}}
+		else {
+			outObject.{{$property.Meta.CppName}}
+			{{- if $property.Meta.Optional -}}
+				.reset();
+			{{- else -}}
+				.clear();
+			{{- end}}
+		}
+	}
+		{{- else }}
+	{{			if $property.Meta.Optional -}}
+	if (table->CheckField({{$property.FbvTableOffset}})) {{end -}} 
+	outObject.{{$property.Meta.CppName}}
+			{{- template "field-value-assign-pre" $property.Meta -}}
 		table->GetField<{{$property.Meta.CppFbType}}>({{- $property.FbvTableOffset}}, {{$property.Meta.FbDefaultValue}}){{if eq "bool" $property.Meta.CppType}} != 0{{end}}
-		{{- template "field-value-assign-post" $property.Meta}};
+			{{- template "field-value-assign-post" $property.Meta}};
+			{{- if $property.Meta.Optional}} else outObject.{{$property.Meta.CppName}}.reset();{{- end}}
+		{{- end }}
 	{{- end}}
-	{{end}}
 }
 {{end}}
 `))

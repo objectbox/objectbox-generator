@@ -74,11 +74,41 @@ const optionalSchemaFields = `
 	relId:ulong;
 `
 
+const asNullSchemaFields = `
+	id           : uint64	;
+	int          : int		;
+	int8         : int8		;
+	int16        : int16	;
+	int32        : int32	;
+	int64        : int64	;
+	uint         : uint		;
+	uint8        : uint8	;
+	uint16       : uint16	;
+	uint32       : uint32	;
+	uint64       : uint64	;
+	bool         : bool		;
+	string       : string	;
+	stringvector : [string]	;
+	byte         : byte		;
+	ubyte        : ubyte	;
+	bytevector   : [byte]	;
+	ubytevector  : [ubyte]	;
+	float32      : float32	;
+	float64      : float64	;
+	float        : float	;
+	double       : double	;
+	/// objectbox:relation=RelTarget
+	relId:ulong;
+`
+
 func TestCppAndC(t *testing.T) {
 	conf := &integration.CCppTestConf{}
 	defer conf.Cleanup()
 	conf.CreateCMake(t, integration.Cpp17, "main.cpp")
 	conf.Generate(t, map[string]string{"rel.fbs": "table RelTarget {id: uint64;}"})
+
+	conf.Generator = &cgenerator.CGenerator{EmptyStringAsNull: true, NaNAsNull: true}
+	conf.Generate(t, map[string]string{"as-null.fbs": "table AsNull {" + asNullSchemaFields + "}"})
 
 	conf.Generator = &cgenerator.CGenerator{Optional: "std::optional"}
 	conf.Generate(t, map[string]string{"std-optional.fbs": "table Optional {" + optionalSchemaFields + "}"})
