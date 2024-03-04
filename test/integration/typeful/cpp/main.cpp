@@ -1,5 +1,7 @@
 #define CATCH_CONFIG_MAIN
 
+#define OBX_CPP_FILE
+
 #include "annotated.obx.hpp"
 #include "catch2/catch.hpp"
 #include "objectbox.hpp"
