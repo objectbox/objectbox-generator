@@ -17,17 +17,17 @@ jobs:
       matrix:
         os:
           - windows-2019
-          - macos-10.15
-          - ubuntu-18.04
+          - macos-12
+          - ubuntu-22.04
     runs-on: ${{ matrix.os }}
     steps:
       - run: git config --global core.autocrlf false
 
       - name: Get sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Cache Deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ./third_party/*
           key: ${{ runner.os }}-${{ github.workspace }}-deps-${{ hashFiles('./third_party/*') }}
@@ -37,7 +37,7 @@ jobs:
       - run: make test
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: objectbox-generator-${{ runner.os }}
           path: objectbox-generator*
