@@ -208,6 +208,8 @@ func (mp *fbsField) FbIsVector() bool {
 		return true
 	case model.PropertyTypeByteVector:
 		return true
+	case model.PropertyTypeFloatVector:
+		return true
 	case model.PropertyTypeStringVector:
 		return true
 	}
@@ -218,6 +220,8 @@ func (mp *fbsField) FbIsVector() bool {
 func (mp *fbsField) CElementType() string {
 	switch mp.ModelProperty.Type {
 	case model.PropertyTypeByteVector:
+		return fbsTypeToCppType[mp.fbsField.Type(nil).Element()]
+	case model.PropertyTypeFloatVector:
 		return fbsTypeToCppType[mp.fbsField.Type(nil).Element()]
 	case model.PropertyTypeString:
 		return "char"
@@ -245,6 +249,8 @@ func (mp *fbsField) FbOffsetFactory() string {
 		return "CreateString"
 	case model.PropertyTypeByteVector:
 		return "CreateVector"
+	case model.PropertyTypeFloatVector:
+		return "CreateVector"
 	case model.PropertyTypeStringVector:
 		return "CreateVectorOfStrings"
 	}
@@ -258,6 +264,8 @@ func (mp *fbsField) FbOffsetType() string {
 	case model.PropertyTypeString:
 		return "flatbuffers::Vector<char>"
 	case model.PropertyTypeByteVector:
+		return "flatbuffers::Vector<" + fbsTypeToCppType[mp.fbsField.Type(nil).Element()] + ">"
+	case model.PropertyTypeFloatVector:
 		return "flatbuffers::Vector<" + fbsTypeToCppType[mp.fbsField.Type(nil).Element()] + ">"
 	case model.PropertyTypeStringVector:
 		return "" // NOTE custom handling in the template

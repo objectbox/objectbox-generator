@@ -90,6 +90,7 @@ const (
 	PropertyTypeRelation     PropertyType = 11
 	PropertyTypeDateNano     PropertyType = 12
 	PropertyTypeByteVector   PropertyType = 23
+	PropertyTypeFloatVector  PropertyType = 28
 	PropertyTypeStringVector PropertyType = 30
 )
 
@@ -108,5 +109,6 @@ var PropertyTypeNames = map[PropertyType]string{
 	PropertyTypeRelation:     "Relation",
 	PropertyTypeDateNano:     "DateNano",
 	PropertyTypeByteVector:   "ByteVector",
+	PropertyTypeFloatVector:  "FloatVector",
 	PropertyTypeStringVector: "StringVector",
 }
