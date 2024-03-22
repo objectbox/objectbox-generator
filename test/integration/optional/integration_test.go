@@ -70,6 +70,8 @@ const optionalSchemaFields = `
 	/// objectbox:optional
 	float        : float	;
 	/// objectbox:optional
+	floatvector  : [float]  ;
+	/// objectbox:optional
 	double       : double	;
 	/// objectbox:relation=RelTarget, optional
 	relId:ulong;
@@ -97,6 +99,7 @@ const asNullSchemaFields = `
 	float32      : float32	;
 	float64      : float64	;
 	float        : float	;
+	floatvector  : [float]  ;
 	double       : double	;
 	/// objectbox:relation=RelTarget
 	relId:ulong;

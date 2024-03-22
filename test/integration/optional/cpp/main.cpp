@@ -49,6 +49,7 @@ template<typename Entity> void testOptionalValues() {
     REQUIRE_FALSE(read->float32.has_value());
     REQUIRE_FALSE(read->float64.has_value());
     REQUIRE_FALSE(read->float_.has_value());
+    REQUIRE_FALSE(read->floatvector.has_value());
     REQUIRE_FALSE(read->double_.has_value());
     REQUIRE_FALSE(read->relId.has_value());
 
@@ -74,6 +75,7 @@ template<typename Entity> void testOptionalValues() {
     src->float32 = __LINE__;
     src->float64 = __LINE__;
     src->float_ = __LINE__;
+    src->floatvector = std::vector<float>{1.0f, 2.0f};
     src->double_ = __LINE__;
     src->relId = __LINE__;
 
@@ -101,6 +103,7 @@ template<typename Entity> void testOptionalValues() {
     REQUIRE(read->float32.has_value());
     REQUIRE(read->float64.has_value());
     REQUIRE(read->float_.has_value());
+    REQUIRE(read->floatvector.has_value());
     REQUIRE(read->double_.has_value());
     REQUIRE(read->relId.has_value());
 
@@ -124,6 +127,7 @@ template<typename Entity> void testOptionalValues() {
     REQUIRE(read->float32.value() == src->float32.value());
     REQUIRE(read->float64.value() == src->float64.value());
     REQUIRE(read->float_.value() == src->float_.value());
+    REQUIRE(read->floatvector.value() == src->floatvector.value());
     REQUIRE(read->double_.value() == src->double_.value());
     REQUIRE(read->relId.value() == src->relId.value());
 }
@@ -159,6 +163,7 @@ template<typename Entity> void testOptionalNull() {
     update.float32 = __LINE__;
     update.float64 = __LINE__;
     update.float_ = __LINE__;
+    update.floatvector = std::vector<float>{-23.456f, 42.109f};
     update.double_ = __LINE__;
     update.relId = __LINE__;
 
@@ -185,6 +190,7 @@ template<typename Entity> void testOptionalNull() {
     REQUIRE_FALSE(update.float32.has_value());
     REQUIRE_FALSE(update.float64.has_value());
     REQUIRE_FALSE(update.float_.has_value());
+    REQUIRE_FALSE(update.floatvector.has_value());
     REQUIRE_FALSE(update.double_.has_value());
     REQUIRE_FALSE(update.relId.has_value());
 }
@@ -294,6 +300,7 @@ void testPtrValues() {
     REQUIRE_FALSE(read->float32.operator bool());
     REQUIRE_FALSE(read->float64.operator bool());
     REQUIRE_FALSE(read->float_.operator bool());
+    REQUIRE_FALSE(read->floatvector.operator bool());
     REQUIRE_FALSE(read->double_.operator bool());
     REQUIRE_FALSE(read->relId.operator bool());
 
@@ -319,6 +326,7 @@ void testPtrValues() {
     src->float32.reset(new float(__LINE__));
     src->float64.reset(new double(__LINE__));
     src->float_.reset(new float(__LINE__));
+    src->floatvector.reset(new std::vector<float>{-23.456f,42.109f});
     src->double_.reset(new double(__LINE__));
     src->relId.reset(new obx_id(__LINE__));
 
@@ -346,6 +354,7 @@ void testPtrValues() {
     REQUIRE(read->float32.operator bool());
     REQUIRE(read->float64.operator bool());
     REQUIRE(read->float_.operator bool());
+    REQUIRE(read->floatvector.operator bool());
     REQUIRE(read->double_.operator bool());
     REQUIRE(read->relId.operator bool());
 
@@ -369,6 +378,7 @@ void testPtrValues() {
     REQUIRE(*read->float32 == *src->float32);
     REQUIRE(*read->float64 == *src->float64);
     REQUIRE(*read->float_ == *src->float_);
+    REQUIRE(*read->floatvector == *src->floatvector);
     REQUIRE(*read->double_ == *src->double_);
     REQUIRE(*read->relId == *src->relId);
 }
@@ -403,6 +413,7 @@ template<typename Entity> void testPtrNull() {
     update.float32.reset(new float(__LINE__));
     update.float64.reset(new double(__LINE__));
     update.float_.reset(new float(__LINE__));
+    update.floatvector.reset(new std::vector<float>{-23.456f, 42.109f});
     update.double_.reset(new double(__LINE__));
     update.relId.reset(new uint64_t(__LINE__));;
 
@@ -429,6 +440,7 @@ template<typename Entity> void testPtrNull() {
     REQUIRE_FALSE(update.float32.operator bool());
     REQUIRE_FALSE(update.float64.operator bool());
     REQUIRE_FALSE(update.float_.operator bool());
+    REQUIRE_FALSE(update.floatvector.operator bool());
     REQUIRE_FALSE(update.double_.operator bool());
     REQUIRE_FALSE(update.relId.operator bool());
 }
@@ -649,6 +661,7 @@ TEST_CASE("c") {
     REQUIRE(read->float32 == nullptr);
     REQUIRE(read->float64 == nullptr);
     REQUIRE(read->float_ == nullptr);
+    REQUIRE(read->floatvector == nullptr);
     REQUIRE(read->double_ == nullptr);
     REQUIRE(read->relId == nullptr);
     PlainCPtr_free(read);
@@ -676,6 +689,7 @@ TEST_CASE("c") {
     cSetOptionalField(src.float32, float(__LINE__));
     cSetOptionalField(src.float64, double(__LINE__));
     cSetOptionalField(src.float_, float(__LINE__));
+    cSetOptionalFieldVector(src.floatvector, src.floatvector_len, std::vector<float>{-23.456f, 42.109f});
     cSetOptionalField(src.double_, double(__LINE__));
     cSetOptionalField(src.relId, obx_id(__LINE__));
 
@@ -703,6 +717,7 @@ TEST_CASE("c") {
     REQUIRE(read->float32 != nullptr);
     REQUIRE(read->float64 != nullptr);
     REQUIRE(read->float_ != nullptr);
+    REQUIRE(read->floatvector != nullptr);
     REQUIRE(read->double_ != nullptr);
     REQUIRE(read->relId != nullptr);
 
@@ -730,6 +745,7 @@ TEST_CASE("c") {
     REQUIRE(*read->float32 == *src.float32);
     REQUIRE(*read->float64 == *src.float64);
     REQUIRE(*read->float_ == *src.float_);
+    REQUIRE(*read->floatvector == *src.floatvector);
     REQUIRE(*read->double_ == *src.double_);
     REQUIRE(*read->relId == *src.relId);
 
