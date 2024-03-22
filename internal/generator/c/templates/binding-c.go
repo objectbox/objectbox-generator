@@ -52,7 +52,7 @@ static flatbuffers_voffset_t {{.FileIdentifier}}_fb_field_offset(flatbuffers_vof
 {{PrintComments 0 $entity.Comments}}typedef struct {{$entity.Meta.CName}} {
 	{{range $property := $entity.Properties}}{{$propType := PropTypeName $property.Type -}}
 	{{PrintComments 1 $property.Comments}}{{if $property.Meta.FbIsVector}}{{$property.Meta.CElementType}}* {{$property.Meta.CppName}};
-	{{- if or (eq $propType "StringVector") (eq $propType "ByteVector")}}
+	{{- if or (or (eq $propType "StringVector") (eq $propType "ByteVector")) (eq $propType "FloatVector")}}
 	size_t {{$property.Meta.CppName}}_len;{{end}}
 	{{else}}{{$property.Meta.CppType}}{{if $property.Meta.Optional}}*{{end}} {{$property.Meta.CppName}};
 	{{end}}{{end}}
@@ -102,6 +102,8 @@ static bool {{$entity.Meta.CName}}_to_flatbuffer(flatcc_builder_t* B, const {{$e
 	{{- if eq $propType "String"}}
 	flatcc_builder_ref_t offset_{{$property.Meta.CppName}} = !object->{{$property.Meta.CppName}} ? 0 : flatcc_builder_create_string_str(B, object->{{$property.Meta.CppName}});
 	{{- else if eq $propType "ByteVector"}}
+	flatcc_builder_ref_t offset_{{$property.Meta.CppName}} = !object->{{$property.Meta.CppName}} ? 0 : flatcc_builder_create_vector(B, object->{{$property.Meta.CppName}}, object->{{$property.Meta.CppName}}_len, sizeof({{$property.Meta.CElementType}}), sizeof({{$property.Meta.CElementType}}), FLATBUFFERS_COUNT_MAX(sizeof({{$property.Meta.CElementType}})));
+	{{- else if eq $propType "FloatVector"}}
 	flatcc_builder_ref_t offset_{{$property.Meta.CppName}} = !object->{{$property.Meta.CppName}} ? 0 : flatcc_builder_create_vector(B, object->{{$property.Meta.CppName}}, object->{{$property.Meta.CppName}}_len, sizeof({{$property.Meta.CElementType}}), sizeof({{$property.Meta.CElementType}}), FLATBUFFERS_COUNT_MAX(sizeof({{$property.Meta.CElementType}})));
 	{{- else if eq $propType "StringVector"}}
 	flatcc_builder_ref_t offset_{{$property.Meta.CppName}} = 0;
@@ -174,6 +176,7 @@ static bool {{$entity.Meta.CName}}_from_flatbuffer(const void* data, size_t size
 		{{/*Note: direct copy for string and byte vectors*/}}
 		{{if eq $propType "String"}}memcpy((void*)out_object->{{$property.Meta.CppName}}, (const void*)val, len+1);
 		{{else if eq $propType "ByteVector"}}memcpy((void*)out_object->{{$property.Meta.CppName}}, (const void*)val, len);
+		{{else if eq $propType "FloatVector"}}memcpy((void*)out_object->{{$property.Meta.CppName}}, (const void*)val, sizeof(float)*len);
 		{{else}}{{/* StringVector - FB vector contains offsets to strings, each must be read separately*/ -}}
 		for (size_t i = 0; i < len; i++, val++) {
 			const uint8_t* str = (const uint8_t*) val + (size_t)__flatbuffers_uoffset_read_from_pe(val) + sizeof(val[0]);
