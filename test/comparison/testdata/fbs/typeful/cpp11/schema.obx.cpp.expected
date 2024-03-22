@@ -23,8 +23,9 @@ const obx::Property<Typeful, OBXPropertyType_ByteVector> Typeful_::ubytevector(1
 const obx::Property<Typeful, OBXPropertyType_Float> Typeful_::float32(19);
 const obx::Property<Typeful, OBXPropertyType_Double> Typeful_::float64(20);
 const obx::Property<Typeful, OBXPropertyType_Float> Typeful_::float_(21);
-const obx::Property<Typeful, OBXPropertyType_Double> Typeful_::double_(22);
-const obx::RelationProperty<Typeful, ns::AnnotatedEntity> Typeful_::relId(23);
+const obx::Property<Typeful, OBXPropertyType_FloatVector> Typeful_::floatvector(22);
+const obx::Property<Typeful, OBXPropertyType_Double> Typeful_::double_(23);
+const obx::RelationProperty<Typeful, ns::AnnotatedEntity> Typeful_::relId(24);
 
 void Typeful::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const Typeful& object) {
     fbb.Clear();
@@ -32,6 +33,7 @@ void Typeful::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, c
     auto offsetstringvector = fbb.CreateVectorOfStrings(object.stringvector);
     auto offsetbytevector = fbb.CreateVector(object.bytevector);
     auto offsetubytevector = fbb.CreateVector(object.ubytevector);
+    auto offsetfloatvector = fbb.CreateVector(object.floatvector);
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
     fbb.AddElement(4, object.id);
     fbb.AddElement(6, object.int_);
@@ -54,8 +56,9 @@ void Typeful::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, c
     fbb.AddElement(40, object.float32);
     fbb.AddElement(42, object.float64);
     fbb.AddElement(44, object.float_);
-    fbb.AddElement(46, object.double_);
-    fbb.AddElement(48, object.relId);
+    fbb.AddOffset(46, offsetfloatvector);
+    fbb.AddElement(48, object.double_);
+    fbb.AddElement(50, object.relId);
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
     fbb.Finish(offset);
@@ -127,8 +130,15 @@ void Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, Typeful& o
     outObject.float32 = table->GetField<float>(40, 0.0f);
     outObject.float64 = table->GetField<double>(42, 0.0);
     outObject.float_ = table->GetField<float>(44, 0.0f);
-    outObject.double_ = table->GetField<double>(46, 0.0);
-    outObject.relId = table->GetField<obx_id>(48, 0);
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(46);
+        if (ptr) outObject.floatvector.assign(ptr->begin(), ptr->end());
+        else {
+            outObject.floatvector.clear();
+        }
+    }
+    outObject.double_ = table->GetField<double>(48, 0.0);
+    outObject.relId = table->GetField<obx_id>(50, 0);
 }
 
 const obx::Property<ns::Annotated, OBXPropertyType_Long> ns::Annotated_::identifier(1);
