@@ -37,6 +37,7 @@ struct Typeful {
     float float32;
     double float64;
     float float_;
+    std::vector<float> floatvector;
     double double_;
     /// Relation to an entity declared later in the same file
     obx_id relId;
@@ -82,6 +83,7 @@ struct Typeful_ {
     static const obx::Property<Typeful, OBXPropertyType_Float> float32;
     static const obx::Property<Typeful, OBXPropertyType_Double> float64;
     static const obx::Property<Typeful, OBXPropertyType_Float> float_;
+    static const obx::Property<Typeful, OBXPropertyType_FloatVector> floatvector;
     static const obx::Property<Typeful, OBXPropertyType_Double> double_;
     static const obx::RelationProperty<Typeful, ns::AnnotatedEntity> relId;
 };
