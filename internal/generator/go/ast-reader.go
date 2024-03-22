@@ -720,6 +720,9 @@ func (property *Property) setBasicType(baseType string) error {
 	} else if ts == "[]byte" {
 		property.ModelProperty.Type = model.PropertyTypeByteVector
 		property.FbType = "UOffsetT"
+	} else if ts == "[]float32" {
+		property.ModelProperty.Type = model.PropertyTypeFloatVector
+		property.FbType = "UOffsetT"
 	} else if ts == "[]string" {
 		property.ModelProperty.Type = model.PropertyTypeStringVector
 		property.FbType = "UOffsetT"
