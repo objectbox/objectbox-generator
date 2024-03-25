@@ -68,6 +68,11 @@ TEST_CASE("CRUD", "") {
     REQUIRE(!box.contains(2));
     REQUIRE(box.count() == 0);
     REQUIRE(box.isEmpty());
+
+    REQUIRE(box.put({.id = 0, .int_ = 23}) == 3);  
+
+    std::unique_ptr<Typeful> nullVectors = box.get(3);
+    REQUIRE(nullVectors->floatvector.size() == 0);
 }
 
 TEST_CASE("Self assigned IDs", "") {

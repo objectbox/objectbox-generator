@@ -567,6 +567,10 @@ TEST_CASE("TypefulAsNull") {
     std::unique_ptr<AsNull> src = box.get(id);
     REQUIRE(src);
 
+    REQUIRE(src->bytevector.size() == 0);
+    REQUIRE(src->stringvector.size() == 0);
+    REQUIRE(src->floatvector.size() == 0);
+
     // Initialize strings as "empty", float/double as NaN
     src->string = "";
     src->float32 = std::nanf("1");
@@ -575,10 +579,26 @@ TEST_CASE("TypefulAsNull") {
     src->float_  = std::nanf("-4");
     src->int_    = 23;
 
+    src->bytevector.push_back(1);
+    src->bytevector.push_back(2);
+    src->bytevector.push_back(3);
+
+    src->stringvector.push_back("foo");
+    src->stringvector.push_back("bar");
+    src->stringvector.push_back("");
+
+    src->floatvector.push_back(23.456f);
+    src->floatvector.push_back(-42.109f);
+    src->floatvector.push_back(1.234f);
+    
     // Put Entity
     box.put(*src);
     std::unique_ptr<AsNull> read = box.get(id);
     REQUIRE(read);
+
+    REQUIRE(read->bytevector.size() == 3);
+    REQUIRE(read->stringvector.size() == 3);
+    REQUIRE(read->floatvector.size() == 3);
 
     // Initialize "updated" entity with values ("non-empty" and valid floating-point numbers)
     AsNull updated;
@@ -589,6 +609,7 @@ TEST_CASE("TypefulAsNull") {
     updated.float_  = 4.0f;
     updated.int_    = 42;
     updated.uint    = 311;
+    updated.floatvector = { 1.234f, 2.345f };
 
     // Update 
     box.get(id,updated);
@@ -603,6 +624,10 @@ TEST_CASE("TypefulAsNull") {
     // Two others are set to value
     REQUIRE(updated.int_ == 23);
     REQUIRE(updated.uint == 0);
+
+    REQUIRE(updated.bytevector.size() == 3);
+    REQUIRE(updated.stringvector.size() == 3);
+    REQUIRE(updated.floatvector.size() == 3);
 }
 
 namespace {
