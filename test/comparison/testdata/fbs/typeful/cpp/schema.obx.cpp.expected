@@ -153,6 +153,7 @@ const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqu
 const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqueHash(7);
 const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqueHash64(8);
 const obx::Property<ns::Annotated, OBXPropertyType_Int> ns::Annotated_::uid(9);
+const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVector(10);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::typefuls(1);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::m2m(2);
 
@@ -163,6 +164,7 @@ void ns::Annotated::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& 
     auto offsetuniqueValue = fbb.CreateString(object.uniqueValue);
     auto offsetuniqueHash = fbb.CreateString(object.uniqueHash);
     auto offsetuniqueHash64 = fbb.CreateString(object.uniqueHash64);
+    auto offsethnswVector = fbb.CreateVector(object.hnswVector);
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
     fbb.AddElement(4, object.identifier);
     fbb.AddOffset(6, offsetfullName);
@@ -173,6 +175,7 @@ void ns::Annotated::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& 
     fbb.AddOffset(16, offsetuniqueHash);
     fbb.AddOffset(18, offsetuniqueHash64);
     fbb.AddElement(20, object.uid);
+    fbb.AddOffset(22, offsethnswVector);
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
     fbb.Finish(offset);
@@ -237,6 +240,13 @@ void ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::
         }
     }
     outObject.uid = table->GetField<int32_t>(20, 0);
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(22);
+        if (ptr) outObject.hnswVector.assign(ptr->begin(), ptr->end());
+        else {
+            outObject.hnswVector.clear();
+        }
+    }
 }
 
 const obx::Property<ns::TSDate, OBXPropertyType_Long> ns::TSDate_::id(1);

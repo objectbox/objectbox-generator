@@ -107,6 +107,7 @@ struct Annotated {
     std::string uniqueHash64;
     /// unique on string without index type implies HASH index
     int32_t uid;
+    std::vector<float> hnswVector;
 
     struct _OBX_MetaInfo {
         static constexpr obx_schema_id entityId() { return 2; }
@@ -137,6 +138,7 @@ struct Annotated_ {
     static const obx::Property<Annotated, OBXPropertyType_String> uniqueHash;
     static const obx::Property<Annotated, OBXPropertyType_String> uniqueHash64;
     static const obx::Property<Annotated, OBXPropertyType_Int> uid;
+    static const obx::Property<Annotated, OBXPropertyType_FloatVector> hnswVector;
     static const obx::RelationStandalone<Annotated, Typeful> typefuls;
     static const obx::RelationStandalone<Annotated, Typeful> m2m;
 };

@@ -119,6 +119,8 @@ typedef struct ns_Annotated {
     char* uniqueHash64;
     /// unique on string without index type implies HASH index
     int32_t uid;
+    float* hnswVector;
+    size_t hnswVector_len;
     
 } ns_Annotated;
 
@@ -133,6 +135,7 @@ enum ns_Annotated_ {
     ns_Annotated_PROP_ID_uniqueHash = 7,
     ns_Annotated_PROP_ID_uniqueHash64 = 8,
     ns_Annotated_PROP_ID_uid = 9,
+    ns_Annotated_PROP_ID_hnswVector = 10,
     ns_Annotated_REL_ID_typefuls = 1,
     ns_Annotated_REL_ID_m2m = 2,
 };
@@ -635,8 +638,9 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
     flatcc_builder_ref_t offset_uniqueValue = !object->uniqueValue ? 0 : flatcc_builder_create_string_str(B, object->uniqueValue);
     flatcc_builder_ref_t offset_uniqueHash = !object->uniqueHash ? 0 : flatcc_builder_create_string_str(B, object->uniqueHash);
     flatcc_builder_ref_t offset_uniqueHash64 = !object->uniqueHash64 ? 0 : flatcc_builder_create_string_str(B, object->uniqueHash64);
+    flatcc_builder_ref_t offset_hnswVector = !object->hnswVector ? 0 : flatcc_builder_create_vector(B, object->hnswVector, object->hnswVector_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
 
-    if (flatcc_builder_start_table(B, 9) != 0) return false;
+    if (flatcc_builder_start_table(B, 10) != 0) return false;
 
     void* p;
     flatcc_builder_ref_t* _p;
@@ -684,6 +688,11 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
     {
         if (!(p = flatcc_builder_table_add(B, 8, 4, 4))) return false;
         flatbuffers_int32_write_to_pe(p, object->uid);
+    }
+    
+    if (offset_hnswVector) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 9))) return false;
+        *_p = offset_hnswVector;
     }
     
     flatcc_builder_ref_t ref;
@@ -790,6 +799,21 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 8))) {
         out_object->uid = flatbuffers_int32_read_from_pe(table + offset);
     }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 9))) {
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->hnswVector = (float*) malloc(len * sizeof(float));
+        if (out_object->hnswVector == NULL) {
+            ns_Annotated_free_pointers(out_object);
+            return false;
+        }
+        out_object->hnswVector_len = len;
+        memcpy((void*)out_object->hnswVector, (const void*)val, sizeof(float)*len);
+        
+    } else {
+        out_object->hnswVector = NULL;
+        out_object->hnswVector_len = 0;
+    }
     return true;
 }
 
@@ -825,6 +849,13 @@ static void ns_Annotated_free_pointers(ns_Annotated* object) {
     if (object->uniqueHash64) {
         free(object->uniqueHash64);
         object->uniqueHash64 = NULL;
+    }
+    if (object->hnswVector) {
+        free(object->hnswVector);
+        object->hnswVector = NULL;
+        object->hnswVector_len = 0;
+    } else {
+        assert(object->hnswVector_len == 0);
     }
     
 }
