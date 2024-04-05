@@ -40,17 +40,24 @@ var supportedEntityAnnotations = map[string]bool{
 }
 
 var supportedPropertyAnnotations = map[string]bool{
-	"date":         true,
-	"date-nano":    true,
-	"id":           true,
-	"id-companion": true,
-	"index":        true,
-	"name":         true,
-	"optional":     true,
-	"relation":     true, // to-one
-	"transient":    true,
-	"uid":          true,
-	"unique":       true,
+	"date":                                 true,
+	"date-nano":                            true,
+	"id":                                   true,
+	"id-companion":                         true,
+	"index":                                true,
+	"name":                                 true,
+	"optional":                             true,
+	"relation":                             true, // to-one
+	"transient":                            true,
+	"uid":                                  true,
+	"unique":                               true,
+	"hnsw-dimensions":                      true,
+	"hnsw-distance-type":                   true,
+	"hnsw-neighbors-per-node":              true,
+	"hnsw-indexing-search-count":           true,
+	"hnsw-flags":                           true,
+	"hnsw-reparation-backlink-probability": true,
+	"hnsw-vector-cache-hint-size-kb":       true,
 }
 
 // fbSchemaReader reads FlatBuffers schema and populates a model

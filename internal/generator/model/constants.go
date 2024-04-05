@@ -113,3 +113,31 @@ var PropertyTypeNames = map[PropertyType]string{
 	PropertyTypeFloatVector:  "FloatVector",
 	PropertyTypeStringVector: "StringVector",
 }
+
+// HnswFlags is a bit combination of 0..n Hnsw flags corresponding with objectbox-c
+type HnswFlags int32
+
+const (
+	HnswFlagNone                      HnswFlags = 0
+	HnswFlagDebugLogs                 HnswFlags = 1
+	HnswFlagDebugLogsDetailed         HnswFlags = 2
+	HnswFlagVectorCacheSimdPaddingOff HnswFlags = 4
+	HnswFlagReparationLimitCandidates HnswFlags = 8
+)
+
+// HnswFlagNames assigns a name to each PropertyFlag
+var HnswFlagNames = map[HnswFlags]string{
+	HnswFlagNone:                      "None",
+	HnswFlagDebugLogs:                 "DebugLogs",
+	HnswFlagDebugLogsDetailed:         "DebugLogsDetailed",
+	HnswFlagVectorCacheSimdPaddingOff: "VectorCacheSimdPaddingOff",
+	HnswFlagReparationLimitCandidates: "ReparationLimitCandidates",
+}
+
+var HnswFlagValues = map[string]HnswFlags{
+	"None":                      HnswFlagNone,
+	"DebugLogs":                 HnswFlagDebugLogs,
+	"DebugLogsDetailed":         HnswFlagDebugLogsDetailed,
+	"VectorCacheSimdPaddingOff": HnswFlagVectorCacheSimdPaddingOff,
+	"ReparationLimitCandidates": HnswFlagReparationLimitCandidates,
+}

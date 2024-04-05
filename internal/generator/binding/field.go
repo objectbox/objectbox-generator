@@ -23,6 +23,7 @@ package binding
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -135,6 +136,13 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 			field.ModelProperty.AddFlag(model.PropertyFlagIndexHash)
 		case "hash64":
 			field.ModelProperty.AddFlag(model.PropertyFlagIndexHash64)
+		case "hnsw":
+			if field.ModelProperty.Type == model.PropertyTypeFloatVector {
+				field.ModelProperty.CreateHnswParams()
+				field.ModelProperty.AddFlag(model.PropertyFlagIndexed)
+			} else {
+				return fmt.Errorf("index type 'hnsw' only supported for float vectors")
+			}
 		default:
 			return fmt.Errorf("unknown index type %s", a["index"].Value)
 		}
@@ -181,6 +189,100 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 
 	if a["optional"] != nil {
 		field.Optional = a["optional"].Value
+	}
+
+	if a["hnsw-dimensions"] != nil {
+		if err := field.ModelProperty.CheckHnswParams(); err != nil {
+			return err
+		}
+		dimensions, err := strconv.ParseUint(a["hnsw-dimensions"].Value, 10, 64)
+		if err != nil {
+			return fmt.Errorf("Annotation 'hnsw-dimensions' value type mismatch: %s", err)
+		}
+		field.ModelProperty.HnswParams.Dimensions = &dimensions
+	}
+
+	if a["hnsw-distance-type"] != nil {
+		if err := field.ModelProperty.CheckHnswParams(); err != nil {
+			return err
+		}
+		distanceType := a["hnsw-distance-type"].Value
+		switch distanceType {
+		case "unknown", "euclidean":
+			break
+		default:
+			return fmt.Errorf("Annotation 'hnsw-distance-type' value type mismatch: can be 'unknown' or 'euclidean'")
+		}
+		field.ModelProperty.HnswParams.DistanceType = distanceType
+	}
+
+	if a["hnsw-neighbors-per-node"] != nil {
+		if err := field.ModelProperty.CheckHnswParams(); err != nil {
+			return err
+		}
+		value, err := strconv.ParseUint(a["hnsw-neighbors-per-node"].Value, 10, 32)
+		if err != nil {
+			return fmt.Errorf("Annotation 'hnsw-neighbors-per-node' value type mismatch: %s", err)
+		}
+		var neighborsPerNode uint32 = uint32(value)
+		field.ModelProperty.HnswParams.NeighborsPerNode = &neighborsPerNode
+	}
+	if a["hnsw-indexing-search-count"] != nil {
+		if err := field.ModelProperty.CheckHnswParams(); err != nil {
+			return err
+		}
+		value, err := strconv.ParseUint(a["hnsw-indexing-search-count"].Value, 10, 32)
+		if err != nil {
+			return fmt.Errorf("Annotation 'hnsw-neighbors-per-node' value type mismatch: %s", err)
+		}
+		var indexingSearchCount uint32 = uint32(value)
+		field.ModelProperty.HnswParams.IndexingSearchCount = &indexingSearchCount
+	}
+	if a["hnsw-reparation-backlink-probability"] != nil {
+		if err := field.ModelProperty.CheckHnswParams(); err != nil {
+			return err
+		}
+		value, err := strconv.ParseFloat(a["hnsw-reparation-backlink-probability"].Value, 32)
+		if err != nil {
+			return fmt.Errorf("Annotation 'hnsw-reparation-backlink-probability' value type mismatch: %s", err)
+		}
+		var reparationBacklinkProbability float32 = float32(value)
+		field.ModelProperty.HnswParams.ReparationBacklinkProbability = &reparationBacklinkProbability
+	}
+	if a["hnsw-vector-cache-hint-size-kb"] != nil {
+		if err := field.ModelProperty.CheckHnswParams(); err != nil {
+			return err
+		}
+		vectorCacheHintSizeKb, err := strconv.ParseUint(a["hnsw-vector-cache-hint-size-kb"].Value, 10, 64)
+		if err != nil {
+			return fmt.Errorf("Annotation 'hnsw-dimensions' value type mismatch: %s", err)
+		}
+		field.ModelProperty.HnswParams.VectorCacheHintSizeKb = &vectorCacheHintSizeKb
+
+	}
+	if a["hnsw-flags"] != nil {
+		if err := field.ModelProperty.CheckHnswParams(); err != nil {
+			return err
+		}
+		flagsString := a["hnsw-flags"].Value
+		flagsVector := strings.Split(flagsString, "|")
+		var flags model.HnswFlags = 0
+		for _, v := range flagsVector {
+			flagName := strings.TrimSpace(v)
+			flagValue, ok := model.HnswFlagValues[flagName]
+			if ok {
+				flags |= flagValue
+			} else {
+				keys := make([]string, 0, len(model.HnswFlagValues))
+				for k := range model.HnswFlagValues {
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
+				availableFlags := strings.Join(keys, ", ")
+				return fmt.Errorf("HNSW Flag unknown: '%s' (Available flags: %s)", flagName, availableFlags)
+			}
+		}
+		field.ModelProperty.HnswParams.Flags = &flags
 	}
 
 	return nil
