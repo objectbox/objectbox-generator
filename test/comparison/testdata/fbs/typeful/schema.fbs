@@ -69,6 +69,14 @@ table Annotated {
 	/// unique on string without index type implies HASH index
 	/// objectbox:unique
 	uid:int;
+
+	/// objectbox:index="hnsw"
+	/// objectbox:hnsw-dimensions = 3, hnsw-distance-type = euclidean
+	/// objectbox:hnsw-neighbors-per-node=10, hnsw-indexing-search-count=5
+	/// objectbox:hnsw-reparation-backlink-probability=0.7, hnsw-vector-cache-hint-size-kb=1024
+	/// objectbox:hnsw-flags=DebugLogs|DebugLogsDetailed|VectorCacheSimdPaddingOff|ReparationLimitCandidates
+	hnswVector:[float];
+
 }
 
 /// objectbox: transient
