@@ -84,6 +84,25 @@ var funcMap = template.FuncMap{
 		}
 		return ""
 	},
+	"CoreHnswFlags": func(val model.HnswFlags) string {
+		var result []string
+
+		// Get sorted flag names to avoid changes in the generated code. Go map iteration order is not guaranteed.
+		for flag, name := range model.HnswFlagNames {
+			if val&flag != 0 { // if this flag is set
+				result = append(result, "OBXHnswFlags_"+cccToUc(name))
+			}
+		}
+
+		if len(result) > 1 {
+			sort.Strings(result)
+			// if there's more than one, we need to cast the result of their combination back to the right type
+			return "(OBXHnswFlags) (" + strings.Join(result, " | ") + ")"
+		} else if len(result) > 0 {
+			return result[0]
+		}
+		return "OBXHnswFlags_NONE"
+	},
 	"PrintComments": func(tabs int, comments []string) string {
 		var result string
 		for _, comment := range comments {
@@ -94,4 +113,5 @@ var funcMap = template.FuncMap{
 	"IsOptionalPtr": func(optional string) bool {
 		return optional == "std::unique_ptr" || optional == "std::shared_ptr"
 	},
+	"ToUpper": strings.ToUpper,
 }

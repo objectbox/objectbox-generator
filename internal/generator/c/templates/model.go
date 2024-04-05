@@ -52,16 +52,45 @@ static inline OBX_model* create_obx_model() {
     if (!model) return NULL;
 	{{range $entity := .Model.Entities}}
 	obx_model_entity(model, "{{$entity.Name}}", {{$entity.Id.GetId}}, {{$entity.Id.GetUid}});
-	{{with $entity.Flags}}obx_model_entity_flags(model, {{CoreEntityFlags .}});
-	{{end -}}
-	{{range $property := $entity.Properties -}}
+	{{- with $entity.Flags}}
+	obx_model_entity_flags(model, {{CoreEntityFlags .}});
+	{{- end -}}
+	{{range $property := $entity.Properties}}
 	obx_model_property(model, "{{$property.Name}}", OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}});
-	{{with $property.Flags}}obx_model_property_flags(model, {{CorePropFlags .}});
-	{{end -}}
-	{{if $property.RelationTarget}}obx_model_property_relation(model, "{{$property.RelationTarget}}", {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}});
-	{{else if $property.IndexId}}obx_model_property_index_id(model, {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}});
-	{{end -}}
-	{{end -}}
+	{{- with $property.Flags}}
+	obx_model_property_flags(model, {{CorePropFlags .}});
+	{{- end -}}
+	{{- if $property.HnswParams -}}
+	{{- if $property.HnswParams.Dimensions}}
+	obx_model_property_index_hnsw_dimensions(model, {{$property.HnswParams.Dimensions}});
+	{{- end -}}
+	{{- if $property.HnswParams.DistanceType}}
+	obx_model_property_index_hnsw_distance_type(model, OBXHnswDistanceType_{{ $property.HnswParams.DistanceType | ToUpper }});
+	{{- end -}}
+	{{- if $property.HnswParams.NeighborsPerNode}}
+	obx_model_property_index_hnsw_neighbors_per_node(model, {{ $property.HnswParams.NeighborsPerNode }});
+	{{- end -}}
+	{{- if $property.HnswParams.IndexingSearchCount}}
+	obx_model_property_index_hnsw_indexing_search_count(model, {{ $property.HnswParams.IndexingSearchCount }});
+	{{- end -}}
+	{{- if $property.HnswParams.ReparationBacklinkProbability}}
+	obx_model_property_index_hnsw_reparation_backlink_probability(model, {{ $property.HnswParams.ReparationBacklinkProbability }});
+	{{- end -}}
+	{{- if $property.HnswParams.VectorCacheHintSizeKb}}
+	obx_model_property_index_hnsw_vector_cache_hint_size_kb(model, {{ $property.HnswParams.VectorCacheHintSizeKb }});
+	{{- end -}}
+	{{- if $property.HnswParams.Flags}}
+	{{- with $property.HnswParams.Flags}}
+	obx_model_property_index_hnsw_flags(model, {{CoreHnswFlags .}});
+	{{- end -}}
+	{{- end -}}
+	{{- end -}}
+	{{- if $property.RelationTarget}}
+	obx_model_property_relation(model, "{{$property.RelationTarget}}", {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}});
+	{{- else if $property.IndexId}}
+	obx_model_property_index_id(model, {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}});
+	{{- end -}}
+	{{- end}}
 	{{range $relation := $entity.Relations -}}
     obx_model_relation(model, {{$relation.Id.GetId}}, {{$relation.Id.GetUid}}, {{$relation.Target.Id.GetId}}, {{$relation.Target.Id.GetUid}});
 	{{end -}}
