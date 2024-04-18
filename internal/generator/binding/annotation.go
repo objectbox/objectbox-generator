@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2020 ObjectBox Ltd. All rights reserved.
+ * Copyright (C) 2018-2024 ObjectBox Ltd. All rights reserved.
  * https://objectbox.io
  *
  * This file is part of ObjectBox Generator.
  *
  * ObjectBox Generator is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * ObjectBox Generator is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with ObjectBox Generator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -56,7 +56,8 @@ func HasBooleanDetail(annotations map[string]*Annotation, parentAnnotation, name
 // relation(name=manyToManyRelName,to=TargetEntity) - creates a single annotation relation with two items as details
 // id - creates a single annotation
 // NOTE: this started as a very simple parser but it seems like the requirements are ever-increasing... maybe some form
-//       of recursive tokenization would be better in case we decided to rework.
+//
+//	of recursive tokenization would be better in case we decided to rework.
 func ParseAnnotations(str string, annotations *map[string]*Annotation, supportedAnnotations map[string]bool) error {
 	var s annotationInProgress
 	for i := 0; i < len(str); i++ {

@@ -46,18 +46,18 @@ https://objectbox.io
 This file is part of ObjectBox Generator.
 
 ObjectBox Generator is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 ObjectBox Generator is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
+GNU Affero General Public License for more details.
+You should have received a copy of the GNU Affero General Public License
 along with ObjectBox Generator.  If not, see <https://www.gnu.org/licenses/>.
 ```
 
-Note: GPL only applies to the Generator itself and not to generated code.
+Note: AGPL only applies to the Generator itself and not to generated code.
 You can regard generated code as "your code", and we impose no limitation on distributing it.
 And, just to clarify: as the Generator does not include any warranty, there can be no warranty for the code it generates.       
 
