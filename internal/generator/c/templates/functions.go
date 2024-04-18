@@ -59,7 +59,7 @@ var funcMap = template.FuncMap{
 		if len(result) > 1 {
 			sort.Strings(result)
 			// if there's more than one, we need to cast the result of their combination back to the right type
-			return "(OBXPropertyFlags) (" + strings.Join(result, " | ") + ")"
+			return strings.Join(result, " | ")
 		} else if len(result) > 0 {
 			return result[0]
 		}
@@ -78,7 +78,7 @@ var funcMap = template.FuncMap{
 		if len(result) > 1 {
 			sort.Strings(result)
 			// if there's more than one, we need to cast the result of their combination back to the right type
-			return "(OBXEntityFlags) (" + strings.Join(result, " | ") + ")"
+			return strings.Join(result, " | ")
 		} else if len(result) > 0 {
 			return result[0]
 		}
