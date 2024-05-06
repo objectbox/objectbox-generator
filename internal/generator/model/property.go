@@ -27,8 +27,11 @@ import (
 type HnswDistanceType string
 
 const (
-	HnswDistanceType_Unknown   = "Unknown"
-	HnswDistanceType_Euclidean = "Euclidean"
+	HnswDistanceType_Unknown                 = "Unknown"
+	HnswDistanceType_Euclidean               = "Euclidean"
+	HnswDistanceType_Cosine                  = "Cosine"
+	HnswDistanceType_DotProduct              = "DotProduct"
+	HnswDistanceType_DotProductNonNormalized = "DotProductNonNormalized"
 )
 
 type HnswParams struct {
