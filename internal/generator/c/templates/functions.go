@@ -90,7 +90,7 @@ var funcMap = template.FuncMap{
 		// Get sorted flag names to avoid changes in the generated code. Go map iteration order is not guaranteed.
 		for flag, name := range model.HnswFlagNames {
 			if val&flag != 0 { // if this flag is set
-				result = append(result, "OBXHnswFlags_"+cccToUc(name))
+				result = append(result, "OBXHnswFlags_"+name)
 			}
 		}
 
