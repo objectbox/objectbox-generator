@@ -65,7 +65,7 @@ static inline OBX_model* create_obx_model() {
 	obx_model_property_index_hnsw_dimensions(model, {{$property.HnswParams.Dimensions}});
 	{{- end -}}
 	{{- if $property.HnswParams.DistanceType}}
-	obx_model_property_index_hnsw_distance_type(model, OBXHnswDistanceType_{{ $property.HnswParams.DistanceType | ToUpper }});
+	obx_model_property_index_hnsw_distance_type(model, OBXVectorDistanceType_{{ $property.HnswParams.DistanceType }});
 	{{- end -}}
 	{{- if $property.HnswParams.NeighborsPerNode}}
 	obx_model_property_index_hnsw_neighbors_per_node(model, {{ $property.HnswParams.NeighborsPerNode }});
