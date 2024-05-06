@@ -153,7 +153,10 @@ const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqu
 const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqueHash(7);
 const obx::Property<ns::Annotated, OBXPropertyType_String> ns::Annotated_::uniqueHash64(8);
 const obx::Property<ns::Annotated, OBXPropertyType_Int> ns::Annotated_::uid(9);
-const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVector(10);
+const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVectorEuclidean(10);
+const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVectorCosine(11);
+const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVectorDot(12);
+const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVectorDotNonNormalized(13);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::typefuls(1);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::m2m(2);
 
@@ -164,7 +167,10 @@ void ns::Annotated::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& 
     auto offsetuniqueValue = fbb.CreateString(object.uniqueValue);
     auto offsetuniqueHash = fbb.CreateString(object.uniqueHash);
     auto offsetuniqueHash64 = fbb.CreateString(object.uniqueHash64);
-    auto offsethnswVector = fbb.CreateVector(object.hnswVector);
+    auto offsethnswVectorEuclidean = fbb.CreateVector(object.hnswVectorEuclidean);
+    auto offsethnswVectorCosine = fbb.CreateVector(object.hnswVectorCosine);
+    auto offsethnswVectorDot = fbb.CreateVector(object.hnswVectorDot);
+    auto offsethnswVectorDotNonNormalized = fbb.CreateVector(object.hnswVectorDotNonNormalized);
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
     fbb.AddElement(4, object.identifier);
     fbb.AddOffset(6, offsetfullName);
@@ -175,7 +181,10 @@ void ns::Annotated::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& 
     fbb.AddOffset(16, offsetuniqueHash);
     fbb.AddOffset(18, offsetuniqueHash64);
     fbb.AddElement(20, object.uid);
-    fbb.AddOffset(22, offsethnswVector);
+    fbb.AddOffset(22, offsethnswVectorEuclidean);
+    fbb.AddOffset(24, offsethnswVectorCosine);
+    fbb.AddOffset(26, offsethnswVectorDot);
+    fbb.AddOffset(28, offsethnswVectorDotNonNormalized);
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
     fbb.Finish(offset);
@@ -242,9 +251,30 @@ void ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::
     outObject.uid = table->GetField<int32_t>(20, 0);
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(22);
-        if (ptr) outObject.hnswVector.assign(ptr->begin(), ptr->end());
+        if (ptr) outObject.hnswVectorEuclidean.assign(ptr->begin(), ptr->end());
         else {
-            outObject.hnswVector.clear();
+            outObject.hnswVectorEuclidean.clear();
+        }
+    }
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(24);
+        if (ptr) outObject.hnswVectorCosine.assign(ptr->begin(), ptr->end());
+        else {
+            outObject.hnswVectorCosine.clear();
+        }
+    }
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(26);
+        if (ptr) outObject.hnswVectorDot.assign(ptr->begin(), ptr->end());
+        else {
+            outObject.hnswVectorDot.clear();
+        }
+    }
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(28);
+        if (ptr) outObject.hnswVectorDotNonNormalized.assign(ptr->begin(), ptr->end());
+        else {
+            outObject.hnswVectorDotNonNormalized.clear();
         }
     }
 }
