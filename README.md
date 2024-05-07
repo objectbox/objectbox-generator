@@ -41,6 +41,7 @@ To get started, have a look at the specific language bindings (the approaches di
 # License
 
 ```
+ObjectBox Generator - a build time tool for ObjectBox
 Copyright (C) 2018-2024 ObjectBox Ltd. All rights reserved.
 https://objectbox.io
 This file is part of ObjectBox Generator.
