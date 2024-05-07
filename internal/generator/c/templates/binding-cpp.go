@@ -1,4 +1,5 @@
 /*
+ * ObjectBox Generator - a build time tool for ObjectBox
  * Copyright (C) 2018-2024 ObjectBox Ltd. All rights reserved.
  * https://objectbox.io
  *
