@@ -115,15 +115,17 @@ void Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, Typeful& o
     outObject.ubyte = table->GetField<uint8_t>(34, 0);
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<int8_t>*>(36);
-        if (ptr) outObject.bytevector.assign(ptr->begin(), ptr->end());
-        else {
+        if (ptr) { 
+            outObject.bytevector.assign(ptr->begin(), ptr->end());
+        } else {
             outObject.bytevector.clear();
         }
     }
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<uint8_t>*>(38);
-        if (ptr) outObject.ubytevector.assign(ptr->begin(), ptr->end());
-        else {
+        if (ptr) { 
+            outObject.ubytevector.assign(ptr->begin(), ptr->end());
+        } else {
             outObject.ubytevector.clear();
         }
     }
@@ -132,8 +134,9 @@ void Typeful::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, Typeful& o
     outObject.float_ = table->GetField<float>(44, 0.0f);
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(46);
-        if (ptr) outObject.floatvector.assign(ptr->begin(), ptr->end());
-        else {
+        if (ptr) { 
+            outObject.floatvector.assign(ptr->begin(), ptr->end());
+        } else {
             outObject.floatvector.clear();
         }
     }
