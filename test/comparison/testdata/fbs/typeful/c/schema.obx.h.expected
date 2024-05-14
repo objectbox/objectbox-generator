@@ -48,6 +48,8 @@ typedef struct Typeful {
     float float32;
     double float64;
     float float_;
+    float* floatvector;
+    size_t floatvector_len;
     double double_;
     /// Relation to an entity declared later in the same file
     obx_id relId;
@@ -77,8 +79,9 @@ enum Typeful_ {
     Typeful_PROP_ID_float32 = 19,
     Typeful_PROP_ID_float64 = 20,
     Typeful_PROP_ID_float_ = 21,
-    Typeful_PROP_ID_double_ = 22,
-    Typeful_PROP_ID_relId = 23,
+    Typeful_PROP_ID_floatvector = 22,
+    Typeful_PROP_ID_double_ = 23,
+    Typeful_PROP_ID_relId = 24,
 };
 
 /// Write given object to the FlatBufferBuilder
@@ -242,8 +245,9 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
     }
     flatcc_builder_ref_t offset_bytevector = !object->bytevector ? 0 : flatcc_builder_create_vector(B, object->bytevector, object->bytevector_len, sizeof(int8_t), sizeof(int8_t), FLATBUFFERS_COUNT_MAX(sizeof(int8_t)));
     flatcc_builder_ref_t offset_ubytevector = !object->ubytevector ? 0 : flatcc_builder_create_vector(B, object->ubytevector, object->ubytevector_len, sizeof(uint8_t), sizeof(uint8_t), FLATBUFFERS_COUNT_MAX(sizeof(uint8_t)));
+    flatcc_builder_ref_t offset_floatvector = !object->floatvector ? 0 : flatcc_builder_create_vector(B, object->floatvector, object->floatvector_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
 
-    if (flatcc_builder_start_table(B, 23) != 0) return false;
+    if (flatcc_builder_start_table(B, 24) != 0) return false;
 
     void* p;
     flatcc_builder_ref_t* _p;
@@ -353,13 +357,18 @@ static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, vo
         flatbuffers_float_write_to_pe(p, object->float_);
     }
     
-    {
-        if (!(p = flatcc_builder_table_add(B, 21, 8, 8))) return false;
-        flatbuffers_double_write_to_pe(p, object->double_);
+    if (offset_floatvector) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 21))) return false;
+        *_p = offset_floatvector;
     }
     
     {
         if (!(p = flatcc_builder_table_add(B, 22, 8, 8))) return false;
+        flatbuffers_double_write_to_pe(p, object->double_);
+    }
+    
+    {
+        if (!(p = flatcc_builder_table_add(B, 23, 8, 8))) return false;
         flatbuffers_uint64_write_to_pe(p, object->relId);
     }
     
@@ -508,9 +517,24 @@ static bool Typeful_from_flatbuffer(const void* data, size_t size, Typeful* out_
         out_object->float_ = flatbuffers_float_read_from_pe(table + offset);
     }
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 21))) {
-        out_object->double_ = flatbuffers_double_read_from_pe(table + offset);
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->floatvector = (float*) malloc(len * sizeof(float));
+        if (out_object->floatvector == NULL) {
+            Typeful_free_pointers(out_object);
+            return false;
+        }
+        out_object->floatvector_len = len;
+        memcpy((void*)out_object->floatvector, (const void*)val, sizeof(float)*len);
+        
+    } else {
+        out_object->floatvector = NULL;
+        out_object->floatvector_len = 0;
     }
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 22))) {
+        out_object->double_ = flatbuffers_double_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 23))) {
         out_object->relId = flatbuffers_uint64_read_from_pe(table + offset);
     }
     return true;
@@ -556,6 +580,13 @@ static void Typeful_free_pointers(Typeful* object) {
         object->ubytevector_len = 0;
     } else {
         assert(object->ubytevector_len == 0);
+    }
+    if (object->floatvector) {
+        free(object->floatvector);
+        object->floatvector = NULL;
+        object->floatvector_len = 0;
+    } else {
+        assert(object->floatvector_len == 0);
     }
     
 }

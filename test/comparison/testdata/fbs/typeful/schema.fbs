@@ -23,6 +23,7 @@ table Typeful  {
 	float32      : float32	;
 	float64      : float64	;
 	float        : float	;
+	floatvector  : [float]  ;
 	double       : double	;
 
 	/// Relation to an entity declared later in the same file

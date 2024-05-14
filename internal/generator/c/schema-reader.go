@@ -169,6 +169,8 @@ func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection
 				fallthrough
 			case reflection.BaseTypeUByte:
 				property.Type = model.PropertyTypeByteVector
+			case reflection.BaseTypeFloat:
+				property.Type = model.PropertyTypeFloatVector
 			default:
 				return fmt.Errorf("unsupported vector element type: %s", reflection.EnumNamesBaseType[fbsElBaseType])
 			}

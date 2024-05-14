@@ -42,6 +42,7 @@ var Typeful_ = struct {
 	ByteVector   *objectbox.PropertyByteVector
 	Rune         *objectbox.PropertyRune
 	Float32      *objectbox.PropertyFloat32
+	FloatVector  *objectbox.PropertyFloat32Vector
 	Float64      *objectbox.PropertyFloat64
 	Date         *objectbox.PropertyInt64
 	Time         *objectbox.PropertyInt64
@@ -156,33 +157,39 @@ var Typeful_ = struct {
 			Entity: &TypefulBinding.Entity,
 		},
 	},
-	Float64: &objectbox.PropertyFloat64{
+	FloatVector: &objectbox.PropertyFloat32Vector{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     19,
 			Entity: &TypefulBinding.Entity,
 		},
 	},
-	Date: &objectbox.PropertyInt64{
+	Float64: &objectbox.PropertyFloat64{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     20,
 			Entity: &TypefulBinding.Entity,
 		},
 	},
-	Time: &objectbox.PropertyInt64{
+	Date: &objectbox.PropertyInt64{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     21,
 			Entity: &TypefulBinding.Entity,
 		},
 	},
-	Time2: &objectbox.PropertyInt64{
+	Time: &objectbox.PropertyInt64{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     22,
 			Entity: &TypefulBinding.Entity,
 		},
 	},
-	TimeNano: &objectbox.PropertyInt64{
+	Time2: &objectbox.PropertyInt64{
 		BaseProperty: &objectbox.BaseProperty{
 			Id:     23,
+			Entity: &TypefulBinding.Entity,
+		},
+	},
+	TimeNano: &objectbox.PropertyInt64{
+		BaseProperty: &objectbox.BaseProperty{
+			Id:     24,
 			Entity: &TypefulBinding.Entity,
 		},
 	},
@@ -221,18 +228,19 @@ func (typeful_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Property("ByteVector", 23, 16, 4345851588384648695)
 	model.Property("Rune", 5, 17, 7699391924090763411)
 	model.Property("Float32", 7, 18, 388440063886460141)
-	model.Property("Float64", 8, 19, 7561811714888168464)
-	model.Property("Date", 10, 20, 3959279844101328186)
+	model.Property("FloatVector", 28, 19, 7561811714888168464)
+	model.Property("Float64", 8, 20, 3959279844101328186)
+	model.Property("Date", 10, 21, 8902041070398994519)
 	model.PropertyFlags(8)
-	model.PropertyIndex(1, 8902041070398994519)
-	model.Property("Time", 10, 21, 303089054982227392)
+	model.PropertyIndex(1, 303089054982227392)
+	model.Property("Time", 10, 22, 7338728586234333996)
 	model.PropertyFlags(8)
-	model.PropertyIndex(2, 7338728586234333996)
-	model.Property("Time2", 10, 22, 5392504858645185670)
-	model.Property("TimeNano", 12, 23, 7847956203786849690)
+	model.PropertyIndex(2, 5392504858645185670)
+	model.Property("Time2", 10, 23, 7847956203786849690)
+	model.Property("TimeNano", 12, 24, 406703151708498928)
 	model.PropertyFlags(8)
-	model.PropertyIndex(3, 406703151708498928)
-	model.EntityLastPropertyId(23, 7847956203786849690)
+	model.PropertyIndex(3, 4756106358532488297)
+	model.EntityLastPropertyId(24, 406703151708498928)
 }
 
 // GetId is called by ObjectBox during Put operations to check for existing ID on an object
@@ -284,9 +292,10 @@ func (typeful_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, 
 	var offsetString = fbutils.CreateStringOffset(fbb, obj.String)
 	var offsetStringVector = fbutils.CreateStringVectorOffset(fbb, obj.StringVector)
 	var offsetByteVector = fbutils.CreateByteVectorOffset(fbb, obj.ByteVector)
+	var offsetFloatVector = fbutils.CreateFloatVectorOffset(fbb, obj.FloatVector)
 
 	// build the FlatBuffers object
-	fbb.StartObject(23)
+	fbb.StartObject(24)
 	fbutils.SetUint64Slot(fbb, 0, id)
 	fbutils.SetInt64Slot(fbb, 1, int64(obj.Int))
 	fbutils.SetInt8Slot(fbb, 2, obj.Int8)
@@ -305,11 +314,12 @@ func (typeful_EntityInfo) Flatten(object interface{}, fbb *flatbuffers.Builder, 
 	fbutils.SetUOffsetTSlot(fbb, 15, offsetByteVector)
 	fbutils.SetInt32Slot(fbb, 16, obj.Rune)
 	fbutils.SetFloat32Slot(fbb, 17, obj.Float32)
-	fbutils.SetFloat64Slot(fbb, 18, obj.Float64)
-	fbutils.SetInt64Slot(fbb, 19, obj.Date)
-	fbutils.SetInt64Slot(fbb, 20, propTime)
-	fbutils.SetInt64Slot(fbb, 21, propTime2)
-	fbutils.SetInt64Slot(fbb, 22, propTimeNano)
+	fbutils.SetUOffsetTSlot(fbb, 18, offsetFloatVector)
+	fbutils.SetFloat64Slot(fbb, 19, obj.Float64)
+	fbutils.SetInt64Slot(fbb, 20, obj.Date)
+	fbutils.SetInt64Slot(fbb, 21, propTime)
+	fbutils.SetInt64Slot(fbb, 22, propTime2)
+	fbutils.SetInt64Slot(fbb, 23, propTimeNano)
 	return nil
 }
 
@@ -326,17 +336,17 @@ func (typeful_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byte) (interface
 
 	var propId = table.GetUint64Slot(4, 0)
 
-	propTime, err := objectbox.TimeInt64ConvertToEntityProperty(fbutils.GetInt64Slot(table, 44))
+	propTime, err := objectbox.TimeInt64ConvertToEntityProperty(fbutils.GetInt64Slot(table, 46))
 	if err != nil {
 		return nil, errors.New("converter objectbox.TimeInt64ConvertToEntityProperty() failed on Typeful.Time: " + err.Error())
 	}
 
-	propTime2, err := objectbox.TimeInt64ConvertToEntityProperty(fbutils.GetInt64Slot(table, 46))
+	propTime2, err := objectbox.TimeInt64ConvertToEntityProperty(fbutils.GetInt64Slot(table, 48))
 	if err != nil {
 		return nil, errors.New("converter objectbox.TimeInt64ConvertToEntityProperty() failed on Typeful.Time2: " + err.Error())
 	}
 
-	propTimeNano, err := objectbox.NanoTimeInt64ConvertToEntityProperty(fbutils.GetInt64Slot(table, 48))
+	propTimeNano, err := objectbox.NanoTimeInt64ConvertToEntityProperty(fbutils.GetInt64Slot(table, 50))
 	if err != nil {
 		return nil, errors.New("converter objectbox.NanoTimeInt64ConvertToEntityProperty() failed on Typeful.TimeNano: " + err.Error())
 	}
@@ -360,8 +370,9 @@ func (typeful_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byte) (interface
 		ByteVector:   fbutils.GetByteVectorSlot(table, 34),
 		Rune:         fbutils.GetRuneSlot(table, 36),
 		Float32:      fbutils.GetFloat32Slot(table, 38),
-		Float64:      fbutils.GetFloat64Slot(table, 40),
-		Date:         fbutils.GetInt64Slot(table, 42),
+		FloatVector:  fbutils.GetFloatVectorSlot(table, 40),
+		Float64:      fbutils.GetFloat64Slot(table, 42),
+		Date:         fbutils.GetInt64Slot(table, 44),
 		Time:         propTime,
 		Time2:        propTime2,
 		TimeNano:     propTimeNano,
@@ -643,11 +654,11 @@ func (tSDate_EntityInfo) GeneratorVersion() int {
 // AddToModel is called by ObjectBox during model build
 func (tSDate_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Entity("TSDate", 4, 2914295034816259174)
-	model.Property("Id", 6, 1, 4756106358532488297)
+	model.Property("Id", 6, 1, 5837486892148644279)
 	model.PropertyFlags(1)
-	model.Property("timestamp", 10, 2, 5837486892148644279)
+	model.Property("timestamp", 10, 2, 4736217237333769909)
 	model.PropertyFlags(16384)
-	model.EntityLastPropertyId(2, 5837486892148644279)
+	model.EntityLastPropertyId(2, 4736217237333769909)
 }
 
 // GetId is called by ObjectBox during Put operations to check for existing ID on an object
@@ -971,11 +982,11 @@ func (tSDateNano_EntityInfo) GeneratorVersion() int {
 // AddToModel is called by ObjectBox during model build
 func (tSDateNano_EntityInfo) AddToModel(model *objectbox.Model) {
 	model.Entity("TSDateNano", 5, 1395437218309923052)
-	model.Property("Id", 6, 1, 4736217237333769909)
+	model.Property("Id", 6, 1, 2264299874001785192)
 	model.PropertyFlags(1)
-	model.Property("timestamp", 12, 2, 2264299874001785192)
+	model.Property("timestamp", 12, 2, 1061380815263676471)
 	model.PropertyFlags(16384)
-	model.EntityLastPropertyId(2, 2264299874001785192)
+	model.EntityLastPropertyId(2, 1061380815263676471)
 }
 
 // GetId is called by ObjectBox during Put operations to check for existing ID on an object

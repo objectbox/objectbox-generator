@@ -23,7 +23,7 @@ TEST_CASE("CRUD", "") {
     // put(`const Typeful&`) must be accepted for insert and update, just
     // returning an ID
     REQUIRE(box.put({.id = 0, .int_ = 11}) == 1);
-    REQUIRE(box.put({.id = 1, .int_ = 99}) == 1);  // NOTE: .int_ is set to 0 now
+    REQUIRE(box.put({.id = 1, .int_ = 99, .floatvector = {-23.456f,42.109f}}) == 1);  // NOTE: .int_ is set to 0 now
 
     // put(`Typeful&`) must set the ID on the given object
     Typeful object2 = {};
@@ -37,6 +37,9 @@ TEST_CASE("CRUD", "") {
     REQUIRE(read != nullptr);
     REQUIRE(read->id == 1);
     REQUIRE(read->int_ == 99);
+    REQUIRE(read->floatvector.size() == 2);
+    REQUIRE(read->floatvector[0] == -23.456f);
+    REQUIRE(read->floatvector[1] ==  42.109f);
 
     // out-param get()
     REQUIRE(!box.get(3, *read));
@@ -65,6 +68,11 @@ TEST_CASE("CRUD", "") {
     REQUIRE(!box.contains(2));
     REQUIRE(box.count() == 0);
     REQUIRE(box.isEmpty());
+
+    REQUIRE(box.put({.id = 0, .int_ = 23}) == 3);  
+
+    std::unique_ptr<Typeful> nullVectors = box.get(3);
+    REQUIRE(nullVectors->floatvector.size() == 0);
 }
 
 TEST_CASE("Self assigned IDs", "") {

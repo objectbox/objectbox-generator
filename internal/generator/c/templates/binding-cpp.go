@@ -135,12 +135,13 @@ void {{$entity.Meta.CppNamespacePrefix}}{{$entity.Meta.CppName}}::_OBX_MetaInfo:
 		{{- else if $property.Meta.FbIsVector}}
 	{
 		auto* ptr = table->GetPointer<const {{$property.Meta.FbOffsetType}}*>({{$property.FbvTableOffset}});
-		if (ptr) outObject.{{$property.Meta.CppName}}
+		if (ptr) { 
+			outObject.{{$property.Meta.CppName}}
 			{{- if IsOptionalPtr $property.Meta.Optional}}{{template "field-value-assign-pre" $property.Meta}}ptr->begin(), ptr->end(){{template "field-value-assign-post" $property.Meta}}
 			{{- else if $property.Meta.Optional}} = {{$property.Meta.CppType}}(ptr->begin(), ptr->end())
 			{{- else}}.assign(ptr->begin(), ptr->end())
 			{{- end}};
-		else {
+		} else {
 			outObject.{{$property.Meta.CppName}}
 			{{- if $property.Meta.Optional -}}
 				.reset();

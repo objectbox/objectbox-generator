@@ -22,6 +22,7 @@ type Typeful struct {
 	ByteVector   []byte
 	Rune         rune
 	Float32      float32
+	FloatVector  []float32
 	Float64      float64
 	Date         int64     `objectbox:"date index"`
 	Time         time.Time `objectbox:"date,index"`
