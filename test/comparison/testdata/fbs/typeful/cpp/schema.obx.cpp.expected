@@ -251,29 +251,33 @@ void ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::
     outObject.uid = table->GetField<int32_t>(20, 0);
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(22);
-        if (ptr) outObject.hnswVectorEuclidean.assign(ptr->begin(), ptr->end());
-        else {
+        if (ptr) { 
+            outObject.hnswVectorEuclidean.assign(ptr->begin(), ptr->end());
+        } else {
             outObject.hnswVectorEuclidean.clear();
         }
     }
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(24);
-        if (ptr) outObject.hnswVectorCosine.assign(ptr->begin(), ptr->end());
-        else {
+        if (ptr) { 
+            outObject.hnswVectorCosine.assign(ptr->begin(), ptr->end());
+        } else {
             outObject.hnswVectorCosine.clear();
         }
     }
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(26);
-        if (ptr) outObject.hnswVectorDot.assign(ptr->begin(), ptr->end());
-        else {
+        if (ptr) { 
+            outObject.hnswVectorDot.assign(ptr->begin(), ptr->end());
+        } else {
             outObject.hnswVectorDot.clear();
         }
     }
     {
         auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(28);
-        if (ptr) outObject.hnswVectorDotNonNormalized.assign(ptr->begin(), ptr->end());
-        else {
+        if (ptr) { 
+            outObject.hnswVectorDotNonNormalized.assign(ptr->begin(), ptr->end());
+        } else {
             outObject.hnswVectorDotNonNormalized.clear();
         }
     }
