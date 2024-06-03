@@ -64,6 +64,21 @@ type fbSchemaReader struct {
 // const annotationPrefix = "objectbox:"
 
 func (r *fbSchemaReader) read(schema *reflection.Schema) error {
+	var fbsmodel = &fbsModel{Enums: make([]*fbsEnum, schema.EnumsLength())}
+	r.model.Meta = fbsmodel
+	for i := range fbsmodel.Enums {
+		fbsmodel.Enums[i] = &fbsEnum{&reflection.Enum{}, []*reflection.EnumVal{}}
+		if !schema.Enums(fbsmodel.Enums[i].enum, i) {
+			return fmt.Errorf("can't access enum %d", i)
+		}
+		for j := 0; j < fbsmodel.Enums[i].enum.ValuesLength(); j++ {
+			fbsmodel.Enums[i].Values = append(fbsmodel.Enums[i].Values, &reflection.EnumVal{})
+			if !fbsmodel.Enums[i].enum.Values(fbsmodel.Enums[i].Values[j], j) {
+				return fmt.Errorf("can't access enum %s value %d", string(fbsmodel.Enums[i].enum.Name()), j)
+			}
+		}
+	}
+
 	for i := 0; i < schema.ObjectsLength(); i++ {
 		var object reflection.Object
 		if !schema.Objects(&object, i) {
@@ -132,7 +147,7 @@ func (r *fbSchemaReader) readObject(object *reflection.Object) error {
 
 func (r *fbSchemaReader) readObjectField(entity *model.Entity, field *reflection.Field) error {
 	var property = model.CreateProperty(entity, 0, 0)
-	var metaProperty = &fbsField{binding.CreateField(property), field}
+	var metaProperty = &fbsField{binding.CreateField(property), r.model.Meta.(*fbsModel), field}
 	property.Meta = metaProperty
 	metaProperty.SetName(string(field.Name()))
 

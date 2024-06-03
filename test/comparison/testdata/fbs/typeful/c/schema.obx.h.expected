@@ -20,6 +20,18 @@ static void* schema_obx_h_get_object(OBX_box* box, obx_id id, void* (*from_flatb
 /// Internal function used in other generated functions to get a vTable offset for a given field.
 static flatbuffers_voffset_t schema_obx_h_fb_field_offset(flatbuffers_voffset_t vs, const flatbuffers_voffset_t* vt, size_t field);
 
+typedef enum {
+    ns_Color_none = 0,
+    ns_Color_blue = 1,
+    ns_Color_green = 2,
+    ns_Color_red = 3,
+} ns_Color;
+
+typedef enum {
+    ns_Flags_a = 1,
+    ns_Flags_b = 2,
+} ns_Flags;
+
 
 /// Entity documentation is copied
 /// into the generated output
@@ -220,6 +232,41 @@ static void ns_TSDateNano_free_pointers(ns_TSDateNano* object);
 /// Free ns_TSDateNano* object pointer and all its property pointers (vectors and strings).
 /// Equivalent to calling ns_TSDateNano_free_pointers() followed by free();
 static void ns_TSDateNano_free(ns_TSDateNano* object);
+
+typedef struct ns_WithEnums {
+    obx_id id;
+    ns_Color color;
+    ns_Flags flags;
+    
+} ns_WithEnums;
+
+enum ns_WithEnums_ {
+    ns_WithEnums_ENTITY_ID = 5,
+    ns_WithEnums_PROP_ID_id = 1,
+    ns_WithEnums_PROP_ID_color = 2,
+    ns_WithEnums_PROP_ID_flags = 3,
+};
+
+/// Write given object to the FlatBufferBuilder
+static bool ns_WithEnums_to_flatbuffer(flatcc_builder_t* B, const ns_WithEnums* object, void** out_buffer, size_t* out_size);
+
+/// Read an object from a valid FlatBuffer.
+/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling ns_WithEnums_free_pointers().
+/// Thus, when calling this function multiple times on the same object, ensure to call ns_WithEnums_free_pointers() before subsequent calls to avoid leaks. 
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+///          allocated by this function will also be freed before returning, allowing you to retry.
+static bool ns_WithEnums_from_flatbuffer(const void* data, size_t size, ns_WithEnums* out_object);
+
+/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// The object must be freed after use by calling ns_WithEnums_free();
+static ns_WithEnums* ns_WithEnums_new_from_flatbuffer(const void* data, size_t size);
+
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+static void ns_WithEnums_free_pointers(ns_WithEnums* object);
+
+/// Free ns_WithEnums* object pointer and all its property pointers (vectors and strings).
+/// Equivalent to calling ns_WithEnums_free_pointers() followed by free();
+static void ns_WithEnums_free(ns_WithEnums* object);
 
 static bool Typeful_to_flatbuffer(flatcc_builder_t* B, const Typeful* object, void** out_buffer, size_t* out_size) {
     assert(B);
@@ -1040,6 +1087,121 @@ static obx_id ns_TSDateNano_put(OBX_box* box, ns_TSDateNano* object) {
 /// @note: The returned object must be freed after use by calling ns_TSDateNano_free();
 static ns_TSDateNano* ns_TSDateNano_get(OBX_box* box, obx_id id) {
     return (ns_TSDateNano*) schema_obx_h_get_object(box, id, (void* (*) (const void*, size_t)) ns_TSDateNano_new_from_flatbuffer);
+}
+
+static bool ns_WithEnums_to_flatbuffer(flatcc_builder_t* B, const ns_WithEnums* object, void** out_buffer, size_t* out_size) {
+    assert(B);
+    assert(object);
+    assert(out_buffer);
+    assert(out_size);
+
+    flatcc_builder_reset(B);
+    flatcc_builder_start_buffer(B, 0, 0, 0);
+    
+
+    if (flatcc_builder_start_table(B, 3) != 0) return false;
+
+    void* p;
+    flatcc_builder_ref_t* _p;
+    
+    {
+        if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->id);
+    }
+    
+    {
+        if (!(p = flatcc_builder_table_add(B, 1, 1, 1))) return false;
+        flatbuffers_uint8_write_to_pe(p, object->color);
+    }
+    
+    {
+        if (!(p = flatcc_builder_table_add(B, 2, 4, 4))) return false;
+        flatbuffers_uint32_write_to_pe(p, object->flags);
+    }
+    
+    flatcc_builder_ref_t ref;
+    if (!(ref = flatcc_builder_end_table(B))) return false;
+    if (!flatcc_builder_end_buffer(B, ref)) return false;
+    return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
+}
+
+static bool ns_WithEnums_from_flatbuffer(const void* data, size_t size, ns_WithEnums* out_object) {
+    assert(data);
+    assert(size > 0);
+    assert(out_object);
+
+    const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
+    assert(table);
+    const flatbuffers_voffset_t* vt = (const flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
+    flatbuffers_voffset_t vs = __flatbuffers_voffset_read_from_pe(vt);
+
+    // variables reused when reading strings and vectors
+    flatbuffers_voffset_t offset;
+    const flatbuffers_uoffset_t* val;
+    size_t len;
+
+    // reset so that dangling pointers are freed properly on malloc() failures
+#ifdef __cplusplus
+    *out_object = {};
+#else
+    *out_object = (ns_WithEnums){0};
+#endif
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
+        out_object->id = flatbuffers_uint64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 1))) {
+        out_object->color = flatbuffers_uint8_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 2))) {
+        out_object->flags = flatbuffers_uint32_read_from_pe(table + offset);
+    }
+    return true;
+}
+
+static ns_WithEnums* ns_WithEnums_new_from_flatbuffer(const void* data, size_t size) {
+    ns_WithEnums* object = (ns_WithEnums*) malloc(sizeof(ns_WithEnums));
+    if (object) {
+        if (!ns_WithEnums_from_flatbuffer(data, size, object)) {
+            free(object);
+            object = NULL;
+        }
+    }
+    return object;
+}
+
+static void ns_WithEnums_free_pointers(ns_WithEnums* object) {
+    if (object == NULL) return;
+    
+}
+
+static void ns_WithEnums_free(ns_WithEnums* object) {
+    ns_WithEnums_free_pointers(object);
+    free(object);
+}
+
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID 
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id ns_WithEnums_put(OBX_box* box, ns_WithEnums* object) {
+    obx_id id = schema_obx_h_put_object(box, object,
+                               (bool (*)(flatcc_builder_t*, const void*, void**, size_t*)) ns_WithEnums_to_flatbuffer,
+                               OBXPutMode_PUT);
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling ns_WithEnums_free();
+static ns_WithEnums* ns_WithEnums_get(OBX_box* box, obx_id id) {
+    return (ns_WithEnums*) schema_obx_h_get_object(box, id, (void* (*) (const void*, size_t)) ns_WithEnums_new_from_flatbuffer);
 }
 
 static obx_id schema_obx_h_put_object(OBX_box* box, void* object,

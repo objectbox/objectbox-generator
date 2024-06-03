@@ -29,6 +29,14 @@ import (
 	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
+type fbsModel struct {
+	Enums []*fbsEnum
+}
+
+func (mm *fbsModel) Merge(model *model.ModelInfo) model.ModelMeta {
+	return mm
+}
+
 type fbsObject struct {
 	*binding.Object
 	fbsObject *reflection.Object
@@ -65,33 +73,6 @@ func cppNamespacePrefix(ns string) string {
 // CppNamespacePrefix returns c++ namespace prefix for symbol definition
 func (mo *fbsObject) CppNamespacePrefix() string {
 	return cppNamespacePrefix(mo.Namespace)
-}
-
-// CppNamespaceStart returns c++ namespace opening declaration
-func (mo *fbsObject) CppNamespaceStart() string {
-	if len(mo.Namespace) == 0 {
-		return ""
-	}
-
-	var nss = strings.Split(mo.Namespace, ".")
-	for i, ns := range nss {
-		nss[i] = "namespace " + ns + " {"
-	}
-	return strings.Join(nss, "\n")
-}
-
-// CppNamespaceEnd returns c++ namespace closing declaration
-func (mo *fbsObject) CppNamespaceEnd() string {
-	if len(mo.Namespace) == 0 {
-		return ""
-	}
-	var result = ""
-	var nss = strings.Split(mo.Namespace, ".")
-	for _, ns := range nss {
-		// print in reversed order
-		result = "}  // namespace " + ns + "\n" + result
-	}
-	return result
 }
 
 // PreDeclareCppRelTargets returns C++ struct pre-declarations for related entities.
@@ -140,6 +121,7 @@ func (mo *fbsObject) PreDeclareCppRelTargets() (string, error) {
 
 type fbsField struct {
 	*binding.Field
+	fbsModel *fbsModel
 	fbsField *reflection.Field
 }
 
@@ -159,6 +141,10 @@ func (mp *fbsField) CppNameRelationTarget() string {
 	return cppNamespacePrefix(mp.relTargetNamespace()) + cppName(mp.ModelProperty.RelationTarget)
 }
 
+func isEnumSupportedType(t reflection.BaseType) bool {
+	return t >= reflection.BaseTypeByte && t <= reflection.BaseTypeULong
+}
+
 // CppType returns C++ type name
 func (mp *fbsField) CppType() string {
 	var fbsType = mp.fbsField.Type(nil)
@@ -168,8 +154,19 @@ func (mp *fbsField) CppType() string {
 		cppType = cppType + "<" + fbsTypeToCppType[fbsType.Element()] + ">"
 	} else if (mp.ModelProperty.IsIdProperty() || mp.ModelProperty.Type == model.PropertyTypeRelation) && cppType == "uint64_t" {
 		cppType = "obx_id" // defined in objectbox.h
+	} else if enumIndex := mp.enumIndex(); enumIndex >= 0 {
+		cppType = strings.ReplaceAll(string(mp.fbsModel.Enums[enumIndex].enum.Name()), ".", "::")
 	}
 	return cppType
+}
+
+func (mp *fbsField) enumIndex() int {
+	var fbsType = mp.fbsField.Type(nil)
+	var baseType = fbsType.BaseType()
+	if isEnumSupportedType(baseType) {
+		return int(fbsType.Index())
+	}
+	return -1
 }
 
 // CppFbType returns C++ type name used in flatbuffers templated functions
@@ -273,6 +270,9 @@ func (mp *fbsField) FbDefaultValue() string {
 	case model.PropertyTypeDouble:
 		return "0.0"
 	}
+	if enumIndex := mp.enumIndex(); enumIndex >= 0 {
+		return fmt.Sprintf("static_cast<%s>(0)", mp.CppFbType())
+	}
 	return "0"
 }
 
@@ -311,4 +311,50 @@ func (mr *standaloneRel) Merge(rel *model.StandaloneRelation) model.StandaloneRe
 // CppName returns C++ variable name with reserved keywords suffixed by an underscore
 func (mr *standaloneRel) CppName() string {
 	return cppName(mr.ModelRelation.Name)
+}
+
+type fbsEnum struct {
+	enum   *reflection.Enum
+	Values []*reflection.EnumVal
+}
+
+func (me *fbsEnum) nameParts() (ns string, name string) {
+	var components = strings.Split(string(me.enum.Name()), ".")
+	ns = strings.Join(components[0:len(components)-1], ".")
+	name = components[len(components)-1]
+	return
+}
+
+func (me *fbsEnum) Namespace() string {
+	ns, _ := me.nameParts()
+	return ns
+}
+
+func (me *fbsEnum) Name() string {
+	_, name := me.nameParts()
+	return name
+}
+
+func (me *fbsEnum) UnderlyingCppType() string {
+	var baseType = me.enum.UnderlyingType(nil).BaseType()
+	return fbsTypeToCppType[baseType]
+}
+
+func (me *fbsEnum) Comments() []string {
+	var comments []string
+	for i := 0; i < me.enum.DocumentationLength(); i++ {
+		comments = append(comments, strings.TrimSpace(string(me.enum.Documentation(i))))
+	}
+	return comments
+}
+
+func (me *fbsEnum) HasAttribute(name string) bool {
+	var kv = reflection.KeyValue{}
+	var i = 0
+	for me.enum.Attributes(&kv, i) {
+		if string(kv.Key()) == name {
+			return true
+		}
+	}
+	return false
 }

@@ -290,3 +290,39 @@ void ns::TSDateNano::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns:
     outObject.timestamp = table->GetField<int64_t>(6, 0);
 }
 
+const obx::Property<ns::WithEnums, OBXPropertyType_Long> ns::WithEnums_::id(1);
+const obx::Property<ns::WithEnums, OBXPropertyType_Byte> ns::WithEnums_::color(2);
+const obx::Property<ns::WithEnums, OBXPropertyType_Int> ns::WithEnums_::flags(3);
+
+void ns::WithEnums::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::WithEnums& object) {
+    fbb.Clear();
+    flatbuffers::uoffset_t fbStart = fbb.StartTable();
+    fbb.TrackField(4, fbb.PushElement<obx_id>(object.id));
+    fbb.TrackField(6, fbb.PushElement<ns::Color>(object.color));
+    fbb.TrackField(8, fbb.PushElement<ns::Flags>(object.flags));
+    flatbuffers::Offset<flatbuffers::Table> offset;
+    offset.o = fbb.EndTable(fbStart);
+    fbb.Finish(offset);
+}
+
+ns::WithEnums ns::WithEnums::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
+    ns::WithEnums object;
+    fromFlatBuffer(data, size, object);
+    return object;
+}
+
+std::unique_ptr<ns::WithEnums> ns::WithEnums::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
+    auto object = std::unique_ptr<ns::WithEnums>(new ns::WithEnums());
+    fromFlatBuffer(data, size, *object);
+    return object;
+}
+
+void ns::WithEnums::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::WithEnums& outObject) {
+    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
+    assert(table);
+    outObject.id = table->GetField<obx_id>(4, 0);
+    outObject.color = table->GetField<ns::Color>(6, static_cast<ns::Color>(0));
+    outObject.flags = table->GetField<ns::Flags>(8, static_cast<ns::Flags>(0));
+    
+}
+

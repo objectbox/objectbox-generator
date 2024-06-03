@@ -93,4 +93,33 @@ var funcMap = template.FuncMap{
 	"IsOptionalPtr": func(optional string) bool {
 		return optional == "std::unique_ptr" || optional == "std::shared_ptr"
 	},
+	"CNamespace": func (ns string) string {
+		return strings.ReplaceAll(strings.ReplaceAll(ns, ".", "_"), "::", "_")
+	},
+	"CppNamespaceStart": func(ns string) string {
+		if len(ns) == 0 {
+			return ""
+		}
+
+		var nss = strings.Split(ns, ".")
+		for i, ns := range nss {
+			nss[i] = "namespace " + ns + " {"
+		}
+		return strings.Join(nss, "\n")
+	},
+	"CppNamespaceEnd": func(ns string) string {
+		if len(ns) == 0 {
+			return ""
+		}
+		var result = ""
+		var nss = strings.Split(ns, ".")
+		for _, ns := range nss {
+			// print in reversed order
+			result = "}  // namespace " + ns + "\n" + result
+		}
+		return result
+	},
+	"String": func(val []byte) string {
+		return string(val)
+	},
 }
