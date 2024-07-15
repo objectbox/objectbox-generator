@@ -195,7 +195,7 @@ func (s *annotationInProgress) finishAnnotation(annotations *map[string]*Annotat
 		if strings.HasPrefix(key, "hnsw-") {
 			var indexAnnotation = (*annotations)["index"]
 			if indexAnnotation == nil || indexAnnotation.Value != "hnsw" {
-				return fmt.Errorf("HNSW annotation %s require 'index' annotation to be set to 'hnsw' at first.", key)
+				return fmt.Errorf("The HNSW annotation '%s' is only allowed after an 'index' annotation set to 'hnsw'.", key)
 			}
 		}
 		(*annotations)[key] = s.value
