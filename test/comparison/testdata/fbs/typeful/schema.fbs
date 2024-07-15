@@ -77,12 +77,12 @@ table Annotated {
 	/// objectbox:hnsw-flags=DebugLogs|DebugLogsDetailed|VectorCacheSimdPaddingOff|ReparationLimitCandidates
 	hnswVectorEuclidean:[float];
 	
-	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = Cosine
 	/// objectbox:index=hnsw
+	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = Cosine
 	hnswVectorCosine:[float];
 	
-	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = DotProduct
 	/// objectbox:index = hnsw 
+	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = DotProduct
 	hnswVectorDot:[float];
 	
 	/// objectbox:index="hnsw"
