@@ -274,6 +274,7 @@ func mergeModelProperty(currentProperty *model.Property, storedProperty *model.P
 	storedProperty.RelationTarget = currentProperty.RelationTarget
 	storedProperty.Type = currentProperty.Type
 	storedProperty.Flags = currentProperty.Flags
+	storedProperty.HnswParams = currentProperty.HnswParams
 
 	return nil
 }

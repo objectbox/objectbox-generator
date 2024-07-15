@@ -143,7 +143,7 @@
     },
     {
       "id": "2:2259404117704393152",
-      "lastPropertyId": "9:5558237345453186302",
+      "lastPropertyId": "13:7561811714888168464",
       "name": "AnnotatedEntity",
       "flags": 2,
       "properties": [
@@ -207,16 +207,65 @@
           "indexId": "8:7845762441295307478",
           "type": 5,
           "flags": 40
+        },
+        {
+          "id": "10:771642788862502430",
+          "name": "hnswVectorEuclidean",
+          "indexId": "9:8514850266767180993",
+          "type": 28,
+          "flags": 8,
+          "hnswParams": {
+            "dimensions": 3,
+            "distance-type": "Euclidean",
+            "neighbors-per-node": 10,
+            "indexing-search-count": 5,
+            "reparation-backlink-probability": 0.7,
+            "vector-cache-hint-size-kb": 1024,
+            "flags": 15
+          }
+        },
+        {
+          "id": "11:8683452355129068124",
+          "name": "hnswVectorCosine",
+          "indexId": "10:4345851588384648695",
+          "type": 28,
+          "flags": 8,
+          "hnswParams": {
+            "dimensions": 2,
+            "distance-type": "Cosine"
+          }
+        },
+        {
+          "id": "12:7699391924090763411",
+          "name": "hnswVectorDot",
+          "indexId": "11:388440063886460141",
+          "type": 28,
+          "flags": 8,
+          "hnswParams": {
+            "dimensions": 2,
+            "distance-type": "DotProduct"
+          }
+        },
+        {
+          "id": "13:7561811714888168464",
+          "name": "hnswVectorDotNonNormalized",
+          "indexId": "12:3959279844101328186",
+          "type": 28,
+          "flags": 8,
+          "hnswParams": {
+            "dimensions": 2,
+            "distance-type": "DotProductNonNormalized"
+          }
         }
       ],
       "relations": [
         {
-          "id": "1:771642788862502430",
+          "id": "1:8902041070398994519",
           "name": "typefuls",
           "targetId": "1:8717895732742165505"
         },
         {
-          "id": "2:8514850266767180993",
+          "id": "2:303089054982227392",
           "name": "m2m",
           "targetId": "1:8717895732742165505"
         }
@@ -224,17 +273,17 @@
     },
     {
       "id": "3:6050128673802995827",
-      "lastPropertyId": "2:4345851588384648695",
+      "lastPropertyId": "2:5392504858645185670",
       "name": "TSDate",
       "properties": [
         {
-          "id": "1:8683452355129068124",
+          "id": "1:7338728586234333996",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:4345851588384648695",
+          "id": "2:5392504858645185670",
           "name": "timestamp",
           "type": 10,
           "flags": 16384
@@ -243,17 +292,17 @@
     },
     {
       "id": "4:501233450539197794",
-      "lastPropertyId": "2:388440063886460141",
+      "lastPropertyId": "2:406703151708498928",
       "name": "TSDateNano",
       "properties": [
         {
-          "id": "1:7699391924090763411",
+          "id": "1:7847956203786849690",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:388440063886460141",
+          "id": "2:406703151708498928",
           "name": "timestamp",
           "type": 12,
           "flags": 16384
@@ -262,8 +311,8 @@
     }
   ],
   "lastEntityId": "4:501233450539197794",
-  "lastIndexId": "8:7845762441295307478",
-  "lastRelationId": "2:8514850266767180993",
+  "lastIndexId": "12:3959279844101328186",
+  "lastRelationId": "2:303089054982227392",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],

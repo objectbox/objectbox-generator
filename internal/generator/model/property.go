@@ -20,7 +20,29 @@
 
 package model
 
-import "fmt"
+import (
+	"fmt"
+)
+
+type HnswDistanceType string
+
+const (
+	HnswDistanceType_Unknown                 = "Unknown"
+	HnswDistanceType_Euclidean               = "Euclidean"
+	HnswDistanceType_Cosine                  = "Cosine"
+	HnswDistanceType_DotProduct              = "DotProduct"
+	HnswDistanceType_DotProductNonNormalized = "DotProductNonNormalized"
+)
+
+type HnswParams struct {
+	Dimensions                    *uint64    `json:"dimensions,omitempty"`
+	DistanceType                  string     `json:"distance-type,omitempty"`
+	NeighborsPerNode              *uint32    `json:"neighbors-per-node,omitempty"`
+	IndexingSearchCount           *uint32    `json:"indexing-search-count,omitempty"`
+	ReparationBacklinkProbability *float32   `json:"reparation-backlink-probability,omitempty"`
+	VectorCacheHintSizeKb         *uint64    `json:"vector-cache-hint-size-kb,omitempty"`
+	Flags                         *HnswFlags `json:"flags,omitempty"`
+}
 
 // Property in a model
 type Property struct {
@@ -32,6 +54,7 @@ type Property struct {
 	RelationTarget string        `json:"relationTarget,omitempty"`
 	Entity         *Entity       `json:"-"`
 	UidRequest     bool          `json:"-"` // used when the user gives an empty uid annotation
+	HnswParams     *HnswParams   `json:"hnswParams,omitempty"`
 	Meta           PropertyMeta  `json:"-"`
 	Comments       []string      `json:"-"`
 }
@@ -42,6 +65,21 @@ func CreateProperty(entity *Entity, id Id, uid Uid) *Property {
 		Entity: entity,
 		Id:     CreateIdUid(id, uid),
 	}
+}
+
+func (property *Property) CreateHnswParams() error {
+	if property.HnswParams != nil {
+		return fmt.Errorf("Double set")
+	}
+	property.HnswParams = &HnswParams{}
+	return nil
+}
+
+func (property *Property) CheckHnswParams() error {
+	if property.HnswParams == nil {
+		return fmt.Errorf("Need to set index='hnsw'")
+	}
+	return nil
 }
 
 // Validate performs initial validation of loaded data so that it doesn't have to be checked in each function

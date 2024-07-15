@@ -38,6 +38,12 @@ To get started, have a look at the specific language bindings (the approaches di
 * Go [repository](https://github.com/objectbox/objectbox-go) and [docs](https://golang.objectbox.io/).
   Here, you start with Go data structs, for which the Generator generates the glue code directly.
 
+## Development Notes
+
+* Clean test cache: `go clean -testcache`
+* Run test suite `test/comparison` with flag `-update` to update expected files.
+* Run test suite `test/integration` with flag `-insource` to generate code in source may be helpful (e.g. `cd test/integration && go test ./... -insource`)
+
 # License
 
 ```
