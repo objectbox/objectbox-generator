@@ -73,3 +73,8 @@ find_package_handle_standard_args(ObjectBoxGenerator
   REQUIRED_VARS ObjectBoxGenerator_EXECUTABLE
   VERSION_VAR ObjectBoxGenerator_VERSION
 )
+
+if (ObjectBoxGenerator_FOUND)
+  include(obxGenerator)
+endif()
+
