@@ -10,28 +10,41 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(objectbox)
 
-FetchContent_Declare(
-    ObjectBoxGenerator
-    URL ${CMAKE_CURRENT_LIST_DIR}/../../cmake
-)
-FetchContent_MakeAvailable(ObjectBoxGenerator)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
 find_package(ObjectBoxGenerator 0.14 REQUIRED)
-
 
 add_executable("objectbox-test"
     "src/main.cpp"
 )
-target_compile_features("objectbox-test" PRIVATE cxx_std_14)
 target_link_libraries("objectbox-test" objectbox)
 
 set_target_properties("objectbox-test" PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 14
     CXX_STANDARD_REQUIRED YES
 )
 
-add_schema_file("objectbox-test" "src/schema/person.fbs")
-add_schema_file("objectbox-test" "src/schema/task.fbs")
-add_schema_file("objectbox-test" "src/schema/monster.fbs")
-add_schema_file("objectbox-test" "src/schema/another_monster.fbs")
+option(DO_INSOURCE "" TRUE)
 
-generate_schema_bindings("objectbox-test" "src/schema")
+if (DO_INSOURCE)
+    add_schema_files(
+        TARGET 
+            objectbox-test
+        SCHEMA_FILES 
+            src/schema/person.fbs
+            src/schema/task.fbs
+            src/schema/monster.fbs
+            src/schema/another_monster.fbs
+        INSOURCE
+    )
+else()
+    add_schema_files(
+        TARGET 
+            objectbox-test
+        SCHEMA_FILES 
+            src/schema/person.fbs
+            src/schema/task.fbs
+            src/schema/monster.fbs
+            src/schema/another_monster.fbs
+    )
+    target_include_directories(objectbox-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
+endif()
