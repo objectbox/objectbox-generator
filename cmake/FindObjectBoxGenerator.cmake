@@ -74,7 +74,50 @@ find_package_handle_standard_args(ObjectBoxGenerator
   VERSION_VAR ObjectBoxGenerator_VERSION
 )
 
-if (ObjectBoxGenerator_FOUND)
-  include(obxGenerator)
+if (NOT ObjectBoxGenerator_FOUND)
+  return()
 endif()
 
+function (add_schema_files)
+
+  set(options INSOURCE)
+  set(oneValueArgs TARGET)
+  set(multiValueArgs SCHEMA_FILES)
+  cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  if (ARG_INSOURCE)	
+    set(base_dir ${CMAKE_CURRENT_SOURCE_DIR})
+  else()
+    set(base_dir ${CMAKE_CURRENT_BINARY_DIR})
+  endif()
+
+  set(sources)
+
+  foreach(SCHEMA_FILE ${ARG_SCHEMA_FILES})
+    
+    cmake_path(ABSOLUTE_PATH SCHEMA_FILE OUTPUT_VARIABLE schema_filepath)
+
+    string(REGEX REPLACE "\.fbs$" ".obx.cpp" cppfile ${base_dir}/${SCHEMA_FILE})
+    string(REGEX REPLACE "\.fbs$" ".obx.hpp" hppfile ${base_dir}/${SCHEMA_FILE})
+    
+    cmake_path(GET cppfile PARENT_PATH out_dir)
+    if (NOT ARG_INSOURCE)
+      file(MAKE_DIRECTORY ${out_dir})
+    endif()
+    add_custom_command(
+      OUTPUT 
+        ${cppfile} 
+        ${hppfile} 
+      COMMAND 
+        ${ObjectBoxGenerator_EXECUTABLE} ARGS -out ${out_dir} -cpp ${schema_filepath}
+      BYPRODUCTS 
+        ${out_dir}/objectbox-model.h
+        ${out_dir}/objectbox-model.json
+      DEPENDS 
+        ${schema_filepath}
+    )
+    list(APPEND sources ${cppfile} ${hppfile})
+  endforeach()
+    
+  target_sources(${ARG_TARGET} PRIVATE ${sources}) 
+endfunction()
