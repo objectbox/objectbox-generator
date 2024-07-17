@@ -6,12 +6,18 @@ default_target: all
 help:			## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+
 #==============================================================================
 
 all: depend build
 
-build:			## Build all targets
-	CGO_ENABLED=1 go build ./cmd/objectbox-generator/
+# Link statically (except for Darwin)
+ifneq ($(shell uname -s),Darwin)
+BUILD_GO_LDFLAGS=-ldflags '-linkmode external -w -extldflags "-static"' 
+endif
+
+build:	        ## Build all targets 
+	CGO_ENABLED=1 go build ${BUILD_GO_LDFLAGS} ./cmd/objectbox-generator/
 
 reinstall: build		## Update installed objectbox-generator
 	mv objectbox-generator "$(shell which objectbox-generator)"
