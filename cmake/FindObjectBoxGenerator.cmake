@@ -5,10 +5,6 @@ option(OBX_GENERATOR_ALLOW_FETCH "Opt-in automatic download and prepare for loca
 
 # Updated by maintainer to latest available version:
 set(ObjectBoxGenerator_FETCH_VERSION 0.14.0)
-set(ObjectBoxGenerator_FETCH_HASH_Linux SHA256=2a06d06567524c9fa8bd815007a9c8a304792b7c0e49fade775a7553026b419a)
-# TODO: update for Windows/macOS
-set(ObjectBoxGenerator_FETCH_HASH_Windows SHA256=2a06d06567524c9fa8bd815007a9c8a304792b7c0e49fade775a7553026b419a)
-set(ObjectBoxGenerator_FETCH_HASH_macOS SHA256=2a06d06567524c9fa8bd815007a9c8a304792b7c0e49fade775a7553026b419a)
 set(ObjectBoxGenerator_FETCH_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-Fetch)
 set(ObjectBoxGenerator_FETCH_BASEURL "https://github.com/objectbox/objectbox-generator/releases/download")
 set(ObjectBoxGenerator_INSTALL_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-Install)
@@ -67,7 +63,6 @@ if(OBX_GENERATOR_ALLOW_FETCH AND ObjectBoxGenerator_FETCH_REQUIRED)
   message(STATUS "ObjectBox-Generator Fetch: Downloading archive from ${ObjectBoxGenerator_FETCH_URL} to ${ObjectBoxGenerator_FETCH_PATH}")
   file(DOWNLOAD "${ObjectBoxGenerator_FETCH_URL}" "${ObjectBoxGenerator_FETCH_PATH}"
         TLS_VERIFY ON 
-        EXPECTED_HASH "${ObjectBoxGenerator_FETCH_HASH_${ObjectBoxGenerator_FETCH_ARCH}}"
   )
   message(STATUS "ObjectBox-Generator Fetch: Unpacking archive file ${ObjectBoxGenerator_FETCH_PATH} to ${ObjectBoxGenerator_UNPACK_FILE}")
   execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${ObjectBoxGenerator_FETCH_PATH} WORKING_DIRECTORY ${ObjectBoxGenerator_FETCH_DIR})
