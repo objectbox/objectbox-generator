@@ -1,5 +1,68 @@
-# Find Module for tool `objectbox-generator` 
-# with "opt-in" automatic fetch and prepare for local execution, controlled by variable "ObjectBoxGenerator_AllowFetch" (defaults to true).
+#[=======================================================================[.rst:
+FindObjectBoxGenerator
+----------------------
+
+ObjectBox-Generator (ObjectBoxGenerator_) is a code generator tool to support 
+C/C++ and Go development with ObjectBox (ObjectBox_), a superfast 
+cross-platform object-oriented database.
+
+This find module automatically locates a local installation of the 
+executable ``objectbox-generator`` and checks requested version with found one.
+In addition, it can automatically download and unpack a version into the build directory
+and make it executable. Automatic download is enabled by default via the option 
+``OBX_GENERATOR_ALLOW_FETCH``.
+
+Currently supported platforms are Linux/x86-64, macOS and Windows/x86-64.
+
+.. code-block:: cmake
+
+  find_package(ObjectBoxGenerator 0.14 REQUIRED)
+
+The following variables are defined by this module:
+
+.. variable:: ObjectBoxGenerator_FOUND
+
+  Whether objectbox-generator was successfully found.  
+
+.. variable:: ObjectBoxGenerator_EXECUTABLE
+
+  If found, this variable comprises the full path to executable.  
+
+Functions
+^^^^^^^^^
+
+.. command:: add_schema_files
+
+This function adds ObjectBox schema files to a C++ target which 
+implies a build task to auto-generate C++ source/header files 
+from schema file(s) (with dependency rule tracking) and
+adds them as sources to the target for compilation::
+
+     add_schema_files(
+       TARGET <target>
+       SCHEMA_FILES <schemafile>..
+       [INSOURCE]
+     )
+  
+ObjectBox schema files have the filename pattern ``<name>.fbs`` 
+which yields the name of auto-generated C++ source and header file 
+using the pattern ``<name>.obx.cpp`` and ``<name>.obx.hpp``, respectively.
+
+If the option ``INSOURCE`` is set then generated files are 
+written relative to the current source directory, otherwise the
+current binary directory is taken as base directory. 
+
+In additon the generator also creates and updates the files 
+``objectbox-model.h`` and  ``objectbox-model.json`` next to the 
+generated C++ source/header files.
+
+.. _ObjectBox: https://objectbox.io
+
+.. _ObjectBoxGenerator: https://github.com/objectbox/objectbox-generator
+
+
+
+#]=======================================================================]
 
 option(OBX_GENERATOR_ALLOW_FETCH "Opt-in automatic download and prepare for local execution" ON)
 
