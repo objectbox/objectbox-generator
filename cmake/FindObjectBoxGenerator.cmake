@@ -40,14 +40,14 @@ if(OBX_GENERATOR_ALLOW_FETCH AND ObjectBoxGenerator_FETCH_REQUIRED)
   message(STATUS "ObjectBox-Generator Fetch: Executable not found, attempting to download to build directory and prepare for execution (to disable behaviour set OBX_GENERATOR_ALLOW_FETCH to OFF)")
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(ObjectBoxGenerator_FETCH_ARCH Linux)
-  elseif (CMAKE_HOST_WIN32 AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    # TODO: check windows
+  elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows" AND (
+      CMAKE_HOST_SYSTME_PROCESSOR STREQUAL "x86" OR
+      CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64" OR 
+      CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "AMD64"))
     set(ObjectBoxGenerator_FETCH_ARCH Windows)
-  elseif (CMAKE_HOST_APPLE)
+  elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     set(ObjectBoxGenerator_FETCH_ARCH macOS)
-    # TODO: check apple
   else()
-    # TODO: clarify details
     message(FATAL_ERROR "ObjectBoxGenerator Fetch failed: unsupported platform (must be Linux/x86-64, Windows/x86-64 or macOS)")
   endif()
   if(ObjectBoxGenerator_FIND_VERSION)
@@ -60,6 +60,9 @@ if(OBX_GENERATOR_ALLOW_FETCH AND ObjectBoxGenerator_FETCH_REQUIRED)
   set(ObjectBoxGenerator_FETCH_URL ${ObjectBoxGenerator_FETCH_BASEURL}/v${ObjectBoxGenerator_FETCH_VERSION}/${ObjectBoxGenerator_FETCH_FILE})
   set(ObjectBoxGenerator_FETCH_PATH ${ObjectBoxGenerator_FETCH_DIR}/${ObjectBoxGenerator_FETCH_FILE})
   set(ObjectBoxGenerator_UNPACK_FILE ${ObjectBoxGenerator_FETCH_DIR}/objectbox-generator)
+  if (WIN32)
+    set(ObjectBoxGenerator_UNPACK_FILE ${ObjectBoxGenerator_UNPACK_FILE}.exe)
+  endif()
   message(STATUS "ObjectBox-Generator Fetch: Downloading archive from ${ObjectBoxGenerator_FETCH_URL} to ${ObjectBoxGenerator_FETCH_PATH}")
   file(DOWNLOAD "${ObjectBoxGenerator_FETCH_URL}" "${ObjectBoxGenerator_FETCH_PATH}"
         TLS_VERIFY ON 
