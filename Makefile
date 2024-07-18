@@ -14,10 +14,14 @@ all: depend build
 # Link statically (except for Darwin)
 ifneq ($(shell uname -s),Darwin)
 BUILD_GO_LDFLAGS=-ldflags '-linkmode external -w -extldflags "-static"' 
-endif
-
 build:	        ## Build all targets 
 	CGO_ENABLED=1 go build ${BUILD_GO_LDFLAGS} ./cmd/objectbox-generator/
+else
+build:	        ## Build universal binary (arm64, amd64)
+	CGO_ENABLED=1 GOARCH=arm64 go build -o build/objectbox-generator-arm64 ./cmd/objectbox-generator/
+	CGO_ENABLED=1 GOARCH=amd64 go build -o build/objectbox-generator-amd64 ./cmd/objectbox-generator/
+	lipo -create -output objectbox-generator build/objectbox-generator-arm64 build/objectbox-generator-amd64
+endif
 
 reinstall: build		## Update installed objectbox-generator
 	mv objectbox-generator "$(shell which objectbox-generator)"
