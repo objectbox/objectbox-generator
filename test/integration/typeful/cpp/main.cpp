@@ -27,7 +27,7 @@ TEST_CASE("CRUD", "") {
     obj.id = 1;
     obj.int_ = 99;
     obj.floatvector = std::vector<float> {-23.456f, 42.109f};
-    REQUIRE(box.put(obj) == 1);  // NOTE: .int_ is set to 0 now
+    REQUIRE(box.put(obj) == 1); 
 
     // put(`Typeful&`) must set the ID on the given object
     Typeful object2 = {};
