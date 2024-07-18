@@ -26,6 +26,8 @@ if [[ "$(uname)" == MINGW* ]] || [[ "$(uname)" == CYGWIN* ]]; then
     # buildOutputDir=/${buildType}
     # buildArgs=
     # buildArgs="-- /m"    fails with "error MSB1008: Only one project can be specified."
+elif [[ "$(uname)" == Darwin ]]; then # build universal binary
+   configArgs+=' -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"'
 fi
 
 function build() {

@@ -13,6 +13,7 @@ scripts/tmp*
 # Command built using `make build`
 /objectbox-generator
 /objectbox-generator.exe
+build/
 
 # CMake/C++ Examples:
 examples/*/_deps
