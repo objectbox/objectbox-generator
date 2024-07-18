@@ -31,14 +31,14 @@ The following variables are defined by this module:
 Functions
 ^^^^^^^^^
 
-.. command:: add_schema_files
+.. command:: add_obx_schema
 
 This function adds ObjectBox schema files to a C++ target which 
 implies a build task to auto-generate C++ source/header files 
 from schema file(s) (with dependency rule tracking) and
 adds them as sources to the target for compilation::
 
-     add_schema_files(
+     add_obx_schema(
        TARGET <target>
        SCHEMA_FILES <schemafile>..
        [INSOURCE]
@@ -153,7 +153,7 @@ if (NOT ObjectBoxGenerator_FOUND)
   return()
 endif()
 
-function (add_schema_files)
+function (add_obx_schema)
 
   set(options INSOURCE)
   set(oneValueArgs TARGET)

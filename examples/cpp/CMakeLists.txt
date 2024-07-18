@@ -26,7 +26,7 @@ set_target_properties("objectbox-test" PROPERTIES
 option(DO_INSOURCE "" TRUE)
 
 if (DO_INSOURCE)
-    add_schema_files(
+    add_obx_schema(
         TARGET 
             objectbox-test
         SCHEMA_FILES 
@@ -37,7 +37,7 @@ if (DO_INSOURCE)
         INSOURCE
     )
 else()
-    add_schema_files(
+    add_obx_schema(
         TARGET 
             objectbox-test
         SCHEMA_FILES 
