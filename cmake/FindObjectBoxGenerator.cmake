@@ -74,10 +74,8 @@ set(ObjectBoxGenerator_INSTALL_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-Instal
 
 include(FindPackageHandleStandardArgs)
 
-# Find program also in fetch dir.
-find_program(ObjectBoxGenerator_EXECUTABLE objectbox-generator PATHS ${ObjectBoxGenerator_INSTALL_DIR} NO_CACHE)
-
-if(ObjectBoxGenerator_EXECUTABLE)
+# read version from objectbox-generator executable
+function(_get_version)
   execute_process(
     COMMAND ${ObjectBoxGenerator_EXECUTABLE} -version 
     OUTPUT_VARIABLE Output 
@@ -86,13 +84,32 @@ if(ObjectBoxGenerator_EXECUTABLE)
     # 3.19: COMMAND_ERROR_IS_FATAL ANY
   )
   if(NOT ${ExitStatus} EQUAL 0) 
-    message(WARNING "Unable to query version on ${ObjectBoxGenerator_EXECUTABLE}")
+    message(WARNING "Unmble to query version on ${ObjectBoxGenerator_EXECUTABLE}")
     return()
   endif()
-
   string(REGEX REPLACE ".* v\([0-9\.]*\).*" "\\1" ObjectBoxGenerator_VERSION ${Output})
-  find_package_check_version(${ObjectBoxGenerator_VERSION} ObjectBoxGenerator_VERSION_OK)
+  set(ObjectBoxGenerator_VERSION ${ObjectBoxGenerator_VERSION} PARENT_SCOPE)
+endfunction()
+
+# if already fetched/downloaded, path will available from CMake cache.
+# (No need to pass in ObjectBoxGenerator_INSTALL_DIR)
+find_program(ObjectBoxGenerator_EXECUTABLE objectbox-generator) 
+
+if(ObjectBoxGenerator_EXECUTABLE)
+  _get_version()
+  if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.19)
+    find_package_check_version(${ObjectBoxGenerator_VERSION} ObjectBoxGenerator_VERSION_OK)
+  else()
+    if(ObjectBoxGenerator_FIND_VERSION)
+      if(${ObjectBoxGenerator_VERSION} VERSION_GREATER_EQUAL ${ObjectBoxGenerator_FIND_VERSION}) 
+        set(ObjectBoxGenerator_VERSION_OK TRUE)
+      else()
+        set(ObjectBoxGenerator_VERSION_OK FALSE)
+      endif()
+    endif()
+  endif()
   if(NOT ${ObjectBoxGenerator_VERSION_OK}) 
+    message(STAUTS "ObjectBoxGenerator: Found version ${ObjectBoxGenerator_VERSION}, but which is not suitable with requested one ${ObjectBoxGenerator_FIND_VERSION}")
     set(ObjectBoxGenerator_FETCH_REQUIRED TRUE)
   endif()
 else()
@@ -138,7 +155,15 @@ if(OBX_GENERATOR_ALLOW_FETCH AND ObjectBoxGenerator_FETCH_REQUIRED)
   message(STATUS "ObjectBox-Generator Fetch: Make file ${ObjectBoxGenerator_UNPACK_FILE} executable, and retry location..")
   file(COPY ${ObjectBoxGenerator_UNPACK_FILE} DESTINATION ${ObjectBoxGenerator_INSTALL_DIR} FILE_PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
   # 3.19: file(CHMOD ${ObjectBoxGenerator_UNPACK_FILE} PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-  find_program(ObjectBoxGenerator_EXECUTABLE objectbox-generator PATHS ${ObjectBoxGenerator_INSTALL_DIR})
+  # unset/find_program(..) fails with 3.20, so we redefine ObjectBoxGenerator_EXECUTABLE directly
+  if(WIN32)
+    set(ObjectBoxGenerator_EXECUTABLE ${ObjectBoxGenerator_INSTALL_DIR}/objectbox-generator.exe)
+    set(ObjectBoxGenerator_EXECUTABLE ${ObjectBoxGenerator_INSTALL_DIR}/objectbox-generator.exe CACHE FILEPATH "" FORCE)
+  else()
+    set(ObjectBoxGenerator_EXECUTABLE ${ObjectBoxGenerator_INSTALL_DIR}/objectbox-generator)
+    set(ObjectBoxGenerator_EXECUTABLE ${ObjectBoxGenerator_INSTALL_DIR}/objectbox-generator CACHE FILEPATH "" FORCE)
+  endif()
+  _get_version()
   else()
     message(WARNING "ObjectBox-Generator Fetch: Failed to download, reason: ${DownloadStatus}")
   endif()
