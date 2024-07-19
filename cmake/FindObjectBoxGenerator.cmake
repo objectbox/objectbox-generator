@@ -16,7 +16,7 @@ Currently supported platforms are Linux/x86-64, macOS and Windows/x86-64.
 
 .. code-block:: cmake
 
-  find_package(ObjectBoxGenerator 0.14 REQUIRED)
+  find_package(ObjectBoxGenerator 4.0.0 REQUIRED)
 
 The following variables are defined by this module:
 

@@ -18,7 +18,7 @@ FetchContent_MakeAvailable(ObjectBoxGenerator)
 # Uncomment the following line to disable fetching from CMake project config.
 # set(OBX_GENERATOR_ALLOW_FETCH OFF CACHE BOOL "Disable from CMakeLists.txt file")
 
-find_package(ObjectBoxGenerator 0.14 MODULE REQUIRED)
+find_package(ObjectBoxGenerator 4.0.0 MODULE REQUIRED)
 
 # Test: run command 
 message(STATUS "Configure-time test: running ${ObjectBoxGenerator_EXECUTABLE} -version :")
