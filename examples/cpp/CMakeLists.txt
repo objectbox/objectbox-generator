@@ -6,7 +6,7 @@ include(FetchContent)
 FetchContent_Declare(
     objectbox
     GIT_REPOSITORY https://github.com/objectbox/objectbox-c.git
-    GIT_TAG        v0.21.0
+    GIT_TAG        v4.0.1
 )
 FetchContent_MakeAvailable(objectbox)
 
@@ -35,6 +35,7 @@ if (DO_INSOURCE)
             src/schema/monster.fbs
             src/schema/another_monster.fbs
         INSOURCE
+	CXX_STANDARD 17
     )
 else()
     add_obx_schema(
