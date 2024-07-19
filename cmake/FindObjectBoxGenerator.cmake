@@ -42,6 +42,8 @@ adds them as sources to the target for compilation::
        TARGET <target>
        SCHEMA_FILES <schemafile>..
        [INSOURCE]
+       [CXX_STANDARD 11|14]
+       [EXTRA_OPTIONS <options>..]
      )
   
 ObjectBox schema files have the filename pattern ``<name>.fbs`` 
@@ -55,6 +57,12 @@ current binary directory is taken as base directory.
 In additon the generator also creates and updates the files 
 ``objectbox-model.h`` and  ``objectbox-model.json`` next to the 
 generated C++ source/header files.
+
+The option ``CXX_STANDARD`` may be set to ``11`` or ``14`` (default) to specify 
+the base-line C++ language standard the code generator supports for generated
+code.
+
+The option ``EXTRA_OPTIONS`` may pass additional arguments when invoking the code generator (e.g. "-empty-string-as-null -optional std::shared_ptr")
 
 .. _ObjectBox: https://objectbox.io
 
@@ -181,8 +189,8 @@ endif()
 function (add_obx_schema)
 
   set(options INSOURCE)
-  set(oneValueArgs TARGET)
-  set(multiValueArgs SCHEMA_FILES)
+  set(oneValueArgs TARGET;CXX_STANDARD)
+  set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   if (ARG_INSOURCE)	
@@ -192,6 +200,15 @@ function (add_obx_schema)
   endif()
 
   set(sources)
+
+  set(lang -cpp)
+  if(ARG_CXX_STANDARD)
+    if(ARG_CXX_STANDARD EQUAL 11)
+      set(lang -cpp${ARG_CXX_STANDARD})
+    elseif(NOT ARG_CXX_STANDARD EQUAL 14)
+      message(WARNING "ObjectBoxGenerator: CXX_STANDARD ${ARG_CXX_STANDARD} not supported, available are: 11 and 14. Defaults to 14.")
+    endif()
+  endif()
 
   foreach(SCHEMA_FILE ${ARG_SCHEMA_FILES})
     
@@ -212,7 +229,7 @@ function (add_obx_schema)
         ${cppfile} 
         ${hppfile} 
       COMMAND 
-        ${ObjectBoxGenerator_EXECUTABLE} ARGS -out ${out_dir} -cpp ${schema_filepath}
+        ${ObjectBoxGenerator_EXECUTABLE} ARGS -out ${out_dir} ${lang} ${ARG_EXTRA_OPTIONS} ${schema_filepath}
       BYPRODUCTS 
         ${out_dir}/objectbox-model.h
         ${out_dir}/objectbox-model.json
