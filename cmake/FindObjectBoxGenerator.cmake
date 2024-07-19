@@ -232,17 +232,19 @@ function (add_obx_schema)
     if (NOT ARG_INSOURCE)
       file(MAKE_DIRECTORY ${out_dir})
     endif()
+    # We explicitly do not add "objectbox-model.json" file here 
+    # as it would otherwise be removed by a Makefile clean.
+    # In addition, "objectbox-model.h" is also not mentioned as
+    # it also fixes ninja build issues.
     add_custom_command(
       OUTPUT 
         ${cppfile} 
         ${hppfile} 
       COMMAND 
         ${ObjectBoxGenerator_EXECUTABLE} ARGS -out ${out_dir} ${lang} ${ARG_EXTRA_OPTIONS} ${schema_filepath}
-      BYPRODUCTS 
-        ${out_dir}/objectbox-model.h
-        ${out_dir}/objectbox-model.json
       DEPENDS 
         ${schema_filepath}
+      USES_TERMINAL # Needed for ninja
     )
     list(APPEND sources ${cppfile} ${hppfile})
   endforeach()
