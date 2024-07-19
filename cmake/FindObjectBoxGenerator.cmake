@@ -236,12 +236,13 @@ function (add_obx_schema)
     # as it would otherwise be removed by a Makefile clean.
     # In addition, "objectbox-model.h" is also not mentioned as
     # it also fixes ninja build issues.
+    # ObjectBox Model JSON file will be always maintained in current top-level source.
     add_custom_command(
       OUTPUT 
         ${cppfile} 
         ${hppfile} 
       COMMAND 
-        ${ObjectBoxGenerator_EXECUTABLE} ARGS -out ${out_dir} ${lang} ${ARG_EXTRA_OPTIONS} ${schema_filepath}
+        ${ObjectBoxGenerator_EXECUTABLE} ARGS -out ${out_dir} -model ${CMAKE_CURRENT_SOURCE_DIR}/objectbox-model.json ${lang} ${ARG_EXTRA_OPTIONS} ${schema_filepath}
       DEPENDS 
         ${schema_filepath}
       USES_TERMINAL # Needed for ninja
