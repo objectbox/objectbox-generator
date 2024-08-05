@@ -35,6 +35,12 @@ jobs:
       - run: make
       - run: make test-depend
       - run: make test
+      - if: matrix.os == 'windows-2019' 
+        run: cd test/standalone-cmake && cmake -DMULTI="Visual Studio 16 2019" -P test-cmake-generators.cmake
+      - if: matrix.os == 'ubuntu-22.04'
+        run: cd test/standalone-cmake && cmake -DSINGLE="Unix Makefiles" -P test-cmake-generators.cmake
+      - if: matrix.os == 'macos-12'
+        run: cd test/standalone-cmake && cmake -DMULTI="Xcode" -P test-cmake-generators.cmake
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

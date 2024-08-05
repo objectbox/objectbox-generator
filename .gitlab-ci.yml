@@ -40,3 +40,20 @@ b:go1.22:
     - make
     - make test-depend
     - make test
+
+t:cmake:linux-x64:
+  tags: [ x64, linux, docker ]
+  image: 
+    name: objectboxio/buildenv-core:2024-07-11
+  script:
+    - cd test/standalone-cmake && cmake -DAUTO=1 -P test-cmake-generators.cmake
+
+t:cmake:win-x64:
+  tags: [ windows ]
+  script:
+    - cd test/standalone-cmake && cmake -DMULTI="Visual Studio 17 2022" -P test-cmake-generators.cmake
+
+t:cmake:mac-x64:
+  tags: [ mac, x64 ]
+  script:
+    - cd test/standalone-cmake && cmake -DAUTO=1 -DMULTI="Xcode" -P test-cmake-generators.cmake
