@@ -23,7 +23,7 @@ set_target_properties("objectbox-test" PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-option(DO_INSOURCE "" TRUE)
+option(DO_INSOURCE "" FALSE)
 
 if (DO_INSOURCE)
     add_obx_schema(
@@ -47,5 +47,5 @@ else()
             src/schema/monster.fbs
             src/schema/another_monster.fbs
     )
-    target_include_directories(objectbox-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
+    target_include_directories(objectbox-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-output/src)
 endif()
