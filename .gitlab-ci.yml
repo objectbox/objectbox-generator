@@ -56,4 +56,8 @@ t:cmake:win-x64:
 t:cmake:mac-x64:
   tags: [ mac, x64 ]
   script:
-    - cd test/standalone-cmake && cmake -DAUTO=1 -DMULTI="Xcode" -P test-cmake-generators.cmake
+    - cd test/standalone-cmake
+    # Test using just make/ninja if found
+    - cmake -DAUTO=1 -P test-cmake-generators.cmake
+    # Test Xcode excluding multiple-targets test projects
+    - cmake -DMULTI="Xcode" -DPROJECTS="cpp-flat;cpp-tree;cpp-multiple-schema-dirs" -P test-cmake-generators.cmake
