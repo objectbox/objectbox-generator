@@ -50,7 +50,6 @@ else()
             task.fbs
             monster.fbs
     )
-    target_include_directories(target1 PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     add_obx_schema(
         TARGET 
             target2
@@ -63,5 +62,4 @@ else()
         SCHEMA_FILES 
             monster.fbs
     )
-    target_include_directories(target2 PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 endif()

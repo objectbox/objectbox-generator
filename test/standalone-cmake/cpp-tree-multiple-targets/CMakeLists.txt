@@ -40,6 +40,8 @@ if (DO_INSOURCE)
             src/schema/another_monster.fbs
         INSOURCE
     )
+    target_include_directories(target1 PRIVATE src/schema)
+    target_include_directories(target2 PRIVATE src/schema)
 else()
     add_obx_schema(
         TARGET 
@@ -50,7 +52,6 @@ else()
             src/schema/monster.fbs
             src/schema/another_monster.fbs
     )
-    target_include_directories(target1 PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
     add_obx_schema(
         TARGET 
             target2
@@ -60,5 +61,4 @@ else()
             src/schema/monster.fbs
             src/schema/another_monster.fbs
     )
-    target_include_directories(target2 PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
 endif()

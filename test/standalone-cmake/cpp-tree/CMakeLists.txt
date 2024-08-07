@@ -27,6 +27,7 @@ if (DO_INSOURCE)
           -nan-as-null
           -optional std::shared_ptr
     )
+    target_include_directories(objectbox-test PRIVATE src/schema)
 else()
     add_obx_schema(
         TARGET 
@@ -41,5 +42,4 @@ else()
           -nan-as-null
           -optional std::unique_ptr
     )
-    target_include_directories(objectbox-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
 endif()

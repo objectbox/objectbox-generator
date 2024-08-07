@@ -4,11 +4,11 @@
 
 #include "objectbox.hpp"
 
-#include "schema/objectbox-model.h"
-#include "schema/task.obx.hpp"
-#include "schema/monster.obx.hpp"
-#include "schema/another_monster.obx.hpp"
-#include "schema/person.obx.hpp"
+#include "objectbox-model.h"
+#include "task.obx.hpp"
+#include "monster.obx.hpp"
+#include "another_monster.obx.hpp"
+#include "person.obx.hpp"
 
 #include <cinttypes>
 

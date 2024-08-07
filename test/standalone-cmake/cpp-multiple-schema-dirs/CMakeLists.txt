@@ -21,6 +21,7 @@ if (DO_INSOURCE)
             src/schema2/task.fbs
         INSOURCE
     )
+    target_include_directories(objectbox-test PRIVATE src/schema1 src/schema2)
 else()
     add_obx_schema(
         TARGET 
@@ -34,5 +35,4 @@ else()
         SCHEMA_FILES 
             src/schema2/task.fbs
     )
-    target_include_directories(objectbox-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
 endif()

@@ -38,5 +38,4 @@ else()
             task.fbs
             monster.fbs
     )
-    target_include_directories(objectbox-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 endif()

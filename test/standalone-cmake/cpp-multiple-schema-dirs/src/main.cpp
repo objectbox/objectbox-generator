@@ -4,9 +4,9 @@
 
 #include "objectbox.hpp"
 
-#include "schema1/objectbox-model.h"
-#include "schema1/monster.obx.hpp"
-#include "schema2/task.obx.hpp"
+#include "objectbox-model.h"
+#include "monster.obx.hpp"
+#include "task.obx.hpp"
 
 #include <cinttypes>
 
