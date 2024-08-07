@@ -11,6 +11,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(objectbox)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
+set(ObjectBoxGenerator_ROOT ${CMAKE_CURRENT_LIST_DIR}/../..)
 find_package(ObjectBoxGenerator 4.0.0 REQUIRED)
 
 add_executable(objectbox-test main.cpp)

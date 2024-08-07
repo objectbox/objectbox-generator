@@ -4,8 +4,8 @@
 
 #include "objectbox.hpp"
 
-#include "schema/objectbox-model.h"
-#include "schema/task.obx.hpp"
+#include "objectbox-model.h"
+#include "task.obx.hpp"
 
 int main(int argc, char* args[])
 {

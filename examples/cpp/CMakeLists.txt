@@ -11,6 +11,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(objectbox)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
+set(ObjectBoxGenerator_ROOT ${CMAKE_CURRENT_LIST_DIR}/../..)
 find_package(ObjectBoxGenerator 4.0.0 REQUIRED)
 
 add_executable("objectbox-test"
@@ -35,8 +36,9 @@ if (DO_INSOURCE)
             src/schema/monster.fbs
             src/schema/another_monster.fbs
         INSOURCE
-	CXX_STANDARD 17
+	CXX_STANDARD 14
     )
+    target_include_directories(objectbox-test PRIVATE src/schema)
 else()
     add_obx_schema(
         TARGET 
@@ -47,5 +49,4 @@ else()
             src/schema/monster.fbs
             src/schema/another_monster.fbs
     )
-    target_include_directories(objectbox-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-output/src)
 endif()
