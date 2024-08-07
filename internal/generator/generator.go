@@ -93,6 +93,15 @@ func WriteFile(file string, data []byte, permSource string) error {
 func Process(options Options) error {
 	var err error
 
+	// Ensure output directory is existing or create
+	if len(options.OutPath) != 0 {
+		err := os.MkdirAll(options.OutPath, 0750)
+		if err != nil {
+			return fmt.Errorf("can't create output path '"+options.OutPath+"': %s", err)
+		}
+	}
+
+
 	if PathIsDirOrPattern(options.InPath) {
 		var additional string
 		var cleanPath = options.InPath
