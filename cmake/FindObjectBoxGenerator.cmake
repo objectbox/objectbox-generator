@@ -52,17 +52,22 @@ using the pattern ``<name>.obx.cpp`` and ``<name>.obx.hpp``, respectively.
 
 If the option ``INSOURCE`` is set then generated files are 
 written relative to the current source directory, otherwise the
-current binary directory is taken as base directory. 
+current binary directory is taken as base directory, and headers and sources
+are output to sub-directories ``ObjectBoxGenerator-include`` and 
+``ObjectBoxGenerator-src``, respectively.
 
-In additon the generator also creates and updates the files 
-``objectbox-model.h`` and  ``objectbox-model.json`` next to the 
-generated C++ source/header files.
+In additon the generator also creates and updates the file ``objectbox-model.h``
+next to the generated C++ header files. 
+The file ``objectbox-model.json`` is always generated and updated in the 
+current source directory and should be maintained under version source control 
+to track database schema changes. 
 
 The option ``CXX_STANDARD`` may be set to ``11`` or ``14`` (default) to specify 
 the base-line C++ language standard the code generator supports for generated
 code.
 
-The option ``EXTRA_OPTIONS`` may pass additional arguments when invoking the code generator (e.g. "-empty-string-as-null -optional std::shared_ptr")
+The option ``EXTRA_OPTIONS`` may pass additional arguments when invoking the 
+code generator (e.g. "-empty-string-as-null -optional std::shared_ptr")
 
 .. _ObjectBox: https://objectbox.io
 
@@ -201,10 +206,9 @@ function (add_obx_schema)
   set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  if (ARG_INSOURCE)	
-    set(base_dir ${CMAKE_CURRENT_SOURCE_DIR})
-  else()
-    set(base_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-output)
+  if (NOT ARG_INSOURCE)	
+    set(out_sources_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-src)
+    set(out_headers_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-include)
   endif()
 
   set(sources)
@@ -222,15 +226,27 @@ function (add_obx_schema)
     
     # 3.20: cmake_path(ABSOLUTE_PATH SCHEMA_FILE OUTPUT_VARIABLE schema_filepath)
     set(schema_filepath ${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_FILE})
-
-    string(REGEX REPLACE "\.fbs$" ".obx.cpp" cppfile ${base_dir}/${SCHEMA_FILE})
-    string(REGEX REPLACE "\.fbs$" ".obx.hpp" hppfile ${base_dir}/${SCHEMA_FILE})
     
-    # 3.20: cmake_path(GET cppfile PARENT_PATH out_dir)
-    string(REGEX REPLACE "/[^/]*$" "" out_dir ${cppfile}) 
-
     if (NOT ARG_INSOURCE)
-      file(MAKE_DIRECTORY ${out_dir})
+      string(REGEX REPLACE "\\.fbs$" "" basefile ${SCHEMA_FILE})
+      string(REGEX REPLACE ".*/"     "" basefile ${basefile})
+
+      set(obxGenOutOptions
+        -out         ${out_sources_dir}
+        -out-headers ${out_headers_dir} 
+      )
+      set(cppfile ${out_sources_dir}/${basefile}.obx.cpp)
+      set(hppfile ${out_headers_dir}/${basefile}.obx.hpp)
+    else()
+      string(REGEX REPLACE "\.fbs$" ".obx.cpp" cppfile ${schema_filepath})
+      string(REGEX REPLACE "\.fbs$" ".obx.hpp" hppfile ${schema_filepath})
+      
+      # 3.20: cmake_path(GET cppfile PARENT_PATH out_dir)
+      string(REGEX REPLACE "/[^/]*$" "" out_dir ${cppfile}) 
+
+      set(obxGenOutOptions
+        -out ${out_dir}
+      )
     endif()
     # We explicitly do not add "objectbox-model.json" file here 
     # as it would otherwise be removed by a Makefile clean.
@@ -242,7 +258,12 @@ function (add_obx_schema)
         ${cppfile} 
         ${hppfile} 
       COMMAND 
-        ${ObjectBoxGenerator_EXECUTABLE} ARGS -out ${out_dir} -model ${CMAKE_CURRENT_SOURCE_DIR}/objectbox-model.json ${lang} ${ARG_EXTRA_OPTIONS} ${schema_filepath}
+        ${ObjectBoxGenerator_EXECUTABLE} ARGS 
+          ${obxGenOutOptions}
+          -model ${CMAKE_CURRENT_SOURCE_DIR}/objectbox-model.json 
+          ${lang} 
+          ${ARG_EXTRA_OPTIONS} 
+          ${schema_filepath}
       DEPENDS 
         ${schema_filepath}
       USES_TERMINAL # Needed for ninja
@@ -252,6 +273,6 @@ function (add_obx_schema)
     
   target_sources(${ARG_TARGET} PRIVATE ${sources}) 
   if (NOT ARG_INSOURCE)
-    target_include_directories(objectbox-test PRIVATE ${base_dir})
+    target_include_directories(${ARG_TARGET} PRIVATE ${out_headers_dir})
   endif() 
 endfunction()
