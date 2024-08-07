@@ -101,6 +101,13 @@ func Process(options Options) error {
 		}
 	}
 
+	// Ensure output header directory is existing or create
+	if len(options.OutHeadersPath) != 0 {
+		err := os.MkdirAll(options.OutHeadersPath, 0750)
+		if err != nil {
+			return fmt.Errorf("can't create output headers path '"+options.OutPath+"': %s", err)
+		}
+	}
 
 	if PathIsDirOrPattern(options.InPath) {
 		var additional string

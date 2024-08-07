@@ -24,10 +24,11 @@ import "math/rand"
 
 // Options provide configuration for the generator
 type Options struct {
-	ModelInfoFile string
-	Rand          *rand.Rand
-	InPath        string
-	OutPath       string
+	ModelInfoFile  string
+	Rand           *rand.Rand
+	InPath         string
+	OutPath        string
+	OutHeadersPath string
 
 	// NOTE - currently only supports one
 	CodeGenerator CodeGenerator

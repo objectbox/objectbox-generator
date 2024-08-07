@@ -44,6 +44,7 @@ type CGenerator struct {
 
 // BindingFiles returns names of binding files for the given entity file.
 func (gen *CGenerator) BindingFiles(forFile string, options generator.Options) []string {
+
 	if len(options.OutPath) > 0 {
 		forFile = filepath.Join(options.OutPath, filepath.Base(forFile))
 	}
@@ -53,12 +54,21 @@ func (gen *CGenerator) BindingFiles(forFile string, options generator.Options) [
 	if gen.PlainC {
 		return []string{base + ".obx.h"}
 	}
-	return []string{base + ".obx.hpp", base + ".obx.cpp"}
+	var headerBase = base
+	if len(options.OutHeadersPath) > 0 {
+		headerBase = filepath.Join(options.OutHeadersPath, filepath.Base(forFile))
+		headerBase = headerBase[0 : len(headerBase)-len(extension)]
+	}
+
+	return []string{headerBase + ".obx.hpp", base + ".obx.cpp"}
 }
 
 // ModelFile returns the model GO file for the given JSON info file path
 func (gen *CGenerator) ModelFile(forFile string, options generator.Options) string {
-	if len(options.OutPath) > 0 {
+
+	if len(options.OutHeadersPath) > 0 {
+		forFile = filepath.Join(options.OutHeadersPath, filepath.Base(forFile))
+	} else if len(options.OutPath) > 0 {
 		forFile = filepath.Join(options.OutPath, filepath.Base(forFile))
 	}
 	var extension = filepath.Ext(forFile)
