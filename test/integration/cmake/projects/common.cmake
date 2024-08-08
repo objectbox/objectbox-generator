@@ -1,3 +1,7 @@
+if(NOT TOPDIR)
+  set(TOPDIR ${CMAKE_CURRENT_LIST_DIR}/../../../..)
+endif()
+
 option(DO_INSOURCE "Generate files in-source" FALSE)
 option(NO_PREBUILT "Use pre-built generator" FALSE)
 include(FetchContent)
@@ -9,11 +13,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(objectbox)
 
 # Use find module from source tree.
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
+list(APPEND CMAKE_MODULE_PATH ${TOPDIR}/cmake)
 
 # Use pre-built ObjectBox Generator.
 if(NOT NO_PREBUILT)
-    set(ObjectBoxGenerator_ROOT ${CMAKE_CURRENT_LIST_DIR}/../..)
+    set(ObjectBoxGenerator_ROOT ${TOPDIR})
 endif()
 
 find_package(ObjectBoxGenerator 4.0.0 REQUIRED)

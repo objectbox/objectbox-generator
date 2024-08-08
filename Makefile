@@ -29,9 +29,6 @@ reinstall: build		## Update installed objectbox-generator
 test: 			## Test all targets
 	go test -timeout 1h ./...
 
-test-cmake:
-	cd test/standalone-cmake && cmake -DAUTO=1 -P test-cmake-generators.cmake
-
 clean:			## Clean previous builds
 	go clean -cache
 	go clean ./..

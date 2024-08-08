@@ -15,7 +15,7 @@
 # 1.19.13 | /root/sdk/go1.19.13   | Additional version installed via go install
 
 #
-b:go1.18:
+bt:linux-x64:go1.18:
   extends: [ .build ]
   script:
     - export PATH=/usr/lib/go-1.18/bin:$PATH
@@ -24,7 +24,7 @@ b:go1.18:
     - make test-depend
     - make test
 
-b:go1.19:
+bt:linux-x64:go1.19:
   extends: [ .build ]
   script:
     - export PATH=/root/sdk/go1.19.13/bin:$PATH
@@ -33,7 +33,7 @@ b:go1.19:
     - make test-depend
     - make test
 
-b:go1.22:
+bt:linux-x64:go1.22:
   extends: [ .build ]
   script:
     - make info
@@ -41,24 +41,15 @@ b:go1.22:
     - make test-depend
     - make test
 
-t:cmake:linux-x64:
-  tags: [ x64, linux, docker ]
-  image: 
-    name: objectboxio/buildenv-core:2024-07-11
+bt:mac-x64:
+  tags: [ mac, x64 ]
   script:
-    - cd test/standalone-cmake && cmake -DAUTO=1 -P test-cmake-generators.cmake
+    - make info
+    - make
+    - make test-depend
+    - make test
 
 t:cmake:win-x64:
   tags: [ windows ]
   script:
-    - cd test/standalone-cmake && cmake -DMULTI="Visual Studio 17 2022" -P test-cmake-generators.cmake
-
-t:cmake:mac-x64:
-  tags: [ mac, x64 ]
-  script:
-    - cd test/standalone-cmake
-    # Test using just make/ninja if found
-    - cmake -DAUTO=1 -P test-cmake-generators.cmake
-    # Test Xcode excluding multiple-targets test projects
-    - cmake -DMULTI="Xcode" -DPROJECTS="cpp-flat;cpp-tree;cpp-multiple-schema-dirs" -P test-cmake-generators.cmake
-  
+    - cd test/integration/cmake/projects && cmake -DMULTI="Visual Studio 17 2022" -P test-cmake-generators.cmake
