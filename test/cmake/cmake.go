@@ -37,14 +37,15 @@ import (
 // Cmake contains all configuration necessary to configure and build a CMake project
 type Cmake struct {
 	// Configs required for CMakeLists.txt
-	Name        string // Executable name
-	IsCpp       bool
-	Standard    int // CMAKE_C/CXX_STANDARD
-	Files       []string
-	IncludeDirs []string
-	LinkLibs    []string // Library names or full paths
-	LinkDirs    []string // Where should the linker look for libraries
-	Generator   string
+	Name           string // Executable name
+	IsCpp          bool
+	Standard       int // CMAKE_C/CXX_STANDARD
+	Files          []string
+	IncludeDirs    []string
+	LinkLibs       []string // Library names or full paths
+	LinkDirs       []string // Where should the linker look for libraries
+	Generator      string
+	ConfigureFlags []string
 
 	// Build configuration
 	ConfDir  string
@@ -159,20 +160,60 @@ func (cmake *Cmake) Configure() ([]byte, []byte, error) {
 		cmake.Generator = "MinGW Makefiles"
 	}
 
-	if len(cmake.Generator) > 0 {
-		return cmakeExec(cmake.BuildDir, cmake.ConfDir, "-G", cmake.Generator)
-	} else {
-		return cmakeExec(cmake.BuildDir, cmake.ConfDir)
+	var args = []string{cmake.ConfDir}
+	args = append(args, cmake.ConfigureFlags[:]...)
+
+	if len(cmake.Generator) > 0 && cmake.Generator != "default" {
+		args = append(args, "-G", cmake.Generator)
 	}
+
+	return cmakeExec(cmake.BuildDir, args[:]...)
 }
 
-// Build runs cmake build step.
-func (cmake *Cmake) Build() ([]byte, []byte, error) {
+// Configure runs cmake configuration step without any CI quirks as is.
+func (cmake *Cmake) ConfigureRaw() ([]byte, []byte, error) {
+	var args = []string{cmake.ConfDir}
+	args = append(args, cmake.ConfigureFlags[:]...)
+
+	if len(cmake.Generator) > 0 && cmake.Generator != "default" {
+		args = append(args, "-G", cmake.Generator)
+	}
+
+	return cmakeExec(cmake.BuildDir, args[:]...)
+}
+
+// Build runs cmake build "Name" target step.
+func (cmake *Cmake) BuildTarget() ([]byte, []byte, error) {
 	return cmakeExec(cmake.ConfDir,
 		"--build", cmake.BuildDir,
 		"--target", cmake.Name,
-		"--",
-		"-j"+strconv.FormatInt(int64(runtime.NumCPU()/2), 10))
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+	)
+}
+
+// Build runs cmake build step.
+func (cmake *Cmake) BuildDefaults() ([]byte, []byte, error) {
+	return cmakeExec(cmake.ConfDir,
+		"--build", cmake.BuildDir,
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+	)
+}
+
+// Build runs cmake default build step with config
+func (cmake *Cmake) BuildDefaultsWithConfig(config string) ([]byte, []byte, error) {
+	return cmakeExec(cmake.ConfDir,
+		"--build", cmake.BuildDir,
+		"--config", config,
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+	)
+}
+
+func CopyDir(cwd string, src string, dst string) ([]byte, []byte, error) {
+	return cmakeExec(cwd, "-E", "copy_directory", src, dst)
+}
+
+func CopyFile(cwd string, file string, dst string) ([]byte, []byte, error) {
+	return cmakeExec(cwd, "-E", "copy", file, dst)
 }
 
 func cmakeExec(cwd string, args ...string) (stdOut []byte, stdErr []byte, err error) {

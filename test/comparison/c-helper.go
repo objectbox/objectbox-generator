@@ -130,7 +130,7 @@ func (h cTestHelper) build(t *testing.T, conf testSpec, dir string, expectedErro
 		t.Logf("configuration output:\n%s", string(stdOut))
 	}
 
-	if stdOut, stdErr, err := cmak.Build(); err != nil {
+	if stdOut, stdErr, err := cmak.BuildTarget(); err != nil {
 		checkBuildError(t, errorTransformer, stdOut, stdErr, err, expectedError)
 		assert.Failf(t, "cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 	} else {

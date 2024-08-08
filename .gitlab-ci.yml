@@ -40,7 +40,6 @@ bt:linux-x64:
     - make
     - make test-depend
     - make test
-    - cd test/standalone-cmake && cmake -DAUTO=1 -P test-cmake-generators.cmake
 
 bt:mac-x64:
   tags: [ mac, x64 ]
@@ -49,8 +48,4 @@ bt:mac-x64:
     - make
     - make test-depend
     - make test
-    - cd test/standalone-cmake
-    # Test using just make/ninja if found
-    - cmake -DAUTO=1 -P test-cmake-generators.cmake
-    # Test Xcode excluding multiple-targets test projects
-    - cmake -DMULTI="Xcode" -DPROJECTS="cpp-flat;cpp-tree;cpp-multiple-schema-dirs" -P test-cmake-generators.cmake
+
