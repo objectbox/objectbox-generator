@@ -345,7 +345,6 @@ function (add_obx_schema)
           ${schema_filepath}
       DEPENDS 
         ${schema_filepath}
-      USES_TERMINAL # Needed for ninja
     )
     list(APPEND sources ${cppfile} ${hppfile})
   endforeach()
