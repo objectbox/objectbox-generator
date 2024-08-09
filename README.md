@@ -5,7 +5,7 @@
 
 # ObjectBox Generator
 
-Current version: 4.0.0-alpha1
+Current version: 4.0.0-alpha2
 
 ObjectBox is a superfast cross-platform object-oriented database.
 ObjectBox Generator produces binding code for ObjectBox C, C++ and Go APIs (more languages to be supported in the future).

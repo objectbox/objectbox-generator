@@ -80,7 +80,7 @@ code generator (e.g. "-empty-string-as-null -optional std::shared_ptr")
 option(OBX_GENERATOR_ALLOW_FETCH "Opt-in automatic download and prepare for local execution" ON)
 
 # Updated by maintainer to latest available version:
-set(ObjectBoxGenerator_FETCH_VERSION 4.0.0-alpha1)
+set(ObjectBoxGenerator_FETCH_VERSION 4.0.0-alpha2)
 set(ObjectBoxGenerator_FETCH_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-Fetch)
 set(ObjectBoxGenerator_FETCH_BASEURL "https://github.com/objectbox/objectbox-generator/releases/download")
 set(ObjectBoxGenerator_INSTALL_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-Install)
