@@ -195,7 +195,7 @@ func (cmake *Cmake) BuildTarget() ([]byte, []byte, error) {
 func (cmake *Cmake) BuildDefaults() ([]byte, []byte, error) {
 	return cmakeExec(cmake.ConfDir,
 		"--build", cmake.BuildDir,
-		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
 	)
 }
 
@@ -204,7 +204,7 @@ func (cmake *Cmake) BuildDefaultsWithConfig(config string) ([]byte, []byte, erro
 	return cmakeExec(cmake.ConfDir,
 		"--build", cmake.BuildDir,
 		"--config", config,
-		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
 	)
 }
 

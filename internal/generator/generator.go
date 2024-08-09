@@ -31,6 +31,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/flock"
 	"github.com/objectbox/objectbox-generator/internal/generator/model"
 )
 
@@ -74,18 +75,17 @@ type CodeGenerator interface {
 }
 
 // WriteFile writes data to targetFile, while using permissions either from the targetFile or permSource
-func WriteFile(file string, data []byte, permSource string) error {
+func WriteFile(targetFile string, data []byte, permSource string) error {
 	var perm os.FileMode
 	// copy permissions either from the existing file or from the source file
-	if info, _ := os.Stat(file); info != nil {
+	if info, _ := os.Stat(targetFile); info != nil {
 		perm = info.Mode()
 	} else if info, err := os.Stat(permSource); info != nil {
 		perm = info.Mode()
 	} else {
 		return err
 	}
-
-	return ioutil.WriteFile(file, data, perm)
+	return ioutil.WriteFile(targetFile, data, perm)
 }
 
 // Process is the main API method of the package
@@ -134,31 +134,57 @@ func Process(options Options) error {
 
 	var modelInfo *model.ModelInfo
 
-	modelInfo, err = model.LoadOrCreateModel(options.ModelInfoFile)
-	if err != nil {
-		return fmt.Errorf("can't init ModelInfo: %s", err)
+	var lockPath = options.ModelInfoFile + ".lock"
+	fileLock := flock.New(lockPath)
+
+	var retries = 5
+	var locked bool = false
+
+	for !locked && retries > 0 {
+		locked, err = fileLock.TryLock()
+		if !locked || err != nil {
+			fmt.Println("LOCKED.. SLEEPING")
+			time.Sleep(1 * time.Second)
+			retries--
+		}
 	}
 
-	modelInfo.Rand = options.Rand
-	defer modelInfo.Close()
+	if locked {
+		defer func() {
+			if err := fileLock.Unlock(); err != nil {
+				panic(err)
+			}
+		}()
 
-	if err = modelInfo.Validate(); err != nil {
-		return fmt.Errorf("invalid ModelInfo loaded: %s", err)
-	}
+		modelInfo, err = model.LoadOrCreateModel(options.ModelInfoFile)
+		if err != nil {
+			return fmt.Errorf("can't init ModelInfo: %s", err)
+		}
 
-	// if the model is valid, upgrade it to the latest version
-	modelInfo.MinimumParserVersion = model.ModelVersion
-	modelInfo.ModelVersion = model.ModelVersion
+		modelInfo.Rand = options.Rand
+		defer modelInfo.Close()
 
-	if err = createBinding(options, modelInfo); err != nil {
+		if err = modelInfo.Validate(); err != nil {
+			return fmt.Errorf("invalid ModelInfo loaded: %s", err)
+		}
+
+		// if the model is valid, upgrade it to the latest version
+		modelInfo.MinimumParserVersion = model.ModelVersion
+		modelInfo.ModelVersion = model.ModelVersion
+
+		if err = createBinding(options, modelInfo); err != nil {
+			return err
+		}
+
+		if err = createModel(options, modelInfo); err != nil {
+			return err
+		}
+
+		return nil
+
+	} else {
 		return err
 	}
-
-	if err = createModel(options, modelInfo); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func createBinding(options Options, storedModel *model.ModelInfo) error {
