@@ -41,6 +41,7 @@ adds them as sources to the target for compilation::
      add_obx_schema(
        TARGET <target>
        SCHEMA_FILES <schemafile>..
+       [MODEL_DIR <path>]
        [INSOURCE]
        [CXX_STANDARD 11|14]
        [EXTRA_OPTIONS <options>..]
@@ -50,6 +51,10 @@ ObjectBox schema files have the filename pattern ``<name>.fbs``
 which yields the name of auto-generated C++ source and header file 
 using the pattern ``<name>.obx.cpp`` and ``<name>.obx.hpp``, respectively.
 
+The option ``MODEL_DIR`` specifies the location of the ``objectbox-model.json`` file (defaults to current source directory).  
+This file is always generated or updated, and it should be maintained under version source control since it tracks 
+database schema changes over time. 
+
 If the option ``INSOURCE`` is set then generated files are 
 written relative to the current source directory, otherwise the
 current binary directory is taken as base directory, and headers and sources
@@ -58,9 +63,6 @@ are output to sub-directories ``ObjectBoxGenerator-include`` and
 
 In addition, the generator also creates and updates the file ``objectbox-model.h``
 next to the generated C++ header files. 
-The file ``objectbox-model.json`` is always generated and updated in the 
-current source directory and should be maintained under version source control 
-to track database schema changes. 
 
 The option ``CXX_STANDARD`` may be set to ``11`` or ``14`` (default) to specify 
 the base-line C++ language standard the code generator supports for generated
@@ -214,13 +216,24 @@ endif()
 function (add_obx_schema)
 
   set(options INSOURCE)
-  set(oneValueArgs TARGET;CXX_STANDARD)
+  set(oneValueArgs TARGET;MODEL_DIR;CXX_STANDARD)
   set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   if (NOT ARG_INSOURCE)	
     set(out_sources_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-src)
     set(out_headers_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-include)
+  endif()
+
+  if (NOT ARG_MODEL_DIR)
+    set(MODEL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+  else()
+    if(NOT IS_ABSOLUTE ${ARG_MODEL_DIR})
+      set(MODEL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_MODEL_DIR})
+    else()
+      set(MODEL_DIR ${ARG_MODEL_DIR})
+    endif()
+    file(MAKE_DIRECTORY ${MODEL_DIR})
   endif()
 
   set(sources)
@@ -272,7 +285,7 @@ function (add_obx_schema)
       COMMAND 
         ${ObjectBoxGenerator_EXECUTABLE} ARGS 
           ${obxGenOutOptions}
-          -model ${CMAKE_CURRENT_SOURCE_DIR}/objectbox-model.json 
+          -model ${MODEL_DIR}/objectbox-model.json 
           ${lang} 
           ${ARG_EXTRA_OPTIONS} 
           ${schema_filepath}

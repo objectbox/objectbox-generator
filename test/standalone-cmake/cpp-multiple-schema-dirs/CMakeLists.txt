@@ -19,6 +19,8 @@ if (DO_INSOURCE)
         SCHEMA_FILES 
             src/schema1/monster.fbs
             src/schema2/task.fbs
+        MODEL_DIR
+            src/model
         INSOURCE
     )
     target_include_directories(objectbox-test PRIVATE src/schema1 src/schema2)
@@ -28,11 +30,15 @@ else()
             objectbox-test
         SCHEMA_FILES 
             src/schema1/monster.fbs
+        MODEL_DIR
+            src/model
     )
     add_obx_schema(
         TARGET 
             objectbox-test
         SCHEMA_FILES 
             src/schema2/task.fbs
+        MODEL_DIR
+            src/model
     )
 endif()
