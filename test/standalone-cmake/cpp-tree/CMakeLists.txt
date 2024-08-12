@@ -22,12 +22,14 @@ if (DO_INSOURCE)
             src/schema/monster.fbs
             src/schema/another_monster.fbs
         INSOURCE
+        OUTPUT_DIR_HEADERS
+            include
         EXTRA_OPTIONS
           -empty-string-as-null
           -nan-as-null
           -optional std::shared_ptr
     )
-    target_include_directories(objectbox-test PRIVATE src/schema)
+    target_include_directories(objectbox-test PRIVATE include)
 else()
     add_obx_schema(
         TARGET 

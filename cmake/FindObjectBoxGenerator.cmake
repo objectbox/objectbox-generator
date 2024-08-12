@@ -43,6 +43,7 @@ adds them as sources to the target for compilation::
        SCHEMA_FILES <schemafile>..
        [MODEL_DIR <path>]
        [INSOURCE]
+       [OUTPUT_DIR_HEADERS <path>]
        [CXX_STANDARD 11|14]
        [EXTRA_OPTIONS <options>..]
      )
@@ -55,11 +56,16 @@ The option ``MODEL_DIR`` specifies the location of the ``objectbox-model.json`` 
 This file is always generated or updated, and it should be maintained under version source control since it tracks 
 database schema changes over time. 
 
-If the option ``INSOURCE`` is set then generated files are 
-written relative to the current source directory, otherwise the
-current binary directory is taken as base directory, and headers and sources
+Per default, generated files (except model JSON file) are written relative to the current 
+binary directory; headers and sources
 are output to sub-directories ``ObjectBoxGenerator-include`` and 
 ``ObjectBoxGenerator-src``, respectively.
+
+If the option ``INSOURCE`` is set then generated files are 
+written relative to the current source directory.
+In addition, ``OUTPUT_DIR_HEADERS`` may be specified to to set a common 
+output directory for header files.
+
 
 In addition, the generator also creates and updates the file ``objectbox-model.h``
 next to the generated C++ header files. 
@@ -216,13 +222,26 @@ endif()
 function (add_obx_schema)
 
   set(options INSOURCE)
-  set(oneValueArgs TARGET;MODEL_DIR;CXX_STANDARD)
+  set(oneValueArgs TARGET;MODEL_DIR;HEADERS_OUTPUT_DIR;CXX_STANDARD)
   set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   if (NOT ARG_INSOURCE)	
     set(out_sources_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-src)
     set(out_headers_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-include)
+    if (ARG_HEADERS_OUTPUT_DIR)
+      message(FATAL_ERROR "Option 'HEADERS_OUTPUT_DIR' unsupported without IN_SOURCE")
+    endif()
+  else()
+    if (ARG_HEADERS_OUTPUT_DIR)
+      if(NOT IS_ABSOLUTE ${ARG_HEADERS_OUTPUT_DIR})
+        set(out_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_HEADERS_OUTPUT_DIR})
+      else()
+        set(out_headers_dir ${ARG_HEADERS_OUTPUT_DIR})
+      endif()
+    else()
+      set(out_headers_dir)
+    endif()
   endif()
 
   if (NOT ARG_MODEL_DIR)
@@ -272,6 +291,11 @@ function (add_obx_schema)
       set(obxGenOutOptions
         -out ${out_dir}
       )
+      if (out_headers_dir)
+        list(APPEND obxGenOutOptions
+          -out-headers ${out_headers_dir}
+        )
+      endif()
     endif()
     # We explicitly do not add "objectbox-model.json" file here 
     # as it would otherwise be removed by a Makefile clean.
@@ -299,5 +323,5 @@ function (add_obx_schema)
   target_sources(${ARG_TARGET} PRIVATE ${sources}) 
   if (NOT ARG_INSOURCE)
     target_include_directories(${ARG_TARGET} PRIVATE ${out_headers_dir})
-  endif() 
+  endif()
 endfunction()
