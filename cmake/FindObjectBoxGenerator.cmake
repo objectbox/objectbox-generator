@@ -43,6 +43,7 @@ adds them as sources to the target for compilation::
        SCHEMA_FILES <schemafile>..
        [MODEL_DIR <path>]
        [INSOURCE]
+       [OUTPUT_DIR <path>]
        [OUTPUT_DIR_HEADERS <path>]
        [CXX_STANDARD 11|14]
        [EXTRA_OPTIONS <options>..]
@@ -62,9 +63,10 @@ are output to sub-directories ``ObjectBoxGenerator-include`` and
 ``ObjectBoxGenerator-src``, respectively.
 
 If the option ``INSOURCE`` is set then generated files are 
-written relative to the current source directory.
+written relative to the schema files in the source tree. Otherwise `OUTPUT_DIR` specifies the location for auto-generated
+sources and headers (relative to current source directory or given as absolute path).  
 In addition, ``OUTPUT_DIR_HEADERS`` may be specified to to set a common 
-output directory for header files.
+output directory for header files as well.
 
 
 In addition, the generator also creates and updates the file ``objectbox-model.h``
@@ -222,22 +224,34 @@ endif()
 function (add_obx_schema)
 
   set(options INSOURCE)
-  set(oneValueArgs TARGET;MODEL_DIR;HEADERS_OUTPUT_DIR;CXX_STANDARD)
+  set(oneValueArgs TARGET;MODEL_DIR;OUTPUT_DIR;OUTPUT_DIR_HEADERS;CXX_STANDARD)
   set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   if (NOT ARG_INSOURCE)	
     set(out_sources_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-src)
     set(out_headers_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-include)
-    if (ARG_HEADERS_OUTPUT_DIR)
-      message(FATAL_ERROR "Option 'HEADERS_OUTPUT_DIR' unsupported without IN_SOURCE")
+    if (ARG_OUTPUT_DIR)
+      message(FATAL_ERROR "Option 'OUTPUT_DIR' only available for INSOURCE mode")
+    endif()
+    if (ARG_OUTPUT_DIR_HEADERS)
+      message(FATAL_ERROR "Option 'OUTPUT_DIR_HEADERS' only available for INSOURCE mode")
     endif()
   else()
-    if (ARG_HEADERS_OUTPUT_DIR)
-      if(NOT IS_ABSOLUTE ${ARG_HEADERS_OUTPUT_DIR})
-        set(out_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_HEADERS_OUTPUT_DIR})
+    if (ARG_OUTPUT_DIR)
+      if(NOT IS_ABSOLUTE ${ARG_OUTPUT_DIR})
+        set(out_sources_dir ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_OUTPUT_DIR})
       else()
-        set(out_headers_dir ${ARG_HEADERS_OUTPUT_DIR})
+        set(out_sources_dir ${ARG_OUTPUT_DIR})
+      endif()
+    else()
+      set(out_sources_dir)
+    endif()
+    if (ARG_OUTPUT_DIR_HEADERS)
+      if(NOT IS_ABSOLUTE ${ARG_OUTPUT_DIR_HEADERS})
+        set(out_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_OUTPUT_DIR_HEADERS})
+      else()
+        set(out_headers_dir ${ARG_OUTPUT_DIR_HEADERS})
       endif()
     else()
       set(out_headers_dir)
@@ -271,37 +285,39 @@ function (add_obx_schema)
     # 3.20: cmake_path(ABSOLUTE_PATH SCHEMA_FILE OUTPUT_VARIABLE schema_filepath)
     set(schema_filepath ${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_FILE})
     
+    string(REGEX REPLACE "\\.fbs$" "" basefile ${SCHEMA_FILE})
+    string(REGEX REPLACE ".*/"     "" basefile ${basefile})
+    
     if (NOT ARG_INSOURCE)
-      string(REGEX REPLACE "\\.fbs$" "" basefile ${SCHEMA_FILE})
-      string(REGEX REPLACE ".*/"     "" basefile ${basefile})
-
+      set(cppfile ${out_sources_dir}/${basefile}.obx.cpp)
+      set(hppfile ${out_headers_dir}/${basefile}.obx.hpp)
       set(obxGenOutOptions
         -out         ${out_sources_dir}
         -out-headers ${out_headers_dir} 
       )
-      set(cppfile ${out_sources_dir}/${basefile}.obx.cpp)
-      set(hppfile ${out_headers_dir}/${basefile}.obx.hpp)
     else()
-      string(REGEX REPLACE "\.fbs$" ".obx.cpp" cppfile ${schema_filepath})
-      string(REGEX REPLACE "\.fbs$" ".obx.hpp" hppfile ${schema_filepath})
-      
-      # 3.20: cmake_path(GET cppfile PARENT_PATH out_dir)
-      string(REGEX REPLACE "/[^/]*$" "" out_dir ${cppfile}) 
-
-      set(obxGenOutOptions
-        -out ${out_dir}
-      )
+      if (NOT out_sources_dir) # no output directory is set, so we take the parent directory
+        string(REGEX REPLACE "\.fbs$" ".obx.cpp" cppfile ${schema_filepath})
+        string(REGEX REPLACE "\.fbs$" ".obx.hpp" hppfile ${schema_filepath})
+        
+        # 3.20: cmake_path(GET cppfile PARENT_PATH out_dir)
+        string(REGEX REPLACE "/[^/]*$" "" parent_dir ${cppfile}) 
+        set(obxGenOutOptions -out ${parent_dir})
+      else() # output directory is set
+        set(obxGenOutOptions -out ${out_sources_dir})
+        set(cppfile ${out_sources_dir}/${basefile}.obx.cpp)
+        set(hppfile ${out_sources_dir}/${basefile}.obx.hpp)
+      endif()
       if (out_headers_dir)
-        list(APPEND obxGenOutOptions
-          -out-headers ${out_headers_dir}
-        )
+        list(APPEND obxGenOutOptions -out-headers ${out_headers_dir})
+        set(hppfile ${out_headers_dir}/${basefile}.obx.hpp)
       endif()
     endif()
-    # We explicitly do not add "objectbox-model.json" file here 
-    # as it would otherwise be removed by a Makefile clean.
+    # We explicitly do not add "objectbox-model.json" file as output 
+    # or byproduct here as it would otherwise be removed by a Makefile clean.
     # In addition, "objectbox-model.h" is also not mentioned as
     # it also fixes ninja build issues.
-    # ObjectBox Model JSON file will be always maintained in current top-level source.
+    # ObjectBox Model JSON file will be always maintained in MODEL_DIR.
     add_custom_command(
       OUTPUT 
         ${cppfile} 

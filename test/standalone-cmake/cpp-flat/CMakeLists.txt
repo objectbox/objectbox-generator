@@ -12,9 +12,10 @@ set_target_properties(objectbox-test PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-# Also use two different variants here:
+# Variants:
 # - multiple add_obx_schema calls on same target
-# - one add_obx_schema call adding two schemas
+# - single add_obx_schema call adding two schemas
+# - use OUTPUT_DIR_HEADERS (without OUTPUT_DIR)
 if (DO_INSOURCE)
     add_obx_schema(
         TARGET 
@@ -22,6 +23,8 @@ if (DO_INSOURCE)
         SCHEMA_FILES 
             task.fbs
         INSOURCE
+        OUTPUT_DIR_HEADERS
+            include
     )
     add_obx_schema(
         TARGET 
@@ -29,7 +32,10 @@ if (DO_INSOURCE)
         SCHEMA_FILES 
             monster.fbs
         INSOURCE
+        OUTPUT_DIR_HEADERS
+            include
     )
+    target_include_directories(objectbox-test PRIVATE include)
 else()
     add_obx_schema(
         TARGET 

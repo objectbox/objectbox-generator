@@ -12,6 +12,8 @@ set_target_properties(objectbox-test PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
+# Variants:
+# - use OUTPUT_DIR 
 if (DO_INSOURCE)
     add_obx_schema(
         TARGET 
@@ -22,8 +24,10 @@ if (DO_INSOURCE)
         MODEL_DIR
             src/model
         INSOURCE
+        OUTPUT_DIR
+            src/generated
     )
-    target_include_directories(objectbox-test PRIVATE src/schema1 src/schema2)
+    target_include_directories(objectbox-test PRIVATE src/generated)
 else()
     add_obx_schema(
         TARGET 

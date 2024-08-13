@@ -12,6 +12,10 @@ set_target_properties(objectbox-test PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
+# Variants:
+# - one add_obx_schema call adding two schemas
+# - use OUTPUT_DIR and OUTPUT_DIR_HEADERS
+# - use EXTRA_OPTIONS
 if (DO_INSOURCE)
     add_obx_schema(
         TARGET 
@@ -22,6 +26,8 @@ if (DO_INSOURCE)
             src/schema/monster.fbs
             src/schema/another_monster.fbs
         INSOURCE
+        OUTPUT_DIR
+            src
         OUTPUT_DIR_HEADERS
             include
         EXTRA_OPTIONS
