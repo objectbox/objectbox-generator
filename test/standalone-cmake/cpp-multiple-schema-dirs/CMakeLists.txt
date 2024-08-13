@@ -21,11 +21,11 @@ if (DO_INSOURCE)
         SCHEMA_FILES 
             src/schema1/monster.fbs
             src/schema2/task.fbs
-        MODEL_DIR
-            src/model
         INSOURCE
         OUTPUT_DIR
             src/generated
+        OUTPUT_DIR_MODEL_JSON
+            src/model
     )
     target_include_directories(objectbox-test PRIVATE src/generated)
 else()
@@ -34,7 +34,7 @@ else()
             objectbox-test
         SCHEMA_FILES 
             src/schema1/monster.fbs
-        MODEL_DIR
+        OUTPUT_DIR_MODEL_JSON
             src/model
     )
     add_obx_schema(
@@ -42,7 +42,7 @@ else()
             objectbox-test
         SCHEMA_FILES 
             src/schema2/task.fbs
-        MODEL_DIR
+        OUTPUT_DIR_MODEL_JSON
             src/model
     )
 endif()

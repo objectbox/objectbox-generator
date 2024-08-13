@@ -33,7 +33,7 @@ Functions
 
 .. command:: add_obx_schema
 
-This function adds ObjectBox schema files to a C++ target which 
+This function adds ObjectBox schema files (.fbs) to a C++ target which
 implies a build task to auto-generate C++ source/header files 
 from schema file(s) (with dependency rule tracking) and
 adds them as sources to the target for compilation::
@@ -41,10 +41,10 @@ adds them as sources to the target for compilation::
      add_obx_schema(
        TARGET <target>
        SCHEMA_FILES <schemafile>..
-       [MODEL_DIR <path>]
        [INSOURCE]
        [OUTPUT_DIR <path>]
        [OUTPUT_DIR_HEADERS <path>]
+       [OUTPUT_DIR_MODEL_JSON <path>]
        [CXX_STANDARD 11|14]
        [EXTRA_OPTIONS <options>..]
      )
@@ -53,8 +53,9 @@ ObjectBox schema files have the filename pattern ``<name>.fbs``
 which yields the name of auto-generated C++ source and header file 
 using the pattern ``<name>.obx.cpp`` and ``<name>.obx.hpp``, respectively.
 
-The option ``MODEL_DIR`` specifies the location of the ``objectbox-model.json`` file (defaults to current source directory).  
-This file is always generated or updated, and it should be maintained under version source control since it tracks 
+The option ``OUTPUT_DIR_MODEL_JSON`` specifies the location of the ``objectbox-model.json`` file
+(defaults to current source directory).
+This file is always generated or updated, and it must be maintained under version source control since it tracks
 database schema changes over time. 
 
 Per default, generated files (except model JSON file) are written relative to the current 
@@ -63,8 +64,9 @@ are output to sub-directories ``ObjectBoxGenerator-include`` and
 ``ObjectBoxGenerator-src``, respectively.
 
 If the option ``INSOURCE`` is set then generated files are 
-written relative to the schema files in the source tree. Otherwise `OUTPUT_DIR` specifies the location for auto-generated
-sources and headers (relative to current source directory or given as absolute path).  
+written relative to the schema files in the source tree.
+Otherwise `OUTPUT_DIR` specifies the location for auto-generated sources and headers
+(relative to current source directory or given as absolute path).
 In addition, ``OUTPUT_DIR_HEADERS`` may be specified to to set a common 
 output directory for header files as well.
 
@@ -224,49 +226,59 @@ endif()
 function (add_obx_schema)
 
   set(options INSOURCE)
-  set(oneValueArgs TARGET;MODEL_DIR;OUTPUT_DIR;OUTPUT_DIR_HEADERS;CXX_STANDARD)
+  set(oneValueArgs TARGET;OUTPUT_DIR;OUTPUT_DIR_HEADERS;OUTPUT_DIR_MODEL_JSON;CXX_STANDARD)
   set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  if (NOT ARG_INSOURCE)	
-    set(out_sources_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-src)
-    set(out_headers_dir ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-include)
-    if (ARG_OUTPUT_DIR)
-      message(FATAL_ERROR "Option 'OUTPUT_DIR' only available for INSOURCE mode")
+  # Prepare OBX_GEN_OUTPUT_DIR
+  if (ARG_OUTPUT_DIR)
+    if(IS_ABSOLUTE ${ARG_OUTPUT_DIR})
+      set(OBX_GEN_OUTPUT_DIR ${ARG_OUTPUT_DIR})
+    else()
+      set(OBX_GEN_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_OUTPUT_DIR})
     endif()
-    if (ARG_OUTPUT_DIR_HEADERS)
-      message(FATAL_ERROR "Option 'OUTPUT_DIR_HEADERS' only available for INSOURCE mode")
+    file(MAKE_DIRECTORY ${OBX_GEN_OUTPUT_DIR})
+  endif()
+  
+  # Prepare OBX_GEN_OUTPUT_DIR_MODEL_JSON
+  if (ARG_OUTPUT_DIR_MODEL_JSON)
+    if(NOT IS_ABSOLUTE ${ARG_OUTPUT_DIR_MODEL_JSON})
+      set(OBX_GEN_OUTPUT_DIR_MODEL_JSON ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_OUTPUT_DIR_MODEL_JSON})
+    else()
+      set(OBX_GEN_OUTPUT_DIR_MODEL_JSON ${ARG_OUTPUT_DIR_MODEL_JSON})
     endif()
+    file(MAKE_DIRECTORY ${OBX_GEN_OUTPUT_DIR_MODEL_JSON})
   else()
-    if (ARG_OUTPUT_DIR)
-      if(NOT IS_ABSOLUTE ${ARG_OUTPUT_DIR})
-        set(out_sources_dir ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_OUTPUT_DIR})
-      else()
-        set(out_sources_dir ${ARG_OUTPUT_DIR})
-      endif()
+    if (OBX_GEN_OUTPUT_DIR)
+      set(OBX_GEN_OUTPUT_DIR_MODEL_JSON ${OBX_GEN_OUTPUT_DIR})
     else()
-      set(out_sources_dir)
-    endif()
-    if (ARG_OUTPUT_DIR_HEADERS)
-      if(NOT IS_ABSOLUTE ${ARG_OUTPUT_DIR_HEADERS})
-        set(out_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_OUTPUT_DIR_HEADERS})
-      else()
-        set(out_headers_dir ${ARG_OUTPUT_DIR_HEADERS})
-      endif()
-    else()
-      set(out_headers_dir)
+      set(OBX_GEN_OUTPUT_DIR_MODEL_JSON ${CMAKE_CURRENT_SOURCE_DIR})
     endif()
   endif()
 
-  if (NOT ARG_MODEL_DIR)
-    set(MODEL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-  else()
-    if(NOT IS_ABSOLUTE ${ARG_MODEL_DIR})
-      set(MODEL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_MODEL_DIR})
+  # Prepare OBX_GEN_OUTPUT_DIR_SRC and OBX_GEN_OUTPUT_DIR_HEADERS
+  if (ARG_INSOURCE)
+    if (OBX_GEN_OUTPUT_DIR)
+      set(OBX_GEN_OUTPUT_DIR_SRC ${OBX_GEN_OUTPUT_DIR})
     else()
-      set(MODEL_DIR ${ARG_MODEL_DIR})
+      set(OBX_GEN_OUTPUT_DIR_SRC)
     endif()
-    file(MAKE_DIRECTORY ${MODEL_DIR})
+    if (ARG_OUTPUT_DIR_HEADERS)
+      if(IS_ABSOLUTE ${ARG_OUTPUT_DIR_HEADERS})
+        set(OBX_GEN_OUTPUT_DIR_HEADERS ${ARG_OUTPUT_DIR_HEADERS})
+      else()
+        set(OBX_GEN_OUTPUT_DIR_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_OUTPUT_DIR_HEADERS})
+      endif()
+      file(MAKE_DIRECTORY ${OBX_GEN_OUTPUT_DIR_HEADERS})
+    else()
+      set(OBX_GEN_OUTPUT_DIR_HEADERS)
+    endif()
+  else()
+      if (ARG_OUTPUT_DIR_HEADERS)
+        message(FATAL_ERROR "Option 'OUTPUT_DIR_HEADERS' only available for INSOURCE mode")
+      endif()
+    set(OBX_GEN_OUTPUT_DIR_SRC ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-src)
+    set(OBX_GEN_OUTPUT_DIR_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-include)
   endif()
 
   set(sources)
@@ -276,7 +288,7 @@ function (add_obx_schema)
     if(ARG_CXX_STANDARD EQUAL 11)
       set(lang -cpp${ARG_CXX_STANDARD})
     elseif(NOT ARG_CXX_STANDARD EQUAL 14)
-      message(WARNING "ObjectBoxGenerator: CXX_STANDARD ${ARG_CXX_STANDARD} not supported, available are: 11 and 14. Defaults to 14.")
+      message(FATAL_ERROR "ObjectBoxGenerator: CXX_STANDARD ${ARG_CXX_STANDARD} is not a known value. Set the it to 11 to generate C++11, otherwise it defaults to minimum level 14.")
     endif()
   endif()
 
@@ -288,15 +300,8 @@ function (add_obx_schema)
     string(REGEX REPLACE "\\.fbs$" "" basefile ${SCHEMA_FILE})
     string(REGEX REPLACE ".*/"     "" basefile ${basefile})
     
-    if (NOT ARG_INSOURCE)
-      set(cppfile ${out_sources_dir}/${basefile}.obx.cpp)
-      set(hppfile ${out_headers_dir}/${basefile}.obx.hpp)
-      set(obxGenOutOptions
-        -out         ${out_sources_dir}
-        -out-headers ${out_headers_dir} 
-      )
-    else()
-      if (NOT out_sources_dir) # no output directory is set, so we take the parent directory
+    if (ARG_INSOURCE)
+      if (NOT OBX_GEN_OUTPUT_DIR_SRC) # no output directory is set, so we take the parent directory
         string(REGEX REPLACE "\.fbs$" ".obx.cpp" cppfile ${schema_filepath})
         string(REGEX REPLACE "\.fbs$" ".obx.hpp" hppfile ${schema_filepath})
         
@@ -304,28 +309,37 @@ function (add_obx_schema)
         string(REGEX REPLACE "/[^/]*$" "" parent_dir ${cppfile}) 
         set(obxGenOutOptions -out ${parent_dir})
       else() # output directory is set
-        set(obxGenOutOptions -out ${out_sources_dir})
-        set(cppfile ${out_sources_dir}/${basefile}.obx.cpp)
-        set(hppfile ${out_sources_dir}/${basefile}.obx.hpp)
+        set(obxGenOutOptions -out ${OBX_GEN_OUTPUT_DIR_SRC})
+        set(cppfile ${OBX_GEN_OUTPUT_DIR_SRC}/${basefile}.obx.cpp)
+        set(hppfile ${OBX_GEN_OUTPUT_DIR_SRC}/${basefile}.obx.hpp)
       endif()
-      if (out_headers_dir)
-        list(APPEND obxGenOutOptions -out-headers ${out_headers_dir})
-        set(hppfile ${out_headers_dir}/${basefile}.obx.hpp)
+      if (OBX_GEN_OUTPUT_DIR_HEADERS)
+        list(APPEND obxGenOutOptions -out-headers ${OBX_GEN_OUTPUT_DIR_HEADERS})
+        set(hppfile ${OBX_GEN_OUTPUT_DIR_HEADERS}/${basefile}.obx.hpp)
       endif()
+    else()
+      set(cppfile ${OBX_GEN_OUTPUT_DIR_SRC}/${basefile}.obx.cpp)
+      set(hppfile ${OBX_GEN_OUTPUT_DIR_HEADERS}/${basefile}.obx.hpp)
+      set(obxGenOutOptions
+        -out         ${OBX_GEN_OUTPUT_DIR_SRC}
+        -out-headers ${OBX_GEN_OUTPUT_DIR_HEADERS}
+      )
     endif()
+
     # We explicitly do not add "objectbox-model.json" file as output 
     # or byproduct here as it would otherwise be removed by a Makefile clean.
     # In addition, "objectbox-model.h" is also not mentioned as
     # it also fixes ninja build issues.
-    # ObjectBox Model JSON file will be always maintained in MODEL_DIR.
+    # ObjectBox Model JSON file will be always maintained in OBX_GEN_OUTPUT_DIR_MODEL_JSON.
     add_custom_command(
       OUTPUT 
         ${cppfile} 
         ${hppfile} 
       COMMAND 
-        ${ObjectBoxGenerator_EXECUTABLE} ARGS 
+        ${ObjectBoxGenerator_EXECUTABLE}
+      ARGS
           ${obxGenOutOptions}
-          -model ${MODEL_DIR}/objectbox-model.json 
+          -model ${OBX_GEN_OUTPUT_DIR_MODEL_JSON}/objectbox-model.json 
           ${lang} 
           ${ARG_EXTRA_OPTIONS} 
           ${schema_filepath}
@@ -338,6 +352,6 @@ function (add_obx_schema)
     
   target_sources(${ARG_TARGET} PRIVATE ${sources}) 
   if (NOT ARG_INSOURCE)
-    target_include_directories(${ARG_TARGET} PRIVATE ${out_headers_dir})
+    target_include_directories(${ARG_TARGET} PRIVATE ${OBX_GEN_OUTPUT_DIR_HEADERS})
   endif()
 endfunction()
