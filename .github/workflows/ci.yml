@@ -32,6 +32,7 @@ jobs:
           path: ./third_party/*
           key: ${{ runner.os }}-${{ github.workspace }}-deps-${{ hashFiles('./third_party/*') }}
 
+      - run: make info
       - run: make
       - run: make test-depend
       - run: make test
