@@ -1,6 +1,8 @@
 module github.com/objectbox/objectbox-generator
 
-go 1.11
+go 1.21.0
+
+toolchain go1.21.13
 
 require (
 	github.com/gofrs/flock v0.12.1
