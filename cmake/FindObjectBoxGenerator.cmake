@@ -414,11 +414,17 @@ function (add_obx_schema)
           ${schema_filepath}
       DEPENDS
         ${schema_filepath}
-      USES_TERMINAL # Needed for ninja
     )
     set(OBX_GEN_OUTPUT_MODEL_H_ONCE "") # Once only; clear after the first custom command.
+    set(custom_target gen-${ARG_TARGET}-${basefile})
+    add_custom_target(${custom_target} DEPENDS ${cppfile} ${hppfile})
+    if(previous_custom_target)
+      add_dependencies(${custom_target} ${previous_custom_target})
+    endif()
+    set(previous_custom_target ${custom_target})
     list(APPEND sources ${cppfile} ${hppfile})
   endforeach()
+  add_dependencies(${ARG_TARGET} ${previous_custom_target})
     
   target_sources(${ARG_TARGET} PRIVATE ${sources}) 
   if (NOT ARG_INSOURCE)
