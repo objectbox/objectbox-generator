@@ -143,9 +143,31 @@ func TestCMakeProjects(t *testing.T) {
 							}
 						}
 					}
+					// Test updating for just "cpp-flat" using content from "update-cpp-flat" folder.
+					if project == "cpp-flat" {
+						t.Logf("**** Update project cpp-flat (task.fbs and main.cpp) ****")
+						cmake.CopyDir(wd, filepath.Join("update-cpp-flat", "."), filepath.Join(confDir))
+						if multiConfigBuild {
+							configs := []string{"Release", "Debug"}
+							for _, config := range configs {
+								if stdOut, stdErr, err := conf.BuildDefaultsWithConfig(config); err != nil {
+									t.Fatalf("cmake build after update (configuration %s) failed: \n%s\n%s\n%s", config, stdOut, stdErr, err)
+								} else {
+									t.Logf("build after update (configuration %s) output:\n%s", config, string(stdOut))
+								}
+							}
+						} else {
+							if stdOut, stdErr, err := conf.BuildDefaults(); err != nil {
+								t.Fatalf("cmake build after update failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+							} else {
+								t.Logf("build after update output:\n%s", string(stdOut))
+							}
+						}
+					}
 				}
 			}
 		}
+
 	}
 
 	for _, singleGenerator := range singleGenerators {
@@ -154,4 +176,7 @@ func TestCMakeProjects(t *testing.T) {
 	for _, multiGenerator := range multiGenerators {
 		run(multiGenerator, true)
 	}
+}
+
+func TestCMakeProjectModify(t *testing.T) {
 }
