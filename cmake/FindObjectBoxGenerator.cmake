@@ -229,6 +229,10 @@ function (add_obx_schema)
   set(oneValueArgs TARGET;OUTPUT_DIR;OUTPUT_DIR_HEADERS;OUTPUT_DIR_MODEL_JSON;CXX_STANDARD)
   set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  
+  if(NOT ARG_SCHEMA_FILES)
+    message(FATAL_ERROR "Missing schema file(s) (Argument SCHEMA_FILES is empty or not set).")
+  endif()
 
   # Prepare OBX_GEN_OUTPUT_DIR
   if (ARG_OUTPUT_DIR)
