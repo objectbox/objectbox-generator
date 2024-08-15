@@ -191,6 +191,15 @@ func (cmake *Cmake) BuildTarget() ([]byte, []byte, error) {
 	)
 }
 
+// Build runs cmake build "Name" target step.
+func (cmake *Cmake) BuildWithTarget(target string) ([]byte, []byte, error) {
+	return cmakeExec(cmake.ConfDir,
+		"--build", cmake.BuildDir,
+		"--target", target,
+		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+	)
+}
+
 // Build runs cmake build step.
 func (cmake *Cmake) BuildDefaults() ([]byte, []byte, error) {
 	return cmakeExec(cmake.ConfDir,
@@ -204,6 +213,16 @@ func (cmake *Cmake) BuildDefaultsWithConfig(config string) ([]byte, []byte, erro
 	return cmakeExec(cmake.ConfDir,
 		"--build", cmake.BuildDir,
 		"--config", config,
+		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+	)
+}
+
+// Build runs cmake default build step with config
+func (cmake *Cmake) BuildTargetWithConfig(config, target string) ([]byte, []byte, error) {
+	return cmakeExec(cmake.ConfDir,
+		"--build", cmake.BuildDir,
+		"--config", config,
+		"--target", target,
 		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
 	)
 }

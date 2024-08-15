@@ -126,21 +126,41 @@ func TestCMakeProjects(t *testing.T) {
 						t.Fatalf("cmake configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 					} else {
 						t.Logf("configuration output:\n%s", string(stdOut))
-						if multiConfigBuild {
-							configs := []string{"Release", "Debug"}
-							for _, config := range configs {
-								if stdOut, stdErr, err := conf.BuildDefaultsWithConfig(config); err != nil {
-									t.Fatalf("cmake build (configuration %s) failed: \n%s\n%s\n%s", config, stdOut, stdErr, err)
-								} else {
-									t.Logf("build (configuration %s) output:\n%s", config, string(stdOut))
-								}
-							}
-						} else {
-							if stdOut, stdErr, err := conf.BuildDefaults(); err != nil {
-								t.Fatalf("cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+					}
+					if multiConfigBuild {
+						configs := []string{"Release", "Debug"}
+						for _, config := range configs {
+							if stdOut, stdErr, err := conf.BuildDefaultsWithConfig(config); err != nil {
+								t.Fatalf("cmake build (configuration %s) failed: \n%s\n%s\n%s", config, stdOut, stdErr, err)
 							} else {
-								t.Logf("build output:\n%s", string(stdOut))
+								t.Logf("build (configuration %s) output:\n%s", config, string(stdOut))
 							}
+							if stdOut, stdErr, err := conf.BuildTargetWithConfig(config, "clean"); err != nil {
+								t.Fatalf("cmake build clean (configuration %s) failed: \n%s\n%s\n%s", config, stdOut, stdErr, err)
+							} else {
+								t.Logf("clean (configuration %s) output:\n%s", config, string(stdOut))
+							}
+							if stdOut, stdErr, err := conf.BuildDefaultsWithConfig(config); err != nil {
+								t.Fatalf("cmake build clean (configuration %s) failed: \n%s\n%s\n%s", config, stdOut, stdErr, err)
+							} else {
+								t.Logf("rebuild (configuration %s) output:\n%s", config, string(stdOut))
+							}
+						}
+					} else {
+						if stdOut, stdErr, err := conf.BuildDefaults(); err != nil {
+							t.Fatalf("cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+						} else {
+							t.Logf("build output:\n%s", string(stdOut))
+						}
+						if stdOut, stdErr, err := conf.BuildWithTarget("clean"); err != nil {
+							t.Fatalf("cmake build clean failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+						} else {
+							t.Logf("clean output:\n%s", string(stdOut))
+						}
+						if stdOut, stdErr, err := conf.BuildDefaults(); err != nil {
+							t.Fatalf("cmake build clean failed: \n%s\n%s\n%s", stdOut, stdErr, err)
+						} else {
+							t.Logf("rebuild output:\n%s", string(stdOut))
 						}
 					}
 					// Test updating for just "cpp-flat" using content from "update-cpp-flat" folder.
