@@ -49,37 +49,49 @@ adds them as sources to the target for compilation::
        [EXTRA_OPTIONS <options>..]
      )
   
-ObjectBox schema files have the filename pattern ``<name>.fbs`` 
-which yields the name of auto-generated C++ source and header file 
+Note: The parameters ``TARGET`` and ``SCHEMA_FILES`` are required.
+
+``TARGET`` specifies the CMake target to which the generated sources shall be assigned to.
+
+``SCHEMA_FILES`` takes one or multiple ObjectBox schema file(s).
+A schema file is the input for the ObjectBox Generator and defines classes and their members.
+For details on the schema file please refer to the documentation.
+Schema files have the pattern ``<name>.fbs``.
+For each schema file, the generator creates a C++ source and header file
 using the pattern ``<name>.obx.cpp`` and ``<name>.obx.hpp``, respectively.
+(Also, two model files are generated: objectbox-model.h and a objectbox-model.json.)
 
-The option ``OUTPUT_DIR_MODEL_JSON`` specifies the location of the ``objectbox-model.json`` file
-(defaults to current source directory).
-This file is always generated or updated, and it must be maintained under version source control since it tracks
-database schema changes over time. 
+The option ``INSOURCE`` tells the generator to place all generated files in the source tree (directory).
+Note, that by default, the generator writes the generated C/C++ sources to the CMake build dir.
+It's often preferable to use INSOURCE, as it can have several advantages:
+  * It makes the generated sources more "visible" to developers.
+  * It allows checking in generated sources to version control.
+  * It does not require a generator setup for consumers, e.g. after checkout.
 
-Per default, generated files (except model JSON file) are written relative to the current 
-binary directory; headers and sources
-are output to sub-directories ``ObjectBoxGenerator-include`` and 
+``OUTPUT_DIR`` specifies the location for auto-generated files in the source tree
+(default: current source directory).
+For in-source (INSOURCE) builds, this affects all generated files.
+For out-of-source builds, it only affects the ``objectbox-model.json`` file, because must be be kept in-source.
+The given directory can be relative to current source directory or can be given as absolute path.
+
+``OUTPUT_DIR_HEADERS`` sets the output directory for generated header files for INSOURCE builds.
+It can be used alongside OUTPUT_DIR and then "overwrites" the directory for headers (only).
+
+The option ``OUTPUT_DIR_MODEL_JSON`` specifies the location of the generated ``objectbox-model.json`` file.
+It defaults to current source directory, or ``OUTPUT_DIR`` if it is given.
+This generated file must be maintained under version source control
+since it is essential maintain database schema changes over time.
+
+Supply the option ``CXX_STANDARD`` to generate sources complying to a lower C++ standard, i.e. ``11`` for C++11.
+By default, and when ``14`` is given, the generator creates sources compatible with C++14 and higher versions.
+
+The option ``EXTRA_OPTIONS`` may pass additional arguments directly to the
+code generator executable (e.g. "-empty-string-as-null -optional std::shared_ptr")
+
+Out-of-source configuration notes:
+per default, generated files (except the model JSON file) are written relative to the current binary (build) directory.
+Generated headers and sources are written to the sub-directories ``ObjectBoxGenerator-include`` and
 ``ObjectBoxGenerator-src``, respectively.
-
-If the option ``INSOURCE`` is set then generated files are 
-written relative to the schema files in the source tree.
-Otherwise `OUTPUT_DIR` specifies the location for auto-generated sources and headers
-(relative to current source directory or given as absolute path).
-In addition, ``OUTPUT_DIR_HEADERS`` may be specified to to set a common 
-output directory for header files as well.
-
-
-In addition, the generator also creates and updates the file ``objectbox-model.h``
-next to the generated C++ header files. 
-
-The option ``CXX_STANDARD`` may be set to ``11`` or ``14`` (default) to specify 
-the base-line C++ language standard the code generator supports for generated
-code.
-
-The option ``EXTRA_OPTIONS`` may pass additional arguments when invoking the 
-code generator (e.g. "-empty-string-as-null -optional std::shared_ptr")
 
 .. _ObjectBox: https://objectbox.io
 
