@@ -64,9 +64,10 @@ using the pattern ``<name>.obx.cpp`` and ``<name>.obx.hpp``, respectively.
 The option ``INSOURCE`` tells the generator to place all generated files in the source tree (directory).
 Note, that by default, the generator writes the generated C/C++ sources to the CMake build dir.
 It's often preferable to use INSOURCE, as it can have several advantages:
-  * It makes the generated sources more "visible" to developers.
-  * It allows checking in generated sources to version control.
-  * It does not require a generator setup for consumers, e.g. after checkout.
+  
+* It makes the generated sources more "visible" to developers.
+* It allows checking in generated sources to version control.
+* It does not require a generator setup for consumers, e.g. after checkout.
 
 ``OUTPUT_DIR`` specifies the location for auto-generated files in the source tree
 (default: current source directory).
@@ -242,6 +243,9 @@ function (add_obx_schema)
   set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   
+  if(NOT ARG_TARGET)
+    message(FATAL_ERROR "Missing target (Argument TARGET is empty or not set).")
+  endif()
   if(NOT ARG_SCHEMA_FILES)
     message(FATAL_ERROR "Missing schema file(s) (Argument SCHEMA_FILES is empty or not set).")
   endif()
