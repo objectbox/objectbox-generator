@@ -33,24 +33,32 @@ b:go1.19:
     - make test-depend
     - make test
 
-bt:linux-x64:
+b:go1.22:
   extends: [ .build ]
   script:
     - make info
     - make
     - make test-depend
     - make test
+
+t:cmake:linux-x64:
+  tags: [ x64, linux, docker ]
+  image: 
+    name: objectboxio/buildenv-core:2024-07-11
+  script:
     - cd test/standalone-cmake && cmake -DAUTO=1 -P test-cmake-generators.cmake
 
-bt:mac-x64:
+t:cmake:win-x64:
+  tags: [ windows ]
+  script:
+    - cd test/standalone-cmake && cmake -DMULTI="Visual Studio 17 2022" -P test-cmake-generators.cmake
+
+t:cmake:mac-x64:
   tags: [ mac, x64 ]
   script:
-    - make info
-    - make
-    - make test-depend
-    - make test
     - cd test/standalone-cmake
     # Test using just make/ninja if found
     - cmake -DAUTO=1 -P test-cmake-generators.cmake
     # Test Xcode excluding multiple-targets test projects
     - cmake -DMULTI="Xcode" -DPROJECTS="cpp-flat;cpp-tree;cpp-multiple-schema-dirs" -P test-cmake-generators.cmake
+  
