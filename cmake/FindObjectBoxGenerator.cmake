@@ -75,7 +75,7 @@ using the pattern ``<name>.obx.cpp`` and ``<name>.obx.hpp``, respectively.
 
 The option ``INSOURCE`` tells the generator to place all generated files in the source tree (directory).
 Note, that by default, the generator writes the generated C/C++ sources to the CMake build dir.
-It's often preferable to use INSOURCE, as it can have several advantages:
+It's often preferable to use ``INSOURCE``, as it can have several advantages:
   
 * It makes the generated sources more "visible" to developers.
 * It allows checking in generated sources to version control.
@@ -83,17 +83,17 @@ It's often preferable to use INSOURCE, as it can have several advantages:
 
 Note that
 
-One caveat with INSOURCE is that a cmake clean (cmake --target clean) also deletes the generated in-source files.
+One caveat with ``INSOURCE`` is that a cmake clean (cmake --target clean) also deletes the generated in-source files.
 This may change with a later version.
 
 ``OUTPUT_DIR`` specifies the location for auto-generated files in the source tree
 (default: current source directory).
-For in-source (INSOURCE) builds, this affects all generated files.
+For in-source (``INSOURCE``) builds, this affects all generated files.
 For out-of-source builds, it only affects the ``objectbox-model.json`` file, because must be be kept in-source.
 The given directory can be relative to current source directory or can be given as absolute path.
 
-``OUTPUT_DIR_HEADERS`` sets the output directory for generated header files for INSOURCE builds.
-It can be used alongside OUTPUT_DIR and then "overwrites" the directory for headers (only).
+``OUTPUT_DIR_HEADERS`` sets the output directory for generated header files for ``INSOURCE`` builds.
+It can be used alongside ``OUTPUT_DIR`` and then "overwrites" the directory for headers (only).
 Note that for in-source builds, the configured include-directories for the target are not changed.
 Thus, you need to specify the paths in the include statements, or add the include directory manually.
 (Out-of-source builds add the internally used directory for headers as an include directory to the target.)
@@ -107,7 +107,7 @@ Supply the option ``CXX_STANDARD`` to generate sources complying to a lower C++ 
 By default, and when ``14`` is given, the generator creates sources compatible with C++14 and higher versions.
 
 The option ``EXTRA_OPTIONS`` may pass additional arguments directly to the
-code generator executable (e.g. "-empty-string-as-null -optional std::shared_ptr")
+code generator executable (e.g. "``-empty-string-as-null -optional std::shared_ptr``")
 
 Out-of-source configuration notes:
 per default, generated files (except the model JSON file) are written relative to the current binary (build) directory.
