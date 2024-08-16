@@ -2,14 +2,14 @@
 FindObjectBoxGenerator
 ----------------------
 
-ObjectBox-Generator (ObjectBoxGenerator_) is a code generator tool to support 
+ObjectBox Generator (ObjectBoxGenerator_) is a code generator tool to support
 C/C++ and Go development with ObjectBox (ObjectBox_), a superfast 
 cross-platform object-oriented database.
 
 This find module automatically locates a local installation of the 
-executable ``objectbox-generator`` and checks requested version with found one.
-In addition, it can automatically download and unpack a version into the build directory
-and make it executable. Automatic download is enabled by default via the option 
+executable ``objectbox-generator`` and checks it against the requested version.
+In addition, it can automatically download a version into the build directory.
+Automatic download is enabled by default via the option
 ``OBX_GENERATOR_ALLOW_FETCH``.
 
 Currently supported platforms are Linux/x86-64, macOS and Windows/x86-64.
@@ -28,15 +28,24 @@ The following variables are defined by this module:
 
   If found, this variable comprises the full path to executable.  
 
+.. variable:: ObjectBoxGenerator_VERSION
+
+  The full version string of the used ObjectBox Generator executable, e.g. "4.0.0" or "4.0.0-alpha2".
+
+.. variable:: ObjectBoxGenerator_VERSION_MAJOR
+.. variable:: ObjectBoxGenerator_VERSION_MINOR
+.. variable:: ObjectBoxGenerator_VERSION_PATCH
+
+  The major, minor and patch version parts of the used ObjectBox Generator executable.
+
 Functions
 ^^^^^^^^^
 
 .. command:: add_obx_schema
 
-This function adds ObjectBox schema files (.fbs) to a C++ target which
-implies a build task to auto-generate C++ source/header files 
-from schema file(s) (with dependency rule tracking) and
-adds them as sources to the target for compilation::
+This function "adds" ObjectBox schema files (.fbs) to a C++ CMake target.
+This implies generating a C++ source and header file for each given schema file.
+On a CMake level, the C++ sources are added to the CMake target and a dependency to the schema file is registered.
 
      add_obx_schema(
        TARGET <target>
