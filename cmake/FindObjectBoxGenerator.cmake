@@ -44,8 +44,9 @@ Functions
 
 .. command:: add_obx_schema
 
-This function "adds" ObjectBox schema files (.fbs) to a C++ CMake target.
-This implies generating a C++ source and header file for each given schema file.
+This function "adds" an ObjectBox schema to a C++ CMake target.
+A schema is defined by one or multiple schema file(s) (".fbs" files; see ObjectBox Generator docs for details).
+for each given schema file a C++ source and header file generating.
 On a CMake level, the C++ sources are added to the CMake target and a dependency to the schema file is registered.
 
 ::
@@ -81,16 +82,18 @@ It's often preferable to use ``INSOURCE``, as it can have several advantages:
 * It allows checking in generated sources to version control.
 * It does not require a generator setup for consumers, e.g. after checkout.
 
-Note that
-
 One caveat with ``INSOURCE`` is that a cmake clean (cmake --target clean) also deletes the generated in-source files.
-This may change with a later version.
+(This may change in a future version of ObjectBox Generator.)
 
 ``OUTPUT_DIR`` specifies the location for auto-generated files in the source tree
 (default: current source directory).
-For in-source (``INSOURCE``) builds, this affects all generated files.
-For out-of-source builds, it only affects the ``objectbox-model.json`` file, because must be be kept in-source.
-The given directory can be relative to current source directory or can be given as absolute path.
+If you have multiple schemas (multiple calls to ``add_obx_schema()``), you need to use different ``OUTPUT_DIR``s
+to ensure a clear separation of generated files (e.g. avoid overwriting files with the same name).
+
+* For in-source (``INSOURCE``) builds, this affects all generated files.
+  The given directory can be relative to current source directory or can be given as absolute path.
+* For out-of-source builds, this must be a relative directory, as it is used inside the build directory.
+  Note that is also used for in-source ``objectbox-model.json`` file (it always must be be kept in-source).
 
 ``OUTPUT_DIR_HEADERS`` sets the output directory for generated header files for ``INSOURCE`` builds.
 It can be used alongside ``OUTPUT_DIR`` and then "overwrites" the directory for headers (only).
@@ -313,12 +316,23 @@ function (add_obx_schema)
     else()
       set(OBX_GEN_OUTPUT_DIR_HEADERS)
     endif()
-  else()
-      if (ARG_OUTPUT_DIR_HEADERS)
-        message(FATAL_ERROR "cmake_parse_arguments(): Option 'OUTPUT_DIR_HEADERS' only available for INSOURCE mode")
-      endif()
-    set(OBX_GEN_OUTPUT_DIR_SRC ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-src)
-    set(OBX_GEN_OUTPUT_DIR_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-include)
+  else () # out-of-source:
+    if (ARG_OUTPUT_DIR_HEADERS)
+        message(FATAL_ERROR "cmake_parse_arguments(): 'OUTPUT_DIR_HEADERS' is only available for INSOURCE mode")
+    endif()
+    # Use a sub_dir to cleanly separate schemas; e.g. one model source file per schema, allow files with same name, etc.
+    if (ARG_OUTPUT_DIR) # Use original OUTPUT_DIR (not OBX_GEN_OUTPUT_DIR, which is an absolute directory)
+        if (IS_ABSOLUTE ARG_OUTPUT_DIR)
+            message(FATAL_ERROR
+            "cmake_parse_arguments(): 'OUTPUT_DIR' must not be an absolute path for out-of-source configurations")
+        endif ()
+        set(sub_dir "${ARG_OUTPUT_DIR}")
+    else ()
+        set(sub_dir "default")
+    endif ()
+
+    set(OBX_GEN_OUTPUT_DIR_SRC ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-output/${sub_dir}/src)
+    set(OBX_GEN_OUTPUT_DIR_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/ObjectBoxGenerator-output/${sub_dir}/include)
   endif()
 
   set(sources)

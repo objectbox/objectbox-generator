@@ -34,15 +34,19 @@ else()
             objectbox-test
         SCHEMA_FILES 
             src/schema1/monster.fbs
+        OUTPUT_DIR
+            schema1
         OUTPUT_DIR_MODEL_JSON
-            src/model
+            src/model1
     )
     add_obx_schema(
         TARGET 
             objectbox-test
         SCHEMA_FILES 
             src/schema2/task.fbs
+        OUTPUT_DIR
+            schema2
         OUTPUT_DIR_MODEL_JSON
-            src/model
+            src/model2
     )
 endif()

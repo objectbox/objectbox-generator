@@ -1,6 +1,4 @@
-﻿
-#define OBX_CPP_FILE
-
+﻿#define OBX_CPP_FILE
 
 #include "objectbox.hpp"
 
