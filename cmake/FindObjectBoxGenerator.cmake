@@ -10,8 +10,8 @@ This find module automatically locates a local installation of the
 executable ``objectbox-generator`` and checks it against the requested version.
 In addition, it can automatically download a version into the build directory.
 Automatic download is enabled by default via the option
-``OBX_GENERATOR_ALLOW_FETCH``. (To turn this behaviour off run cmake configure with
-e.g. ``cmake -DOBX_GENERATOR_ALLOW_FETCH=OFF ..``)
+``OBX_GENERATOR_ALLOW_FETCH``.
+To turn this behaviour off, run cmake configure with e.g. ``cmake -DOBX_GENERATOR_ALLOW_FETCH=OFF ..``.
 
 Currently supported platforms are Linux/x86-64, macOS and Windows/x86-64.
 
@@ -81,6 +81,11 @@ It's often preferable to use INSOURCE, as it can have several advantages:
 * It allows checking in generated sources to version control.
 * It does not require a generator setup for consumers, e.g. after checkout.
 
+Note that
+
+One caveat with INSOURCE is that a cmake clean (cmake --target clean) also deletes the generated in-source files.
+This may change with a later version.
+
 ``OUTPUT_DIR`` specifies the location for auto-generated files in the source tree
 (default: current source directory).
 For in-source (INSOURCE) builds, this affects all generated files.
@@ -89,6 +94,9 @@ The given directory can be relative to current source directory or can be given 
 
 ``OUTPUT_DIR_HEADERS`` sets the output directory for generated header files for INSOURCE builds.
 It can be used alongside OUTPUT_DIR and then "overwrites" the directory for headers (only).
+Note that for in-source builds, the configured include-directories for the target are not changed.
+Thus, you need to specify the paths in the include statements, or add the include directory manually.
+(Out-of-source builds add the internally used directory for headers as an include directory to the target.)
 
 The option ``OUTPUT_DIR_MODEL_JSON`` specifies the location of the generated ``objectbox-model.json`` file.
 It defaults to current source directory, or ``OUTPUT_DIR`` if it is given.
