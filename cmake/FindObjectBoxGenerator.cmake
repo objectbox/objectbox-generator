@@ -131,9 +131,9 @@ option(OBX_GENERATOR_ALLOW_FETCH "Opt-in automatic download and prepare for loca
 set(ObjectBoxGenerator_FETCH_VERSION 4.0.0-alpha2) # Note: must be safe for filename
 # Using the version in the directories used for the generator executable to cleanly support multiple versions.
 # This is e.g. relevant when updating to ensure fetching the new version.
-set(ObjectBoxGenerator_FETCH_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-Fetch/${ObjectBoxGenerator_FETCH_VERSION})
+set(ObjectBoxGenerator_FETCH_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-download/${ObjectBoxGenerator_FETCH_VERSION}/fetch)
 set(ObjectBoxGenerator_FETCH_BASEURL "https://github.com/objectbox/objectbox-generator/releases/download")
-set(ObjectBoxGenerator_INSTALL_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-Install/${ObjectBoxGenerator_FETCH_VERSION})
+set(ObjectBoxGenerator_INSTALL_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-download/${ObjectBoxGenerator_FETCH_VERSION}/install)
 
 include(FindPackageHandleStandardArgs)
 
