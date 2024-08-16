@@ -10,7 +10,8 @@ This find module automatically locates a local installation of the
 executable ``objectbox-generator`` and checks it against the requested version.
 In addition, it can automatically download a version into the build directory.
 Automatic download is enabled by default via the option
-``OBX_GENERATOR_ALLOW_FETCH``.
+``OBX_GENERATOR_ALLOW_FETCH``. (To turn this behaviour off run cmake configure with
+e.g. ``cmake -DOBX_GENERATOR_ALLOW_FETCH=OFF ..``)
 
 Currently supported platforms are Linux/x86-64, macOS and Windows/x86-64.
 
@@ -46,6 +47,8 @@ Functions
 This function "adds" ObjectBox schema files (.fbs) to a C++ CMake target.
 This implies generating a C++ source and header file for each given schema file.
 On a CMake level, the C++ sources are added to the CMake target and a dependency to the schema file is registered.
+
+::
 
      add_obx_schema(
        TARGET <target>
