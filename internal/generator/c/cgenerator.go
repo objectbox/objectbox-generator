@@ -42,7 +42,7 @@ type CGenerator struct {
 	NaNAsNull         bool
 }
 
-// BindingFiles returns names of binding files for the given entity file.
+// BindingFiles returns names of C or C++ language binding files for the given entity file.
 func (gen *CGenerator) BindingFiles(forFile string, options generator.Options) []string {
 
 	if len(options.OutPath) > 0 {
@@ -63,7 +63,7 @@ func (gen *CGenerator) BindingFiles(forFile string, options generator.Options) [
 	return []string{headerBase + ".obx.hpp", base + ".obx.cpp"}
 }
 
-// ModelFile returns the model GO file for the given JSON info file path
+// ModelFile returns the model C header file for the given JSON info file path
 func (gen *CGenerator) ModelFile(forFile string, options generator.Options) string {
 
 	if len(options.OutHeadersPath) > 0 {
