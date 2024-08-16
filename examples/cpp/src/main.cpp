@@ -1,6 +1,4 @@
-﻿
-#define OBX_CPP_FILE
-
+﻿#define OBX_CPP_FILE
 
 #include "objectbox.hpp"
 
@@ -24,7 +22,7 @@ int main(int argc, char* args[])
         box.put(*task);                         // Update
     }
 
-    printf("Your task has ID=%llu, text=%s\n",
+    printf("Your task has ID=%" PRIu64 ", text=%s\n",
         id,
         box.get(id)->text.c_str());
 

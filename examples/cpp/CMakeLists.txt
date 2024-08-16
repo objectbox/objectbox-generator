@@ -36,7 +36,7 @@ if (DO_INSOURCE)
             src/schema/monster.fbs
             src/schema/another_monster.fbs
         INSOURCE
-	CXX_STANDARD 14
+	    CXX_STANDARD 14
     )
     target_include_directories(objectbox-test PRIVATE src/schema)
 else()
