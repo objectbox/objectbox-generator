@@ -3,10 +3,10 @@ FindObjectBoxGenerator
 ----------------------
 
 ObjectBox Generator (ObjectBoxGenerator_) is a code generator tool to support
-C/C++ and Go development with ObjectBox (ObjectBox_), a superfast 
+C/C++ and Go development with ObjectBox (ObjectBox_), a superfast
 cross-platform object-oriented database.
 
-This find module automatically locates a local installation of the 
+This find module automatically locates a local installation of the
 executable ``objectbox-generator`` and checks it against the requested version.
 In addition, it can automatically download a version into the build directory.
 Automatic download is enabled by default via the option
@@ -23,11 +23,11 @@ The following variables are defined by this module:
 
 .. variable:: ObjectBoxGenerator_FOUND
 
-  Whether objectbox-generator was successfully found.  
+  Whether objectbox-generator was successfully found.
 
 .. variable:: ObjectBoxGenerator_EXECUTABLE
 
-  If found, this variable comprises the full path to executable.  
+  If found, this variable comprises the full path to executable.
 
 .. variable:: ObjectBoxGenerator_VERSION
 
@@ -60,7 +60,7 @@ On a CMake level, the C++ sources are added to the CMake target and a dependency
        [CXX_STANDARD 11|14]
        [EXTRA_OPTIONS <options>..]
      )
-  
+
 Note: The parameters ``TARGET`` and ``SCHEMA_FILES`` are required.
 
 ``TARGET`` specifies the CMake target to which the generated sources shall be assigned to.
@@ -76,7 +76,7 @@ using the pattern ``<name>.obx.cpp`` and ``<name>.obx.hpp``, respectively.
 The option ``INSOURCE`` tells the generator to place all generated files in the source tree (directory).
 Note, that by default, the generator writes the generated C/C++ sources to the CMake build dir.
 It's often preferable to use ``INSOURCE``, as it can have several advantages:
-  
+
 * It makes the generated sources more "visible" to developers.
 * It allows checking in generated sources to version control.
 * It does not require a generator setup for consumers, e.g. after checkout.
@@ -137,13 +137,13 @@ include(FindPackageHandleStandardArgs)
 # read version from objectbox-generator executable
 function(_get_version)
   execute_process(
-    COMMAND ${ObjectBoxGenerator_EXECUTABLE} -version 
-    OUTPUT_VARIABLE Output 
-    OUTPUT_STRIP_TRAILING_WHITESPACE 
+    COMMAND ${ObjectBoxGenerator_EXECUTABLE} -version
+    OUTPUT_VARIABLE Output
+    OUTPUT_STRIP_TRAILING_WHITESPACE
     RESULT_VARIABLE ExitStatus
     # 3.19: COMMAND_ERROR_IS_FATAL ANY
   )
-  if(NOT ${ExitStatus} EQUAL 0) 
+  if(NOT ${ExitStatus} EQUAL 0)
     message(WARNING "Unable to query version on ${ObjectBoxGenerator_EXECUTABLE}")
     return()
   endif()
@@ -163,7 +163,7 @@ endfunction()
 
 # if already fetched/downloaded, path will available from CMake cache.
 # (No need to pass in ObjectBoxGenerator_INSTALL_DIR)
-find_program(ObjectBoxGenerator_EXECUTABLE objectbox-generator) 
+find_program(ObjectBoxGenerator_EXECUTABLE objectbox-generator)
 
 if(ObjectBoxGenerator_EXECUTABLE)
   _get_version()
@@ -171,21 +171,21 @@ if(ObjectBoxGenerator_EXECUTABLE)
     find_package_check_version(${ObjectBoxGenerator_VERSION} ObjectBoxGenerator_VERSION_OK)
   else()
     if(ObjectBoxGenerator_FIND_VERSION)
-      if(${ObjectBoxGenerator_VERSION} VERSION_GREATER_EQUAL ${ObjectBoxGenerator_FIND_VERSION}) 
+      if(${ObjectBoxGenerator_VERSION} VERSION_GREATER_EQUAL ${ObjectBoxGenerator_FIND_VERSION})
         set(ObjectBoxGenerator_VERSION_OK TRUE)
       else()
         set(ObjectBoxGenerator_VERSION_OK FALSE)
       endif()
     endif()
   endif()
-  if(NOT ${ObjectBoxGenerator_VERSION_OK}) 
+  if(NOT ${ObjectBoxGenerator_VERSION_OK})
     message(STATUS "ObjectBoxGenerator: Found version ${ObjectBoxGenerator_VERSION}, but which is not suitable with requested one ${ObjectBoxGenerator_FIND_VERSION}")
     set(ObjectBoxGenerator_FETCH_REQUIRED TRUE)
   endif()
 else()
   set(ObjectBoxGenerator_FETCH_REQUIRED TRUE)
 endif()
-  
+
 if(OBX_GENERATOR_ALLOW_FETCH AND ObjectBoxGenerator_FETCH_REQUIRED)
   message(STATUS "ObjectBox-Generator Fetch: Executable not found, attempting to download to build directory and prepare for execution (to disable behaviour set OBX_GENERATOR_ALLOW_FETCH to OFF)")
   set(_ObjectBoxGenerator_do_fetch TRUE)
@@ -193,7 +193,7 @@ if(OBX_GENERATOR_ALLOW_FETCH AND ObjectBoxGenerator_FETCH_REQUIRED)
     set(ObjectBoxGenerator_FETCH_ARCH Linux)
   elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows" AND (
             CMAKE_HOST_SYSTME_PROCESSOR STREQUAL "x86" OR
-            CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64" OR 
+            CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64" OR
             CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "AMD64"))
     set(ObjectBoxGenerator_FETCH_ARCH Windows)
   elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
@@ -222,7 +222,7 @@ if(OBX_GENERATOR_ALLOW_FETCH AND ObjectBoxGenerator_FETCH_REQUIRED)
     endif()
     message(STATUS "ObjectBox-Generator Fetch: Downloading archive from ${ObjectBoxGenerator_FETCH_URL} to ${ObjectBoxGenerator_FETCH_PATH}")
     file(DOWNLOAD "${ObjectBoxGenerator_FETCH_URL}" "${ObjectBoxGenerator_FETCH_PATH}"
-          TLS_VERIFY ON 
+          TLS_VERIFY ON
           STATUS DownloadStatus
     )
     if (DownloadStatus EQUAL 0)
@@ -247,7 +247,7 @@ if(OBX_GENERATOR_ALLOW_FETCH AND ObjectBoxGenerator_FETCH_REQUIRED)
   endif()
 endif()
 
-find_package_handle_standard_args(ObjectBoxGenerator 
+find_package_handle_standard_args(ObjectBoxGenerator
   REQUIRED_VARS ObjectBoxGenerator_EXECUTABLE
   VERSION_VAR ObjectBoxGenerator_VERSION
 )
@@ -262,7 +262,7 @@ function (add_obx_schema)
   set(oneValueArgs TARGET;OUTPUT_DIR;OUTPUT_DIR_HEADERS;OUTPUT_DIR_MODEL_JSON;CXX_STANDARD)
   set(multiValueArgs SCHEMA_FILES;EXTRA_OPTIONS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-  
+
   if(NOT ARG_TARGET)
     message(FATAL_ERROR "cmake_parse_arguments(): Missing target (Argument TARGET is empty or not set).")
   endif()
@@ -279,7 +279,7 @@ function (add_obx_schema)
     endif()
     file(MAKE_DIRECTORY ${OBX_GEN_OUTPUT_DIR})
   endif()
-  
+
   # Prepare OBX_GEN_OUTPUT_DIR_MODEL_JSON
   if (ARG_OUTPUT_DIR_MODEL_JSON)
     if(NOT IS_ABSOLUTE ${ARG_OUTPUT_DIR_MODEL_JSON})
@@ -332,8 +332,16 @@ function (add_obx_schema)
     endif()
   endif()
 
+  # To define the model header file as OUTPUT once in the first custom command
+  if (OBX_GEN_OUTPUT_DIR_HEADERS)
+      set(OBX_GEN_OUTPUT_MODEL_H_ONCE "${OBX_GEN_OUTPUT_DIR_HEADERS}/objectbox-model.h")
+  else ()
+      set(OBX_GEN_OUTPUT_MODEL_H_ONCE "objectbox-model.h")
+  endif ()
+
+  # Add a custom call to invoke the generator for each provided schema file.
   foreach(SCHEMA_FILE ${ARG_SCHEMA_FILES})
-    
+
     # 3.20: cmake_path(ABSOLUTE_PATH SCHEMA_FILE OUTPUT_VARIABLE schema_filepath)
     if(IS_ABSOLUTE ${SCHEMA_FILE})
       set(schema_filepath ${SCHEMA_FILE})
@@ -345,17 +353,17 @@ function (add_obx_schema)
       message(STATUS
               "cmake_parse_arguments(): Given schema file \"${schema_filepath}\" was not found at configuration time.")
     endif()
-    
+
     string(REGEX REPLACE "\\.fbs$" "" basefile ${SCHEMA_FILE})
     string(REGEX REPLACE ".*/"     "" basefile ${basefile})
-    
+
     if (ARG_INSOURCE)
       if (NOT OBX_GEN_OUTPUT_DIR_SRC) # no output directory is set, so we take the parent directory
         string(REGEX REPLACE "\.fbs$" ".obx.cpp" cppfile ${schema_filepath})
         string(REGEX REPLACE "\.fbs$" ".obx.hpp" hppfile ${schema_filepath})
-        
+
         # 3.20: cmake_path(GET cppfile PARENT_PATH out_dir)
-        string(REGEX REPLACE "/[^/]*$" "" parent_dir ${cppfile}) 
+        string(REGEX REPLACE "/[^/]*$" "" parent_dir ${cppfile})
         set(obxGenOutOptions -out ${parent_dir})
       else() # output directory is set
         set(obxGenOutOptions -out ${OBX_GEN_OUTPUT_DIR_SRC})
@@ -375,27 +383,26 @@ function (add_obx_schema)
       )
     endif()
 
-    # We explicitly do not add "objectbox-model.json" file as output 
-    # or byproduct here as it would otherwise be removed by a Makefile clean.
-    # In addition, "objectbox-model.h" is also not mentioned as
-    # it also fixes ninja build issues.
-    # ObjectBox Model JSON file will be always maintained in OBX_GEN_OUTPUT_DIR_MODEL_JSON.
+    # Note: we explicitly do not add "objectbox-model.json" file as output or byproduct here.
+    #       This prevents removing the file by CMake's clean target, which would lead to loosing all model IDs/UIDs.
     add_custom_command(
-      OUTPUT 
-        ${cppfile} 
-        ${hppfile} 
-      COMMAND 
+      OUTPUT
+        ${cppfile}
+        ${hppfile}
+        ${OBX_GEN_OUTPUT_MODEL_H_ONCE}
+      COMMAND
         ${ObjectBoxGenerator_EXECUTABLE}
       ARGS
           ${obxGenOutOptions}
-          -model ${OBX_GEN_OUTPUT_DIR_MODEL_JSON}/objectbox-model.json 
-          ${lang} 
-          ${ARG_EXTRA_OPTIONS} 
+          -model ${OBX_GEN_OUTPUT_DIR_MODEL_JSON}/objectbox-model.json
+          ${lang}
+          ${ARG_EXTRA_OPTIONS}
           ${schema_filepath}
-      DEPENDS 
+      DEPENDS
         ${schema_filepath}
       USES_TERMINAL # Needed for ninja
     )
+    set(OBX_GEN_OUTPUT_MODEL_H_ONCE "") # Once only; clear after the first custom command.
     list(APPEND sources ${cppfile} ${hppfile})
   endforeach()
     
