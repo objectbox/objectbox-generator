@@ -4,6 +4,9 @@
 
 #include "objectbox-model.h"
 #include "task.obx.hpp"
+#include "monster.obx.hpp"
+
+#include <cinttypes>
 
 int main(int argc, char* args[])
 {

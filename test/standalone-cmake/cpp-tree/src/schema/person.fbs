@@ -1,0 +1,5 @@
+table Person {
+    id: ulong;
+    name: string;
+    age: int;
+}

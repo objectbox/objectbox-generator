@@ -80,6 +80,7 @@ func getArgs(impl generatorCommand) (clean bool, options generator.Options) {
 	flag.Usage = impl.ShowUsage
 	impl.ConfigureFlags()
 	flag.StringVar(&options.OutPath, "out", "", "output path for generated source files")
+	flag.StringVar(&options.OutHeadersPath, "out-headers", "", "optional: output path for generated header files") // opt-in: C and C++
 	flag.StringVar(&options.ModelInfoFile, "model", "", "path to the model information persistence file (JSON)")
 	// TODO remove in v0.15.0 or later
 	flag.StringVar(&options.ModelInfoFile, "persist", "", "[DEPRECATED, use 'model'] path to the model information persistence file (JSON)")

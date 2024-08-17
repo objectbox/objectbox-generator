@@ -1,0 +1,6 @@
+table Monster {
+    id: ulong;
+    name: string;
+    hp: short;
+    mana: short;
+}

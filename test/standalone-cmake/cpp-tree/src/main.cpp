@@ -1,9 +1,16 @@
-﻿#define OBX_CPP_FILE
+﻿
+#define OBX_CPP_FILE
+
 
 #include "objectbox.hpp"
 
 #include "objectbox-model.h"
 #include "task.obx.hpp"
+#include "monster.obx.hpp"
+#include "another_monster.obx.hpp"
+#include "person.obx.hpp"
+
+#include <cinttypes>
 
 int main(int argc, char* args[])
 {
