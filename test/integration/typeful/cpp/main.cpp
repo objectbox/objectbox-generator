@@ -23,7 +23,11 @@ TEST_CASE("CRUD", "") {
     // put(`const Typeful&`) must be accepted for insert and update, just
     // returning an ID
     REQUIRE(box.put({.id = 0, .int_ = 11}) == 1);
-    REQUIRE(box.put({.id = 1, .int_ = 99, .floatvector = {-23.456f,42.109f}}) == 1);  // NOTE: .int_ is set to 0 now
+    Typeful obj;
+    obj.id = 1;
+    obj.int_ = 99;
+    obj.floatvector = std::vector<float> {-23.456f, 42.109f};
+    REQUIRE(box.put(obj) == 1); 
 
     // put(`Typeful&`) must set the ID on the given object
     Typeful object2 = {};
