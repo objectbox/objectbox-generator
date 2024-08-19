@@ -233,7 +233,7 @@ func (conf *CCppTestConf) Build(t *testing.T) {
 			t.Logf("configuration output:\n%s", string(stdOut))
 		}
 
-		if stdOut, stdErr, err := conf.Cmake.Build(); err != nil {
+		if stdOut, stdErr, err := conf.Cmake.BuildTarget(); err != nil {
 			t.Fatalf("cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 		} else {
 			t.Logf("build output:\n%s", string(stdOut))

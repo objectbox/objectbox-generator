@@ -1,0 +1,7 @@
+table Task {
+    id: ulong;
+    text: string;
+    text2: string;
+    date_created: ulong;
+    date_finished: ulong;
+}

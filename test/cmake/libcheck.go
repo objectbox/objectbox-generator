@@ -72,7 +72,7 @@ func LibraryExists(name string, includeFiles, includeDirs, linkDirs, predefines 
 		return fmt.Errorf("cmake configuration failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 	}
 
-	if stdOut, stdErr, err := build.Build(); err != nil {
+	if stdOut, stdErr, err := build.BuildTarget(); err != nil {
 		return fmt.Errorf("cmake build failed: \n%s\n%s\n%s", stdOut, stdErr, err)
 	}
 
