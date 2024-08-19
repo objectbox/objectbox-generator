@@ -87,8 +87,8 @@ One caveat with ``INSOURCE`` is that a cmake clean (cmake --target clean) also d
 
 ``OUTPUT_DIR`` specifies the location for auto-generated files in the source tree
 (default: current source directory).
-If you have multiple schemas (multiple calls to ``add_obx_schema()``), you need to use different ``OUTPUT_DIR``s
-to ensure a clear separation of generated files (e.g. avoid overwriting files with the same name).
+If you have multiple schemas (multiple calls to ``add_obx_schema()``), you need to use different ``OUTPUT_DIR`` 
+directories to ensure a clear separation of generated files (e.g. avoid overwriting files with the same name).
 
 * For in-source (``INSOURCE``) builds, this affects all generated files.
   The given directory can be relative to current source directory or can be given as absolute path.
