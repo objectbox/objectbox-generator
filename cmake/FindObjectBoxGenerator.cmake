@@ -353,6 +353,8 @@ function (add_obx_schema)
       set(OBX_GEN_OUTPUT_MODEL_H_ONCE "objectbox-model.h")
   endif ()
 
+  set(prev_cppfile) # previous cppfile used for artificial dependency chain 
+
   # Add a custom call to invoke the generator for each provided schema file.
   foreach(SCHEMA_FILE ${ARG_SCHEMA_FILES})
 
@@ -413,19 +415,13 @@ function (add_obx_schema)
           ${ARG_EXTRA_OPTIONS}
           ${schema_filepath}
       DEPENDS
-        ${schema_filepath}
+        ${schema_filepath} 
+        ${prev_cppfile} # artificial dependency to ensure no parallel execution
     )
     set(OBX_GEN_OUTPUT_MODEL_H_ONCE "") # Once only; clear after the first custom command.
-    set(custom_target gen-${ARG_TARGET}-${basefile})
-    add_custom_target(${custom_target} DEPENDS ${cppfile} ${hppfile})
-    if(previous_custom_target)
-      add_dependencies(${custom_target} ${previous_custom_target})
-    endif()
-    set(previous_custom_target ${custom_target})
+    set(prev_cppfile ${cppfile})
     list(APPEND sources ${cppfile} ${hppfile})
   endforeach()
-  add_dependencies(${ARG_TARGET} ${previous_custom_target})
-    
   target_sources(${ARG_TARGET} PRIVATE ${sources}) 
   if (NOT ARG_INSOURCE)
     target_include_directories(${ARG_TARGET} PRIVATE ${OBX_GEN_OUTPUT_DIR_HEADERS})
