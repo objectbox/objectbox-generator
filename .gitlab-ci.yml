@@ -49,6 +49,7 @@ bt:mac-x64:
     - make test-depend
     - make test
 
+# TODO: Prepare CI/Windows to build and test this project; Prerequisites: MinGW Make 
 t:cmake:win-x64:
   tags: [ windows ]
   script:
