@@ -23,7 +23,7 @@ if (DO_INSOURCE)
         SCHEMA_FILES 
             task.fbs
         INSOURCE
-        OUTPUT_DIR_HEADERS
+        OUTPUT_DIR
             schema1
     )
     add_obx_schema(
@@ -32,7 +32,7 @@ if (DO_INSOURCE)
         SCHEMA_FILES 
             monster.fbs
         INSOURCE
-        OUTPUT_DIR_HEADERS
+        OUTPUT_DIR
             schema2
     )
     target_include_directories(objectbox-test PRIVATE schema1 schema2)
