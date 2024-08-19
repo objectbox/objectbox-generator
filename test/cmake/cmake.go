@@ -196,7 +196,7 @@ func (cmake *Cmake) BuildWithTarget(target string) ([]byte, []byte, error) {
 	return cmakeExec(cmake.ConfDir,
 		"--build", cmake.BuildDir,
 		"--target", target,
-		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
 	)
 }
 
@@ -204,7 +204,7 @@ func (cmake *Cmake) BuildWithTarget(target string) ([]byte, []byte, error) {
 func (cmake *Cmake) BuildDefaults() ([]byte, []byte, error) {
 	return cmakeExec(cmake.ConfDir,
 		"--build", cmake.BuildDir,
-		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
 	)
 }
 
@@ -213,7 +213,7 @@ func (cmake *Cmake) BuildDefaultsWithConfig(config string) ([]byte, []byte, erro
 	return cmakeExec(cmake.ConfDir,
 		"--build", cmake.BuildDir,
 		"--config", config,
-		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
 	)
 }
 
@@ -223,7 +223,7 @@ func (cmake *Cmake) BuildTargetWithConfig(config, target string) ([]byte, []byte
 		"--build", cmake.BuildDir,
 		"--config", config,
 		"--target", target,
-		// "--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
+		"--parallel "+strconv.FormatInt(int64(runtime.NumCPU()/2), 10),
 	)
 }
 

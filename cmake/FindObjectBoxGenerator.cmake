@@ -87,8 +87,8 @@ One caveat with ``INSOURCE`` is that a cmake clean (cmake --target clean) also d
 
 ``OUTPUT_DIR`` specifies the location for auto-generated files in the source tree
 (default: current source directory).
-If you have multiple schemas (multiple calls to ``add_obx_schema()``), you need to use different ``OUTPUT_DIR``s
-to ensure a clear separation of generated files (e.g. avoid overwriting files with the same name).
+If you have multiple schemas (multiple calls to ``add_obx_schema()``), you need to use different ``OUTPUT_DIR`` 
+directories to ensure a clear separation of generated files (e.g. avoid overwriting files with the same name).
 
 * For in-source (``INSOURCE``) builds, this affects all generated files.
   The given directory can be relative to current source directory or can be given as absolute path.
@@ -303,8 +303,10 @@ function (add_obx_schema)
   if (ARG_INSOURCE)
     if (OBX_GEN_OUTPUT_DIR)
       set(OBX_GEN_OUTPUT_DIR_SRC ${OBX_GEN_OUTPUT_DIR})
+      set(OBX_GEN_OUTPUT_DIR_HEADERS ${OBX_GEN_OUTPUT_DIR})
     else()
       set(OBX_GEN_OUTPUT_DIR_SRC)
+      set(OBX_GEN_OUTPUT_DIR_HEADERS)
     endif()
     if (ARG_OUTPUT_DIR_HEADERS)
       if(IS_ABSOLUTE ${ARG_OUTPUT_DIR_HEADERS})
@@ -313,8 +315,6 @@ function (add_obx_schema)
         set(OBX_GEN_OUTPUT_DIR_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_OUTPUT_DIR_HEADERS})
       endif()
       file(MAKE_DIRECTORY ${OBX_GEN_OUTPUT_DIR_HEADERS})
-    else()
-      set(OBX_GEN_OUTPUT_DIR_HEADERS)
     endif()
   else () # out-of-source:
     if (ARG_OUTPUT_DIR_HEADERS)
@@ -352,6 +352,8 @@ function (add_obx_schema)
   else ()
       set(OBX_GEN_OUTPUT_MODEL_H_ONCE "objectbox-model.h")
   endif ()
+
+  set(prev_cppfile) # previous cppfile used for artificial dependency chain 
 
   # Add a custom call to invoke the generator for each provided schema file.
   foreach(SCHEMA_FILE ${ARG_SCHEMA_FILES})
@@ -413,13 +415,13 @@ function (add_obx_schema)
           ${ARG_EXTRA_OPTIONS}
           ${schema_filepath}
       DEPENDS
-        ${schema_filepath}
-      USES_TERMINAL # Needed for ninja
+        ${schema_filepath} 
+        ${prev_cppfile} # artificial dependency to ensure no parallel execution
     )
     set(OBX_GEN_OUTPUT_MODEL_H_ONCE "") # Once only; clear after the first custom command.
+    set(prev_cppfile ${cppfile})
     list(APPEND sources ${cppfile} ${hppfile})
   endforeach()
-    
   target_sources(${ARG_TARGET} PRIVATE ${sources}) 
   if (NOT ARG_INSOURCE)
     target_include_directories(${ARG_TARGET} PRIVATE ${OBX_GEN_OUTPUT_DIR_HEADERS})
