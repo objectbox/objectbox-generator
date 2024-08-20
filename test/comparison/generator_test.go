@@ -25,7 +25,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
 )
 
 // used during development of generator to overwrite the "golden" files

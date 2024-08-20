@@ -23,9 +23,9 @@ package comparison
 import (
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
-	gogenerator "github.com/objectbox/objectbox-generator/internal/generator/go"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	cgenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/c"
+	gogenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/go"
 )
 
 type testHelper interface {

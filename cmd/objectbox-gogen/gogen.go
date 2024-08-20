@@ -27,9 +27,9 @@ import (
 	"fmt"
 	"os"
 
-	generatorcmd "github.com/objectbox/objectbox-generator/cmd"
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	gogenerator "github.com/objectbox/objectbox-generator/internal/generator/go"
+	generatorcmd "github.com/objectbox/objectbox-generator/v4/cmd"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	gogenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/go"
 )
 
 const VersionId = generator.VersionId

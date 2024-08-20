@@ -32,8 +32,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
 )
 
 func typesFromConfKey(confKey string) (srcType, genType string) {

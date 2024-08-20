@@ -1,8 +1,8 @@
 package object
 
 import (
-	"github.com/objectbox/objectbox-generator/test/comparison/testdata/go/typeful/other"
-	ot "github.com/objectbox/objectbox-generator/test/comparison/testdata/go/typeful/other"
+	"github.com/objectbox/objectbox-generator/v4/test/comparison/testdata/go/typeful/other"
+	ot "github.com/objectbox/objectbox-generator/v4/test/comparison/testdata/go/typeful/other"
 )
 
 // Tests type aliases and definitions of named types

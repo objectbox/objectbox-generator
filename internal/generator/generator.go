@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/model"
 )
 
 // Version specifies the current generator version.

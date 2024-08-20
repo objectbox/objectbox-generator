@@ -23,8 +23,8 @@ package build
 import (
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/test/assert"
-	"github.com/objectbox/objectbox-generator/test/cmake"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/test/cmake"
 )
 
 // Check verifies the C/C++ objectbox test code can be compiled - whether the required libraries are available.

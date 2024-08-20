@@ -28,7 +28,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
 )
 
 func checkBuildError(t *testing.T, errorTransformer func(err error) error, stdOut []byte, stdErr []byte, err error, expectedError error) {

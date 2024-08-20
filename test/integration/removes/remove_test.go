@@ -25,10 +25,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/internal/generator/model"
-	"github.com/objectbox/objectbox-generator/test/assert"
-	"github.com/objectbox/objectbox-generator/test/integration"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/test/integration"
 )
 
 func getUid(t *testing.T, id model.IdUid) model.Uid {

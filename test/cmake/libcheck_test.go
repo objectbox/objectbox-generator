@@ -24,8 +24,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/test/assert"
-	"github.com/objectbox/objectbox-generator/test/cmake"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/test/cmake"
 )
 
 func TestLibExists(t *testing.T) {
