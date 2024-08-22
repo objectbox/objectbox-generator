@@ -28,7 +28,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/objectbox/objectbox-generator/internal/generator"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
 )
 
 const defaultErrorCode = 2

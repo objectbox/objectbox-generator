@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/test/assert"
-	"github.com/objectbox/objectbox-generator/test/cmake"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/test/cmake"
 )
 
 // excluded: cpp-multiple-targets,cpp-tree-multiple-targets (Visual Studio and XCode)

@@ -27,8 +27,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
 )
 
 // Because of Go generator comparison tests, the go tool may update go.mod file to import `github.com/objectbox/objectbox-go`

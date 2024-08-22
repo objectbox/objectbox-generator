@@ -33,12 +33,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
-	"github.com/objectbox/objectbox-generator/test/assert"
-	"github.com/objectbox/objectbox-generator/test/build"
-	"github.com/objectbox/objectbox-generator/test/cmake"
-	"github.com/objectbox/objectbox-generator/test/comparison"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	cgenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/c"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/test/build"
+	"github.com/objectbox/objectbox-generator/v4/test/cmake"
+	"github.com/objectbox/objectbox-generator/v4/test/comparison"
 )
 
 type cCppStandard string

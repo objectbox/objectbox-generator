@@ -27,7 +27,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/model"
 )
 
 // Field holds common field/property information used by specialized code parsers/generators.

@@ -30,9 +30,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	gogenerator "github.com/objectbox/objectbox-generator/internal/generator/go"
-	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	gogenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/go"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
 )
 
 // this containing module name - used for test case modules

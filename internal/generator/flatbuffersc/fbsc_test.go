@@ -26,8 +26,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc/reflection"
-	"github.com/objectbox/objectbox-generator/test/assert"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/flatbuffersc/reflection"
+	"github.com/objectbox/objectbox-generator/v4/test/assert"
 )
 
 const testSchema = `

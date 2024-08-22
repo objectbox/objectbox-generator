@@ -23,8 +23,8 @@ package cgenerator
 import (
 	flatbuffers "github.com/google/flatbuffers/go"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc/reflection"
-	"github.com/objectbox/objectbox-generator/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/flatbuffersc/reflection"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/model"
 )
 
 var fbsTypeToObxType = map[reflection.BaseType]model.PropertyType{

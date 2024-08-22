@@ -37,7 +37,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc/reflection"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/flatbuffersc/reflection"
 )
 
 func ParseSchemaFile(filename string) (*reflection.Schema, error) {

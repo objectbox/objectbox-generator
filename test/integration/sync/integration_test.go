@@ -23,7 +23,7 @@ package typeful
 import (
 	"testing"
 
-	"github.com/objectbox/objectbox-generator/test/integration"
+	"github.com/objectbox/objectbox-generator/v4/test/integration"
 )
 
 func TestCpp(t *testing.T) {

@@ -23,8 +23,8 @@ package typeful
 import (
 	"testing"
 
-	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
-	"github.com/objectbox/objectbox-generator/test/integration"
+	cgenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/c"
+	"github.com/objectbox/objectbox-generator/v4/test/integration"
 )
 
 const optionalSchemaFields = `

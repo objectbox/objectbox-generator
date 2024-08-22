@@ -31,8 +31,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/binding"
-	"github.com/objectbox/objectbox-generator/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/binding"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/model"
 )
 
 type uid = uint64

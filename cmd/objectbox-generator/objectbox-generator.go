@@ -30,11 +30,11 @@ import (
 	"os"
 	"strings"
 
-	generatorcmd "github.com/objectbox/objectbox-generator/cmd"
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	cgenerator "github.com/objectbox/objectbox-generator/internal/generator/c"
-	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc"
-	gogenerator "github.com/objectbox/objectbox-generator/internal/generator/go"
+	generatorcmd "github.com/objectbox/objectbox-generator/v4/cmd"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	cgenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/c"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/flatbuffersc"
+	gogenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/go"
 )
 
 func main() {

@@ -1,5 +1,5 @@
 
-# github.com/objectbox/objectbox-generator/test/comparison/testdata/go/rename-relation
+# github.com/objectbox/objectbox-generator/v4/test/comparison/testdata/go/rename-relation
 ./objectbox-model.go:22:24: undefined: NegTaskRelIdBinding
 ./objectbox-model.go:23:24: undefined: NegTaskRelPtrBinding
 ./objectbox-model.go:24:24: undefined: NegTaskRelValueBinding

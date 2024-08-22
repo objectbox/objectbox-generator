@@ -31,11 +31,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/objectbox/objectbox-generator/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/model"
 )
 
 // Version specifies the current generator version.
-const Version = "4.0.0-alpha2"
+const Version = "4.0.0-beta"
 
 // VersionId specifies the current generator version identifier.
 // It is used to validate generated code compatibility and is increased when there are changes in the generated code.

@@ -28,10 +28,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/objectbox/objectbox-generator/internal/generator"
-	"github.com/objectbox/objectbox-generator/internal/generator/c/templates"
-	"github.com/objectbox/objectbox-generator/internal/generator/flatbuffersc"
-	"github.com/objectbox/objectbox-generator/internal/generator/model"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/c/templates"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/flatbuffersc"
+	"github.com/objectbox/objectbox-generator/v4/internal/generator/model"
 )
 
 type CGenerator struct {
