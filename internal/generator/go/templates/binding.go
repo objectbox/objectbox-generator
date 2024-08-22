@@ -48,6 +48,46 @@ var BindingTemplate = template.Must(template.New("binding").Funcs(funcMap).Parse
 	{{- else}}{{if .GoField.IsPointer}}*{{end}}obj.{{.Path}}{{end}}
 {{- end -}}
 
+{{define "fetch-toMany"}}{{/* used in fetch-related for standalone relations and backlinks*/ -}}
+	// It will "GetManyExisting()" all related {{.ToMany.RelatedEntityName}} objects for each source object
+	// and set sourceObject.{{.Name}} to the slice of related objects, as currently stored in DB.
+	func (box *{{.Entity.Name}}Box) Fetch{{.Name}}(sourceObjects ...*{{.Entity.Name}}) error {
+		var slices = make([]{{.Type}}, len(sourceObjects))
+		err := box.ObjectBox.RunInReadTx(func() error {
+			// collect slices before setting the source objects' fields
+			// this keeps all the sourceObjects untouched in case there's an error during any of the requests
+			for k, object := range sourceObjects {
+				{{if .Entity.ModelEntity.IdProperty.Meta.Converter -}}
+				sourceId, err := {{.Entity.ModelEntity.IdProperty.Meta.Converter}}ToDatabaseValue(object.{{.Entity.ModelEntity.IdProperty.Meta.Path}})
+				if err != nil {
+					return err
+				}
+				{{end -}}
+				{{if .Backlink -}}
+				rIds, err := BoxFor{{.ToMany.RelatedEntityName}}(box.ObjectBox).RelationBackLinkIds({{.Backlink.RelatedEntityName}}_.{{.Backlink.SourceProperty}},
+				{{- else -}}
+				rIds, err := box.RelationIds({{.Entity.Name}}_.{{.Name}},
+				{{- end -}}
+				{{with .Entity.ModelEntity.IdProperty}} {{if .Meta.Converter}}sourceId{{else}}object.{{.Meta.Path}}{{end}}{{end}})
+				if err == nil {
+					slices[k], err = BoxFor{{.ToMany.RelatedEntityName}}(box.ObjectBox).GetManyExisting(rIds...)
+				}
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+
+		if err == nil {  // update the field on all objects if we got all slices 
+			for k := range sourceObjects {
+				sourceObjects[k].{{.Name}} = slices[k]
+			}
+		}
+		return err
+	}
+{{- end -}}
+
 
 package {{.Binding.Package.Name}}
 
@@ -166,11 +206,11 @@ func ({{$entityNameCamel}}_EntityInfo) PutRelated(ob *objectbox.ObjectBox, objec
 	{{- block "put-relations" $entity}}
 	{{- range $field := .Meta.Fields}}
 		{{- if $field.StandaloneRelation}}
-			{{- if $field.IsLazyLoaded}} if object.(*{{$field.Entity.Name}}).{{$field.Path}} != nil { // lazy-loaded relations without {{$field.Entity.Name}}Box::Fetch{{$field.Name}}() called are nil {{end}}  
+			{{- if $field.StandaloneRelation.IsLazyLoaded}} if object.(*{{$field.Entity.Name}}).{{$field.Path}} != nil { // lazy-loaded relations without {{$field.Entity.Name}}Box::Fetch{{$field.Name}}() called are nil {{end}}  
 			if err := BoxFor{{$field.Entity.Name}}(ob).RelationReplace({{.Entity.Name}}_.{{$field.Name}}, id, object, object.(*{{$field.Entity.Name}}).{{$field.Path}}); err != nil {
 				return err
 			}
-			{{if $field.IsLazyLoaded}} } {{end}}
+			{{if $field.StandaloneRelation.IsLazyLoaded}} } {{end}}
 		{{- else if $field.Property}}
 			{{- if and (not $field.Property.IsBasicType) $field.Property.ModelProperty.RelationTarget}}
 			if rel := {{if not $field.IsPointer}}&{{end}}object.(*{{$field.Entity.Name}}).{{$field.Path}}; rel != nil {
@@ -297,7 +337,7 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 	{{- block "load-relations" $entity}}
 	{{- range $field := .Meta.Fields}}
 		{{if $field.StandaloneRelation -}}
-			{{if not $field.IsLazyLoaded -}}
+			{{if not $field.StandaloneRelation.IsLazyLoaded -}}
 			var rel{{$field.Name}} {{$field.Type}} 
 			if rIds, err := BoxFor{{$field.Entity.Name}}(ob).RelationIds({{.Entity.Name}}_.{{$field.Name}}, prop{{.Entity.ModelEntity.IdProperty.Name}}); err != nil {
 				return nil, err
@@ -334,8 +374,10 @@ func ({{$entityNameCamel}}_EntityInfo) Load(ob *objectbox.ObjectBox, bytes []byt
 	{{- block "fields-initializer" $entity}}
 		{{- range $field := .Meta.Fields}}
 			{{$field.Name}}: 
-				{{- if $field.StandaloneRelation}}
-					{{- if $field.IsLazyLoaded}}nil, // use {{$field.Entity.Name}}Box::Fetch{{$field.Name}}() to fetch this lazy-loaded relation
+				{{- if $field.Backlink}}
+					nil, // use {{$field.Entity.Name}}Box::Fetch{{$field.Name}}() to fetch this lazy-loaded relation backlink
+				{{- else if $field.StandaloneRelation}}
+					{{- if $field.StandaloneRelation.IsLazyLoaded}}nil, // use {{$field.Entity.Name}}Box::Fetch{{$field.Name}}() to fetch this lazy-loaded relation
 					{{- else}}rel{{$field.Name}}
 					{{- end}}
 				{{- else if $field.Property}}
@@ -459,41 +501,13 @@ func (box *{{$entity.Name}}Box) GetAll() ([]{{if not $.ByValue}}*{{end}}{{$entit
 {{- block "fetch-related" $entity}}
 {{- range $field := .Meta.Fields}}
 	{{if .StandaloneRelation}}
-		{{- if .IsLazyLoaded -}}
+		{{- if .StandaloneRelation.IsLazyLoaded -}}
 			// Fetch{{.Name}} reads target objects for relation {{.Entity.Name}}::{{.Name}}.
-			// It will "GetManyExisting()" all related {{.StandaloneRelation.Target.Name}} objects for each source object
-			// and set sourceObject.{{.Name}} to the slice of related objects, as currently stored in DB.
-			func (box *{{.Entity.Name}}Box) Fetch{{.Name}}(sourceObjects ...*{{.Entity.Name}}) error {
-				var slices = make([]{{.Type}}, len(sourceObjects))
-				err := box.ObjectBox.RunInReadTx(func() error {
-					// collect slices before setting the source objects' fields
-					// this keeps all the sourceObjects untouched in case there's an error during any of the requests
-					for k, object := range sourceObjects {
-						{{if .Entity.ModelEntity.IdProperty.Meta.Converter -}}
-						sourceId, err := {{.Entity.ModelEntity.IdProperty.Meta.Converter}}ToDatabaseValue(object.{{.Entity.ModelEntity.IdProperty.Meta.Path}})
-						if err != nil {
-							return err
-						}
-						{{end -}}
-						rIds, err := box.RelationIds({{.Entity.Name}}_.{{.Name}}, {{with .Entity.ModelEntity.IdProperty}} {{if .Meta.Converter}}sourceId{{else}}object.{{.Meta.Path}}{{end}}{{end}})
-						if err == nil {
-						    slices[k], err = BoxFor{{.StandaloneRelation.Target.Name}}(box.ObjectBox).GetManyExisting(rIds...)
-						}
-						if err != nil {
-							return err
-						}
-					}
-					return nil
-                })
-
-				if err == nil {  // update the field on all objects if we got all slices 
-					for k := range sourceObjects {
-						sourceObjects[k].{{.Name}} = slices[k]
-					}
-				}
-				return err
-			}
+			{{template "fetch-toMany" $field}}
 		{{end}}
+    {{- else if .Backlink}}
+		// Fetch{{.Name}} reads source objects back-linked by relation {{.Backlink.RelatedEntityName}}::{{.Backlink.SourceProperty}}.
+		{{template "fetch-toMany" $field}}
 	{{- else if not .Property}}{{/* recursively visit fields in embedded structs */}}{{template "fetch-related" $field}}
 	{{- end}}
 {{- end}}{{end}}

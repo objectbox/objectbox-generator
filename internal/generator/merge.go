@@ -323,6 +323,7 @@ func getModelRelation(currentRelation *model.StandaloneRelation, storedEntity *m
 
 func mergeModelRelation(currentRelation *model.StandaloneRelation, storedRelation *model.StandaloneRelation, storedModel *model.ModelInfo) (err error) {
 	storedRelation.Name = currentRelation.Name
+	storedRelation.IsLazyLoaded = currentRelation.IsLazyLoaded
 
 	if currentRelation.Meta != nil {
 		storedRelation.Meta = currentRelation.Meta.Merge(storedRelation)
@@ -336,7 +337,7 @@ func mergeModelRelation(currentRelation *model.StandaloneRelation, storedRelatio
 		currentRelation.Id = storedRelation.Id
 	}
 
-	// find the target entity & read it's ID/UID for the binding code
+	// find the target entity & read its ID/UID for the binding code
 	if targetEntity, err := storedModel.FindEntityByName(currentRelation.Target.Name); err != nil {
 		return err
 	} else if _, _, err = targetEntity.Id.Get(); err != nil {

@@ -126,6 +126,7 @@ func (object *Object) AddRelation(details map[string]*Annotation) (*model.Standa
 		return nil, fmt.Errorf("name annotation value must not be empty on relation - it's the relation name in DB")
 	}
 	relation.Name = details["name"].Value
+	relation.IsLazyLoaded = details["lazy"] != nil
 
 	if details["to"] == nil || len(details["to"].Value) == 0 {
 		return nil, fmt.Errorf("to annotation value must not be empty on relation %s - specify target entity", relation.Name)

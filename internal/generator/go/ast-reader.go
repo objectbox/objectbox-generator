@@ -47,6 +47,7 @@ var supportedEntityAnnotations = map[string]bool{
 
 var supportedPropertyAnnotations = map[string]bool{
 	"-":            true,
+	"backlink":     true,
 	"converter":    true,
 	"date":         true,
 	"date-nano":    true,
@@ -123,7 +124,7 @@ type Field struct {
 	Property           *Property                 // nil if it's an embedded struct
 	Fields             []*Field                  // inner fields, nil if it's a property
 	StandaloneRelation *model.StandaloneRelation // to-many relation stored as a standalone relation in the model
-	IsLazyLoaded       bool                      // only standalone (to-many) relations currently support lazy loading
+	Backlink           *binding.Backlink         // non-null if this field describes a relation backlink
 	Meta               *Field                    // self reference for recursive ".Meta.Fields" access in the template
 
 	path   string // relative addressing path for embedded structs
@@ -263,7 +264,7 @@ func (entity *Entity) addFields(parent *Field, fields fieldList, fieldPath, pref
 		log.Printf("%s property %s found in %s", text, property.Name, fieldPath)
 	}
 	var propertyError = func(err error, property *Property) error {
-		return fmt.Errorf("%s on property %s found in %s", err, property.Name, fieldPath)
+		return fmt.Errorf("property %s.%s: %s", fieldPath, property.Name, err)
 	}
 
 	var children []*Field
@@ -500,24 +501,35 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 	if slice, isSlice := baseType.(*types.Slice); isSlice {
 		var elementType = slice.Elem()
 
-		// it's a many-to-many relation
-		if err := property.setRelationAnnotation(typeBaseName(elementType.String()), true); err != nil {
-			return nil, err
-		}
+		relatedEntity := typeBaseName(elementType.String())
 
-		var relDetails = make(map[string]*binding.Annotation)
-		relDetails["name"] = &binding.Annotation{Value: field.Name}
-		relDetails["to"] = property.annotations["link"]
-		relDetails["uid"] = property.annotations["uid"]
-		if rel, err := field.Entity.AddRelation(relDetails); err != nil {
-			return nil, err
+		// if it's a backlink (the source may be either a to-one relation or a to-many relation)
+		if property.annotations["backlink"] != nil {
+			if property.annotations["link"] != nil {
+				return nil, fmt.Errorf("cannot combine 'link' and 'backlink' annotations on a single field")
+			}
+
+			field.Backlink = &binding.Backlink{
+				SourceEntity:   relatedEntity,
+				SourceProperty: property.annotations["backlink"].Value,
+			}
+			property.IsBasicType = false // override the value set by setBasicType
 		} else {
-			field.StandaloneRelation = rel
-		}
+			// it's a many-to-many relation
+			if err := property.setRelationAnnotation(typeBaseName(elementType.String()), true); err != nil {
+				return nil, err
+			}
 
-		if field.Property.annotations["lazy"] != nil {
-			// relations only
-			field.IsLazyLoaded = true
+			var relDetails = make(map[string]*binding.Annotation)
+			relDetails["name"] = &binding.Annotation{Value: field.Name}
+			relDetails["to"] = property.annotations["link"]
+			relDetails["uid"] = property.annotations["uid"]
+			relDetails["lazy"] = property.annotations["lazy"]
+			if rel, err := field.Entity.AddRelation(relDetails); err != nil {
+				return nil, err
+			} else {
+				field.StandaloneRelation = rel
+			}
 		}
 
 		// fill in the field information
@@ -776,6 +788,16 @@ func (entity *Entity) HasLazyLoadedRelations() bool {
 	return false
 }
 
+// ToMany called from the template.
+func (field *Field) ToMany() interface{} {
+	if field.StandaloneRelation != nil {
+		return field.StandaloneRelation
+	} else if field.Backlink != nil {
+		return field.Backlink
+	}
+	return nil
+}
+
 // HasRelations called from the template.
 func (field *Field) HasRelations() bool {
 	if field.StandaloneRelation != nil || len(field.Property.ModelProperty.RelationTarget) > 0 {
@@ -793,7 +815,7 @@ func (field *Field) HasRelations() bool {
 
 // HasLazyLoadedRelations called from the template.
 func (field *Field) HasLazyLoadedRelations() bool {
-	if field.StandaloneRelation != nil && field.IsLazyLoaded {
+	if field.StandaloneRelation != nil && field.StandaloneRelation.IsLazyLoaded {
 		return true
 	}
 
