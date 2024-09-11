@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/objectbox/objectbox-generator/v4/test/assert"
 	"github.com/objectbox/objectbox-generator/v4/test/cmake"
@@ -166,7 +167,12 @@ func TestCMakeProjects(t *testing.T) {
 					// Test updating for just "cpp-flat" using content from "update-cpp-flat" folder.
 					if project == "cpp-flat" {
 						t.Logf("**** Update project cpp-flat (task.fbs and main.cpp) ****")
+						// depending on file system and build tools its possible the previous
+						// rebuild and copying  happens too fast for the build system to detect changes,
+						// -> delay after the last fbs generation before we 'create' the changed .fbs file
+						time.Sleep(500 * time.Millisecond)
 						cmake.CopyDir(wd, filepath.Join("update-cpp-flat", "."), filepath.Join(confDir))
+
 						if multiConfigBuild {
 							configs := []string{"Release", "Debug"}
 							for _, config := range configs {
