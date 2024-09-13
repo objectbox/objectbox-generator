@@ -170,7 +170,8 @@ func ({{$entityNameCamel}}_EntityInfo) PutRelated(ob *objectbox.ObjectBox, objec
 			if err := BoxFor{{$field.Entity.Name}}(ob).RelationReplace({{.Entity.Name}}_.{{$field.Name}}, id, object, object.(*{{$field.Entity.Name}}).{{$field.Path}}); err != nil {
 				return err
 			}
-			{{if $field.IsLazyLoaded}} } {{end}}
+			{{if $field.IsLazyLoaded}} }
+   			{{end}}
 		{{- else if $field.Property}}
 			{{- if and (not $field.Property.IsBasicType) $field.Property.ModelProperty.RelationTarget}}
 			if rel := {{if not $field.IsPointer}}&{{end}}object.(*{{$field.Entity.Name}}).{{$field.Path}}; rel != nil {
