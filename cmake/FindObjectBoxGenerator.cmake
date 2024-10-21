@@ -422,6 +422,12 @@ function (add_obx_schema)
     set(prev_cppfile ${cppfile})
     list(APPEND sources ${cppfile} ${hppfile})
   endforeach()
+
+  if (NOT TARGET ${ARG_TARGET})
+    # Fail fast with a nice error message if the target does not exist.
+    # Otherwise, it would fail on target_sources() with a not so straight-forward error message.
+    message(FATAL_ERROR "add_obx_schema(): the given target \"${ARG_TARGET}\" was not found. Make sure to define it before calling add_obx_schema().")
+  endif()
   target_sources(${ARG_TARGET} PRIVATE ${sources}) 
   if (NOT ARG_INSOURCE)
     target_include_directories(${ARG_TARGET} PRIVATE ${OBX_GEN_OUTPUT_DIR_HEADERS})
