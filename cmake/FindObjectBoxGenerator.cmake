@@ -128,7 +128,7 @@ Generated headers and sources are written to the sub-directories ``ObjectBoxGene
 option(OBX_GENERATOR_ALLOW_FETCH "Opt-in automatic download and prepare for local execution" ON)
 
 # Updated by maintainer to latest available version:
-set(ObjectBoxGenerator_FETCH_VERSION 4.0.0-beta) # Note: must be safe for filename
+set(ObjectBoxGenerator_FETCH_VERSION 4.0.0) # Note: must be safe for filename
 # Using the version in the directories used for the generator executable to cleanly support multiple versions.
 # This is e.g. relevant when updating to ensure fetching the new version.
 set(ObjectBoxGenerator_FETCH_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-download/${ObjectBoxGenerator_FETCH_VERSION}/fetch)

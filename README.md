@@ -5,7 +5,7 @@
 
 # ObjectBox Generator
 
-Current version: 4.0.0-beta
+Current version: 4.0.0
 
 ObjectBox is a superfast cross-platform object-oriented database.
 ObjectBox Generator produces code for ObjectBox C, C++ and Go APIs (more languages to be supported in the future).
@@ -36,9 +36,10 @@ Build notes:
 To get started, have a look at the specific language bindings (the approaches differ):
 
 * C and C++ [repository](https://github.com/objectbox/objectbox-c) and [docs](https://cpp.objectbox.io/).
-  In summary, you define a FlatBuffers schema file, and the ObjectBox Generator will create plain C++ data classes
-  and helper classes that "glue" the data classes to the ObjectBox runtime library.
-  CMake users can also use the convenient add_obx_schema() task instead of using the generator executable directly.
+  * CMake users use `add_obx_schema()` task to configure and invoke the generator at build time.
+  * Non-CMake users can run the generator directly.
+    In summary, you define a FlatBuffers schema file, and the ObjectBox Generator will create plain C++ data classes
+    and helper classes that "glue" the data classes to the ObjectBox runtime library.
 * Go [repository](https://github.com/objectbox/objectbox-go) and [docs](https://golang.objectbox.io/).
   Here, you start with Go data structs, for which the Generator generates the glue code directly.
 
