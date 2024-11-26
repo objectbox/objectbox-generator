@@ -35,6 +35,7 @@ import (
 	cgenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/c"
 	"github.com/objectbox/objectbox-generator/v4/internal/generator/flatbuffersc"
 	gogenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/go"
+	jsgenerator "github.com/objectbox/objectbox-generator/v4/internal/generator/js"
 )
 
 func main() {
@@ -91,6 +92,7 @@ func (cmd *command) ConfigureFlags() {
 	cmd.langs["c"] = flag.Bool("c", false, "generate plain C code")
 	cmd.langs["cpp"] = flag.Bool("cpp", false, "generate C++ code (at least C++14)")
 	cmd.langs["cpp11"] = flag.Bool("cpp11", false, "generate C++11 code")
+	cmd.langs["js"] = flag.Bool("js", false, "generate JS code")
 	cmd.langs["go"] = flag.Bool("go", false, "generate Go code")
 
 	// for c++ generator
@@ -135,6 +137,12 @@ func (cmd *command) ParseFlags(remainingPosArgs *[]string, options *generator.Op
 		options.CodeGenerator = &cgenerator.CGenerator{
 			PlainC:            false,
 			LangVersion:       11,
+			Optional:          *cmd.optional,
+			EmptyStringAsNull: *cmd.empty_string_as_null,
+			NaNAsNull:         *cmd.nan_as_null,
+		}
+	case "js":
+		options.CodeGenerator = &jsgenerator.JSGenerator{
 			Optional:          *cmd.optional,
 			EmptyStringAsNull: *cmd.empty_string_as_null,
 			NaNAsNull:         *cmd.nan_as_null,
