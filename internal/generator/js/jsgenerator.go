@@ -224,7 +224,7 @@ func format(source []byte) ([]byte, error) {
 
 	// Replace tabs with spaces
 	formatted := bytes.ReplaceAll(source, []byte("\t"), []byte("    "))
-	formatted = removeEmptyLines(formatted)
+	//formatted = removeEmptyLines(formatted)
 
 	return formatted, nil
 }
