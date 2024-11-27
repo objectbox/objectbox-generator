@@ -147,34 +147,6 @@ func renderStr(format string, params P) string {
 	return buffer.String()
 }
 
-func (mp *fbsField) FbOffsetAssignment() string {
-	var offsetVar = mp.Name + "_offset"
-	var fieldVar = "object." + mp.Name
-
-	params := P{"mp": mp,
-		"offsetVar": offsetVar,
-		"fieldVar":  fieldVar}
-
-	switch mp.ModelProperty.Type {
-	case model.PropertyTypeString:
-		return renderStr(`
-const {{ .offsetVar }} = fb.createString({{ .fieldVar }});
-`, params)
-	case model.PropertyTypeByteVector:
-		return renderStr(`
-const {{ .offsetVar }} = fb.createByteVector(Uint8Array.from({{ .fieldVar }}));
-`, params)
-	case model.PropertyTypeFloatVector:
-		return renderStr(`
-const {{ .offsetVar }} = fb.createByteVector(new Uint8Array(Float32Array.from({{ .fieldVar }})));
-`, params)
-	case model.PropertyTypeStringVector:
-		return "" // TODO: string vectors not supported right now
-	default:
-		return ""
-	}
-}
-
 // FbOffsetType returns a type used to read flatbuffers if this property is a complex type.
 // See also FbOffsetFactory().
 func (mp *fbsField) FbOffsetType() string {
