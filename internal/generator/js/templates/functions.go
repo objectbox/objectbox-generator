@@ -21,6 +21,7 @@
 package templates
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 	"text/template"
@@ -52,7 +53,7 @@ var funcMap = template.FuncMap{
 		// Get sorted flag names to avoid changes in the generated code. Go map iteration order is not guaranteed.
 		for flag, name := range model.PropertyFlagNames {
 			if val&flag != 0 { // if this flag is set
-				result = append(result, "OBXPropertyFlags_"+cccToUc(name))
+				result = append(result, "OBXPropertyFlags."+cccToUc(name))
 			}
 		}
 
@@ -71,7 +72,7 @@ var funcMap = template.FuncMap{
 		// Get sorted flag names to avoid changes in the generated code. Go map iteration order is not guaranteed.
 		for flag, name := range model.EntityFlagNames {
 			if val&flag != 0 { // if this flag is set
-				result = append(result, "OBXEntityFlags_"+cccToUc(name))
+				result = append(result, "OBXEntityFlags."+cccToUc(name))
 			}
 		}
 
@@ -90,7 +91,7 @@ var funcMap = template.FuncMap{
 		// Get sorted flag names to avoid changes in the generated code. Go map iteration order is not guaranteed.
 		for flag, name := range model.HnswFlagNames {
 			if val&flag != 0 { // if this flag is set
-				result = append(result, "OBXHnswFlags_"+name)
+				result = append(result, "OBXHnswFlags."+name)
 			}
 		}
 
@@ -101,7 +102,7 @@ var funcMap = template.FuncMap{
 		} else if len(result) > 0 {
 			return result[0]
 		}
-		return "OBXHnswFlags_NONE"
+		return "OBXHnswFlags.NONE"
 	},
 	"PrintComments": func(tabs int, comments []string) string {
 		var result string
@@ -114,4 +115,128 @@ var funcMap = template.FuncMap{
 		return optional == "std::unique_ptr" || optional == "std::shared_ptr"
 	},
 	"ToUpper": strings.ToUpper,
+
+	"AddField": func(property model.Property) string {
+		varName := "object." + property.Name
+		notSupportedComment := fmt.Sprint("// Not supported: ", model.PropertyTypeNames[property.Type])
+		isNullable := (property.Flags & model.PropertyFlagNotNull) == 0
+
+		var str string
+
+		if isNullable {
+			str += "if (" + varName + " != null) {\n"
+		}
+
+		switch property.Type {
+		case model.PropertyTypeBool:
+			varVal := fmt.Sprint(varName, " ? 1 : 0")
+			str += fmt.Sprintln("fbb.addFieldInt8(", property.FbSlot(), ", ", varVal, ");")
+		case model.PropertyTypeByte:
+			str += fmt.Sprintln("fbb.addFieldInt8(", property.FbSlot(), ", ", varName, ");")
+		case model.PropertyTypeShort:
+			str += fmt.Sprintln("fbb.addFieldInt16(", property.FbSlot(), ", ", varName, ");")
+		case model.PropertyTypeChar:
+			str += fmt.Sprintln("fbb.addFieldInt16(", property.FbSlot(), ", ", varName, ");")
+		case model.PropertyTypeInt:
+			str += fmt.Sprintln("fbb.addFieldInt32(", property.FbSlot(), ", ", varName, ");")
+		case model.PropertyTypeLong:
+			str += fmt.Sprintln("fbb.addFieldInt64(", property.FbSlot(), ", ", varName, ");")
+		case model.PropertyTypeFloat:
+			str += fmt.Sprintln("fbb.addFieldFloat32(", property.FbSlot(), ", ", varName, ");")
+		case model.PropertyTypeDouble:
+			str += fmt.Sprintln("fbb.addFieldFloat64(", property.FbSlot(), ", ", varName, ");")
+		case model.PropertyTypeString:
+			return "" // Not an inline field
+		case model.PropertyTypeDate:
+			str += fmt.Sprintln("fbb.addFieldInt64(", property.FbSlot(), ", ", varName, ");")
+		case model.PropertyTypeRelation:
+			return "" // Not an inline field
+		case model.PropertyTypeDateNano:
+			str += notSupportedComment
+		case model.PropertyTypeByteVector:
+			return "" // Not an inline field
+		case model.PropertyTypeFloatVector:
+			return "" // Not an inline field
+		case model.PropertyTypeStringVector:
+			return "" // Not an inline field
+		default:
+			panic("Unknown property type")
+		}
+
+		if isNullable {
+			str += "}"
+		}
+		return str
+	},
+
+	"CreateOffsetProperty": func(property model.Property) string {
+		offsetVar := property.Name + "_offset"
+		fieldVar := "object." + property.Name
+
+		switch property.Type {
+		case model.PropertyTypeString:
+			return fmt.Sprint("const ", offsetVar, " = fbb.createString(", fieldVar, ");")
+		case model.PropertyTypeByteVector:
+			return fmt.Sprint("const ", offsetVar, " = fbb.createByteVector(Uint8Array.from(", fieldVar, "));")
+		case model.PropertyTypeFloatVector:
+			return fmt.Sprint("const ", offsetVar, " = fbb.createByteVector(new Uint8Array(Float32Array.from(", fieldVar, ")));")
+		case model.PropertyTypeStringVector:
+			return "" // TODO: string vectors not supported right now
+		default:
+			return ""
+		}
+	},
+
+	"AddFieldOffset": func(property model.Property) string {
+		offsetVarName := property.Name + "_offset"
+		return fmt.Sprint("fbb.addFieldOffset(", property.FbSlot(), ",", offsetVarName, ");")
+	},
+
+	"WriteGetAssignOffset": func(property model.Property) string {
+		value, err := property.FbvTableOffset()
+		if err != nil {
+			panic(err)
+		}
+		offsetVarName := property.Name + "_offset"
+		return fmt.Sprint("const ", offsetVarName, " = bb.__offset(bbPos, ", value, ");")
+	},
+
+	"ReadProperty": func(property model.Property) string {
+		offsetVarName := property.Name + "_offset"
+		assignLhs := "outObject." + property.Name + " = "
+		switch property.Type {
+		case model.PropertyTypeBool:
+			return fmt.Sprint(assignLhs, "bb.readInt8(bbPos + ", offsetVarName, ") ? true : false;")
+		case model.PropertyTypeByte:
+			return fmt.Sprint(assignLhs, "bb.readInt8(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeShort:
+			return fmt.Sprint(assignLhs, "bb.readInt16(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeChar:
+			return fmt.Sprint(assignLhs, "bb.readInt16(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeInt:
+			return fmt.Sprint(assignLhs, "bb.readInt32(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeLong:
+			return fmt.Sprint(assignLhs, "bb.readInt64(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeFloat:
+			return fmt.Sprint(assignLhs, "bb.readFloat32(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeDouble:
+			return fmt.Sprint(assignLhs, "bb.readFloat64(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeString:
+			return fmt.Sprint(assignLhs, "bb.__string(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeDate:
+			return fmt.Sprint(assignLhs, "bb.readInt64(bbPos + ", offsetVarName, ");")
+		case model.PropertyTypeRelation:
+			return fmt.Sprint("// ", assignLhs, "PropertyTypeRelation") // TODO
+		case model.PropertyTypeDateNano:
+			return fmt.Sprint("// ", assignLhs, "PropertyTypeDateNano") // TODO
+		case model.PropertyTypeByteVector:
+			return fmt.Sprint("// ", assignLhs, "PropertyTypeByteVector") // TODO
+		case model.PropertyTypeFloatVector:
+			return fmt.Sprint("// ", assignLhs, "PropertyTypeFloatVector") // TODO
+		case model.PropertyTypeStringVector:
+			return fmt.Sprint("// ", assignLhs, "PropertyTypeStringVector") // TODO
+		default:
+			return ""
+		}
+	},
 }
