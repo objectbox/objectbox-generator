@@ -32,6 +32,7 @@ const (
 	HnswDistanceType_Cosine                  = "Cosine"
 	HnswDistanceType_DotProduct              = "DotProduct"
 	HnswDistanceType_DotProductNonNormalized = "DotProductNonNormalized"
+	HnswDistanceType_Geo					 = "Geo"
 )
 
 type HnswParams struct {
