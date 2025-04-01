@@ -35,5 +35,9 @@ table Annotated {
 	/// objectbox:index="hnsw"
 	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = DotProductNonNormalized
 	hnswVectorDotProductNN:[float];	
+
+    /// objectbox:index="hnsw"
+	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = Geo
+	hnswVectorGeo:[float];	
 }
 
