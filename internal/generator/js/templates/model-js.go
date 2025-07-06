@@ -33,7 +33,7 @@ import {
     OBXEntityFlags,
     OBXPropertyFlags,
     OBXPropertyType
-} from "objectbox/js/wasm.js";
+} from "#objectbox/js/wasm.js";
 
 /**
  * Initialize an ObjectBox model for all entities.

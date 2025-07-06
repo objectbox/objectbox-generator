@@ -239,4 +239,41 @@ var funcMap = template.FuncMap{
 			return ""
 		}
 	},
+
+	"OBXTypeToJSPropertyType": func(propertyType model.PropertyType) string {
+		switch propertyType {
+		case model.PropertyTypeBool:
+			return "BoolProperty"
+		case model.PropertyTypeByte:
+			return "ByteProperty"
+		case model.PropertyTypeShort:
+			return "ShortProperty"
+		case model.PropertyTypeInt:
+			return "IntProperty"
+		case model.PropertyTypeLong:
+			return "LongProperty"
+		case model.PropertyTypeFloat:
+			return "FloatProperty"
+		case model.PropertyTypeDouble:
+			return "DoubleProperty"
+		case model.PropertyTypeString:
+			return "StringProperty"
+		case model.PropertyTypeDate:
+			return "DateProperty"
+		case model.PropertyTypeFloatVector:
+			return "Float32VectorProperty"
+		// case model.PropertyTypeRelation:
+		// 	return "number" // or Relation type?
+		// case model.PropertyTypeDateNano:
+		// 	return "bigint" // or Date?
+		// case model.PropertyTypeByteVector, model.PropertyTypeFloatVector, model.PropertyTypeStringVector:
+		// 	return "Array" // or specific type?
+		default:
+			panic("Unknown property type")
+		}
+	},
+
+	"IsIdPropertyFlagPresent": func(flags model.PropertyFlags) bool {
+		return flags&model.PropertyFlagId != 0
+	},
 }

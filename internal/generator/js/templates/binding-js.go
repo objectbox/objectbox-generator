@@ -10,11 +10,35 @@ var JsBindingTemplate = template.Must(template.New("binding-js").Funcs(funcMap).
 {{define "field-value"}}{{if .Optional}}*{{end}}object.{{.JsName}}{{end -}}
 
 import * as fb from "flatbuffers";
+import * as properties from "#objectbox/js/model/Property.js";
 
 {{range $entity := .Model.EntitiesWithMeta}}
 export class {{ $entity.Name }} {
-	static id = {{ $entity.Id.GetId }};
-	static uid = {{ $entity.Id.GetUid }}n;
+
+    static entityInfo = new Map([
+		["id", {{ $entity.Id.GetId }}n],
+		["uid", {{ $entity.Id.GetUid }}n]
+	]);
+		
+	{{- range $property := $entity.Properties }}
+	static _{{ $property.Meta.JsName }} = new properties.{{ OBXTypeToJSPropertyType $property.Type }}({{ $property.Id.GetId }},{{ $property.Id.GetUid }}n);
+	{{- end }}
+
+	getId() {
+		{{- range $property := $entity.Properties }}
+		{{- if IsIdPropertyFlagPresent $property.Flags }}
+		return this.{{ $property.Meta.JsName }};
+		{{- end }}
+	    {{- end }}
+	}
+
+	setId(id) {
+		{{- range $property := $entity.Properties }}
+		{{- if IsIdPropertyFlagPresent $property.Flags }}
+		this.{{ $property.Meta.JsName }} = id;
+		{{- end }}
+		{{- end }}
+	}
 
 	/**
 	 * Encode the given {{ $entity.Name }} object into a Uint8Array (flatbuffers -formatted).
@@ -62,7 +86,7 @@ export class {{ $entity.Name }} {
 		{{ WriteGetAssignOffset $property }}
 		{{- end }}
 
-		if (outObject == null) outObject = {};
+		if (outObject == null) outObject = new {{ $entity.Name }}();
 		{{- range $property := $entity.Properties }}
 		{{ ReadProperty $property }}
 		{{- end }}
