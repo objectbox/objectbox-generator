@@ -58,6 +58,8 @@ type Property struct {
 	HnswParams     *HnswParams   `json:"hnswParams,omitempty"`
 	Meta           PropertyMeta  `json:"-"`
 	Comments       []string      `json:"-"`
+	ExternalName   string        `json:"externalName,omitempty"`
+	ExternalType   ExternalType  `json:"externalType,omitempty"`
 }
 
 // CreateProperty creates a property

@@ -60,6 +60,12 @@ static inline OBX_model* create_obx_model() {
 	{{- with $property.Flags}}
 	obx_model_property_flags(model, {{CorePropFlags .}});
 	{{- end -}}
+	{{- if $property.ExternalName}}
+	obx_model_property_external_name(model, "{{ $property.ExternalName }}");
+	{{- end -}}
+	{{- if $property.ExternalType}}
+	obx_model_property_external_type(model, {{CoreExternalTypes $property.ExternalType}});
+	{{- end -}}
 	{{- if $property.HnswParams -}}
 	{{- if $property.HnswParams.Dimensions}}
 	obx_model_property_index_hnsw_dimensions(model, {{$property.HnswParams.Dimensions}});

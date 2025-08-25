@@ -39,10 +39,11 @@ type uid = uint64
 type id = uint32
 
 var supportedEntityAnnotations = map[string]bool{
-	"name":      false, // TODO
-	"sync":      true,
-	"transient": true,
-	"uid":       true,
+	"name":         false, // TODO
+	"sync":         true,
+	"transient":    true,
+	"uid":          true,
+	"external-name": true,
 }
 
 var supportedPropertyAnnotations = map[string]bool{
@@ -60,6 +61,8 @@ var supportedPropertyAnnotations = map[string]bool{
 	"type":         true,
 	"uid":          true,
 	"unique":       true,
+	"external-name": true,
+	"external-type": true,
 }
 
 // astReader contains information about the processed set of Entities

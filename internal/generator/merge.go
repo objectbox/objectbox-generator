@@ -275,6 +275,8 @@ func mergeModelProperty(currentProperty *model.Property, storedProperty *model.P
 	storedProperty.Type = currentProperty.Type
 	storedProperty.Flags = currentProperty.Flags
 	storedProperty.HnswParams = currentProperty.HnswParams
+	storedProperty.ExternalName = currentProperty.ExternalName
+	storedProperty.ExternalType = currentProperty.ExternalType
 
 	return nil
 }

@@ -121,6 +121,13 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 	}
 
+	if a["external-name"] != nil {
+		field.ModelProperty.ExternalName = a["external-name"].Value
+	}
+	if a["external-type"] != nil {
+		field.ModelProperty.ExternalType = model.ExternalTypeValues[a["external-type"].Value]
+	}
+
 	if a["index"] != nil {
 		switch strings.ToLower(a["index"].Value) {
 		case "":
