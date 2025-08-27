@@ -27,14 +27,15 @@ import (
 
 // StandaloneRelation in a model
 type StandaloneRelation struct {
-	Id         IdUid                  `json:"id"`
-	Name       string                 `json:"name"`
-	Target     *Entity                `json:"-"` // TODO consider changing to TargetName, nothing else seems to be used.
-	TargetId   IdUid                  `json:"targetId"`
-	UidRequest bool                   `json:"-"` // used when the user gives an empty uid annotation // TODO test
-	Meta       StandaloneRelationMeta `json:"-"`
-
-	entity *Entity
+	Id           IdUid                  `json:"id"`
+	Name         string                 `json:"name"`
+	Target       *Entity                `json:"-"` // TODO consider changing to TargetName, nothing else seems to be used.
+	TargetId     IdUid                  `json:"targetId"`
+	UidRequest   bool                   `json:"-"` // used when the user gives an empty uid annotation // TODO test
+	Meta         StandaloneRelationMeta `json:"-"`
+	entity       *Entity
+	ExternalName string					`json:"externalName"`
+	ExternalType string					`json:"externalType"`
 }
 
 // CreateStandaloneRelation creates a standalone relation

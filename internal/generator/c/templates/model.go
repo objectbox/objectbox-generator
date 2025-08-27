@@ -99,6 +99,12 @@ static inline OBX_model* create_obx_model() {
 	{{- end}}
 	{{range $relation := $entity.Relations -}}
     obx_model_relation(model, {{$relation.Id.GetId}}, {{$relation.Id.GetUid}}, {{$relation.Target.Id.GetId}}, {{$relation.Target.Id.GetUid}});
+	{{- if $relation.ExternalName}}
+	obx_model_relation_external_name(model, "{{$relation.ExternalName}}");
+	{{- end -}}
+	{{- if $relation.ExternalType}}
+	obx_model_relation_external_type(model, OBXVectorDistanceType_{{$relation.ExternalType}});
+	{{- end -}}
 	{{end -}}
 	obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}});
 	{{end}}

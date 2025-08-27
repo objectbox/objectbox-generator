@@ -88,7 +88,7 @@ func ParseAnnotations(str string, annotations *map[string]*Annotation, supported
 				s.value.Details = make(map[string]*Annotation)
 				var supportedDetails map[string]bool
 				if s.name == "relation" {
-					supportedDetails = map[string]bool{"to": true, "name": true, "uid": true}
+					supportedDetails = map[string]bool{"to": true, "name": true, "uid": true, "external-name": true, "external-type": true}
 				} else if s.name == "sync" {
 					supportedDetails = map[string]bool{"sharedglobalids": true}
 				} else if s.name == "id" {

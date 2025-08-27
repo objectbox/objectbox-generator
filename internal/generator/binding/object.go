@@ -131,6 +131,14 @@ func (object *Object) AddRelation(details map[string]*Annotation) (*model.Standa
 		return nil, fmt.Errorf("to annotation value must not be empty on relation %s - specify target entity", relation.Name)
 	}
 
+	if details["external-name"] != nil {
+		relation.ExternalName = details["external-name"].Value
+	}
+
+	if details["external-type"] != nil {
+		relation.ExternalType = details["external-type"].Value
+	}
+
 	// NOTE: we don't need an actual entity pointer, it's resolved during stored model merging.
 	relation.Target = &model.Entity{Name: details["to"].Value}
 
