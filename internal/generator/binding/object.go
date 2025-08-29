@@ -88,6 +88,10 @@ func (object *Object) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 	}
 
+	if a["external-name"] != nil {
+		object.ModelEntity.ExternalName = a["external-name"].Value
+	}
+
 	if a["uid"] != nil {
 		if len(a["uid"].Value) == 0 {
 			// in case the user doesn't provide `objectbox:"uid"` value, it's considered in-process of setting up UID
@@ -136,7 +140,7 @@ func (object *Object) AddRelation(details map[string]*Annotation) (*model.Standa
 	}
 
 	if details["external-type"] != nil {
-		relation.ExternalType = details["external-type"].Value
+		relation.ExternalType = model.ExternalTypeValues[details["external-type"].Value]
 	}
 
 	// NOTE: we don't need an actual entity pointer, it's resolved during stored model merging.

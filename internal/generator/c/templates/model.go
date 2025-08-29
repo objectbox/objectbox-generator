@@ -55,6 +55,9 @@ static inline OBX_model* create_obx_model() {
 	{{- with $entity.Flags}}
 	obx_model_entity_flags(model, {{CoreEntityFlags .}});
 	{{- end -}}
+	{{- if $entity.ExternalName}}
+	obx_model_entity_external_name(model, "{{ $entity.ExternalName }}");
+	{{- end -}}
 	{{range $property := $entity.Properties}}
 	obx_model_property(model, "{{$property.Name}}", OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}});
 	{{- with $property.Flags}}
@@ -103,7 +106,7 @@ static inline OBX_model* create_obx_model() {
 	obx_model_relation_external_name(model, "{{$relation.ExternalName}}");
 	{{- end -}}
 	{{- if $relation.ExternalType}}
-	obx_model_relation_external_type(model, OBXVectorDistanceType_{{$relation.ExternalType}});
+	obx_model_relation_external_type(model, {{CoreExternalTypes $relation.ExternalType}});
 	{{- end -}}
 	{{end -}}
 	obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}});

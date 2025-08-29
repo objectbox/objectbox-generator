@@ -39,6 +39,7 @@ type Entity struct {
 	CurrentlyPresent bool                  `json:"-"`
 	Comments         []string              `json:"-"`
 	Model            *ModelInfo            `json:"-"`
+	ExternalName     string                `json:"externalName,omitempty"`
 }
 
 // CreateEntity constructs an Entity

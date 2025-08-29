@@ -35,7 +35,7 @@ type StandaloneRelation struct {
 	Meta         StandaloneRelationMeta `json:"-"`
 	entity       *Entity
 	ExternalName string					`json:"externalName"`
-	ExternalType string					`json:"externalType"`
+	ExternalType ExternalType			`json:"externalType"`
 }
 
 // CreateStandaloneRelation creates a standalone relation

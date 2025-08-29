@@ -103,8 +103,8 @@ var funcMap = template.FuncMap{
 		}
 		return "OBXHnswFlags_NONE"
 	},
-	"CoreExternalTypes": func (val model.ExternalType) string {
-		return "OBXExternalTypePropertyType_" + model.ExternalTypeNames[val]
+	"CoreExternalTypes": func(val model.ExternalType) string {
+		return "OBXExternalPropertyType_" + model.ExternalTypeNames[val]
 	},
 	"PrintComments": func(tabs int, comments []string) string {
 		var result string
