@@ -92,6 +92,9 @@ table Annotated {
     /// objectbox:index="hnsw"
 	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = Geo
 	hnswVectorGeo:[float];
+    /// objectbox:external-type=Uuid
+    /// objectbox:external-name=MyUuidExtProperty
+    externalUuid:string;
 }
 
 /// objectbox: transient
@@ -108,4 +111,19 @@ table TSDateNano {
 	id           : uint64	;
 	/// objectbox:id-companion,date-nano
 	timestamp    : int64	;
+}
+
+/// objectbox:relation(name=children,to=ChildWithExtProp,external-name=ChildWithExtPropName, external-type=JavaScript)
+table ParentWithExtProp {
+    id: ulong;
+    /// objectbox: external-type=Json
+    jsonProp: string;
+    /// objectbox: external-name=dateCreatedExtName
+    dateCreated: ulong;
+}
+
+/// objectbox:external-name=ChildEntityExternalName
+table ChildWithExtProp {
+    id: ulong;
+    text: string;
 }

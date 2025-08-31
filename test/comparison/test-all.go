@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -190,7 +191,18 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 	assert.NoErr(t, err)
 
 	if 0 != bytes.Compare(content, contentExpected) {
-		assert.Failf(t, "generated file %s is not the same as %s", file, expectedFile)
+		//assert.Failf(t, "generated file %s is not the same as %s", file, expectedFile)
+	}
+
+	// Use git diff to compare the files
+	cmd := exec.Command("git", "diff", "--no-index", file, expectedFile)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+	err = cmd.Run()
+
+	if err != nil {
+		assert.Failf(t, "generated file %s is not the same as %s\n\n%s", file, expectedFile, out.String())
 	}
 }
 
@@ -234,6 +246,7 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 			InPath:        sourceFile,
 			OutPath:       genDir,
 		}
+		println(genDir)
 		err = errorTransformer(generator.Process(options))
 
 		// handle negative test

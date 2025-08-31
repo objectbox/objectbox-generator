@@ -112,6 +112,7 @@ struct Annotated {
     std::vector<float> hnswVectorDot;
     std::vector<float> hnswVectorDotNonNormalized;
     std::vector<float> hnswVectorGeo;
+    std::string externalUuid;
 
     struct _OBX_MetaInfo {
         static constexpr obx_schema_id entityId() { return 2; }
@@ -147,8 +148,79 @@ struct Annotated_ {
     static const obx::Property<Annotated, OBXPropertyType_FloatVector> hnswVectorDot;
     static const obx::Property<Annotated, OBXPropertyType_FloatVector> hnswVectorDotNonNormalized;
     static const obx::Property<Annotated, OBXPropertyType_FloatVector> hnswVectorGeo;
+    static const obx::Property<Annotated, OBXPropertyType_String> externalUuid;
     static const obx::RelationStandalone<Annotated, Typeful> typefuls;
     static const obx::RelationStandalone<Annotated, Typeful> m2m;
+};
+}  // namespace ns
+
+
+namespace ns {
+struct ChildWithExtProp_;
+
+struct ChildWithExtProp {
+    obx_id id;
+    std::string text;
+
+    struct _OBX_MetaInfo {
+        static constexpr obx_schema_id entityId() { return 3; }
+    
+        static void setObjectId(ChildWithExtProp& object, obx_id newId) { object.id = newId; }
+    
+        /// Write given object to the FlatBufferBuilder
+        static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ChildWithExtProp& object);
+    
+        /// Read an object from a valid FlatBuffer
+        static ChildWithExtProp fromFlatBuffer(const void* data, size_t size);
+    
+        /// Read an object from a valid FlatBuffer
+        static std::unique_ptr<ChildWithExtProp> newFromFlatBuffer(const void* data, size_t size);
+    
+        /// Read an object from a valid FlatBuffer
+        static void fromFlatBuffer(const void* data, size_t size, ChildWithExtProp& outObject);
+    };
+};
+
+struct ChildWithExtProp_ {
+    static const obx::Property<ChildWithExtProp, OBXPropertyType_Long> id;
+    static const obx::Property<ChildWithExtProp, OBXPropertyType_String> text;
+};
+}  // namespace ns
+
+namespace ns { struct ChildWithExtProp; }
+
+namespace ns {
+struct ParentWithExtProp_;
+
+struct ParentWithExtProp {
+    obx_id id;
+    std::string jsonProp;
+    uint64_t dateCreated;
+
+    struct _OBX_MetaInfo {
+        static constexpr obx_schema_id entityId() { return 4; }
+    
+        static void setObjectId(ParentWithExtProp& object, obx_id newId) { object.id = newId; }
+    
+        /// Write given object to the FlatBufferBuilder
+        static void toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ParentWithExtProp& object);
+    
+        /// Read an object from a valid FlatBuffer
+        static ParentWithExtProp fromFlatBuffer(const void* data, size_t size);
+    
+        /// Read an object from a valid FlatBuffer
+        static std::unique_ptr<ParentWithExtProp> newFromFlatBuffer(const void* data, size_t size);
+    
+        /// Read an object from a valid FlatBuffer
+        static void fromFlatBuffer(const void* data, size_t size, ParentWithExtProp& outObject);
+    };
+};
+
+struct ParentWithExtProp_ {
+    static const obx::Property<ParentWithExtProp, OBXPropertyType_Long> id;
+    static const obx::Property<ParentWithExtProp, OBXPropertyType_String> jsonProp;
+    static const obx::Property<ParentWithExtProp, OBXPropertyType_Long> dateCreated;
+    static const obx::RelationStandalone<ParentWithExtProp, ChildWithExtProp> children;
 };
 }  // namespace ns
 
@@ -161,7 +233,7 @@ struct TSDate {
     int64_t timestamp;
 
     struct _OBX_MetaInfo {
-        static constexpr obx_schema_id entityId() { return 3; }
+        static constexpr obx_schema_id entityId() { return 5; }
     
         static void setObjectId(TSDate& object, obx_id newId) { object.id = newId; }
     
@@ -194,7 +266,7 @@ struct TSDateNano {
     int64_t timestamp;
 
     struct _OBX_MetaInfo {
-        static constexpr obx_schema_id entityId() { return 4; }
+        static constexpr obx_schema_id entityId() { return 6; }
     
         static void setObjectId(TSDateNano& object, obx_id newId) { object.id = newId; }
     
