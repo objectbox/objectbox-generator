@@ -34,8 +34,8 @@ type StandaloneRelation struct {
 	UidRequest   bool                   `json:"-"` // used when the user gives an empty uid annotation // TODO test
 	Meta         StandaloneRelationMeta `json:"-"`
 	entity       *Entity
-	ExternalName string					`json:"externalName"`
-	ExternalType ExternalType			`json:"externalType"`
+	ExternalName string					`json:"externalName,omitempty"`
+	ExternalType ExternalType			`json:"externalType,omitempty"`
 }
 
 // CreateStandaloneRelation creates a standalone relation
