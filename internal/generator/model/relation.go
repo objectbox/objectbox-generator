@@ -30,12 +30,12 @@ type StandaloneRelation struct {
 	Id           IdUid                  `json:"id"`
 	Name         string                 `json:"name"`
 	Target       *Entity                `json:"-"` // TODO consider changing to TargetName, nothing else seems to be used.
+	ExternalName string					`json:"externalName,omitempty"`
+	ExternalType ExternalType			`json:"externalType,omitempty"`
 	TargetId     IdUid                  `json:"targetId"`
 	UidRequest   bool                   `json:"-"` // used when the user gives an empty uid annotation // TODO test
 	Meta         StandaloneRelationMeta `json:"-"`
 	entity       *Entity
-	ExternalName string					`json:"externalName,omitempty"`
-	ExternalType ExternalType			`json:"externalType,omitempty"`
 }
 
 // CreateStandaloneRelation creates a standalone relation

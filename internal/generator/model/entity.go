@@ -31,6 +31,7 @@ type Entity struct {
 	Id               IdUid                 `json:"id"`
 	LastPropertyId   IdUid                 `json:"lastPropertyId"`
 	Name             string                `json:"name"`
+	ExternalName     string                `json:"externalName,omitempty"`
 	Flags            EntityFlags           `json:"flags,omitempty"`
 	Properties       []*Property           `json:"properties"`
 	Relations        []*StandaloneRelation `json:"relations,omitempty"`
@@ -39,7 +40,6 @@ type Entity struct {
 	CurrentlyPresent bool                  `json:"-"`
 	Comments         []string              `json:"-"`
 	Model            *ModelInfo            `json:"-"`
-	ExternalName     string                `json:"externalName,omitempty"`
 }
 
 // CreateEntity constructs an Entity

@@ -51,6 +51,8 @@ type Property struct {
 	Name           string        `json:"name"`
 	IndexId        *IdUid        `json:"indexId,omitempty"` // a pointer because it may be nil
 	Type           PropertyType  `json:"type"`
+	ExternalName   string        `json:"externalName,omitempty"`
+	ExternalType   ExternalType  `json:"externalType,omitempty"`
 	Flags          PropertyFlags `json:"flags,omitempty"`
 	RelationTarget string        `json:"relationTarget,omitempty"`
 	Entity         *Entity       `json:"-"`
@@ -58,8 +60,6 @@ type Property struct {
 	HnswParams     *HnswParams   `json:"hnswParams,omitempty"`
 	Meta           PropertyMeta  `json:"-"`
 	Comments       []string      `json:"-"`
-	ExternalName   string        `json:"externalName,omitempty"`
-	ExternalType   ExternalType  `json:"externalType,omitempty"`
 }
 
 // CreateProperty creates a property
