@@ -143,7 +143,7 @@ var cmakeListsTpl = template.Must(template.New("CMakeLists.txt").
 		},
 	}).
 	Parse(`
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 {{if .Standard}}set(CMAKE_C{{if .IsCpp}}XX{{end}}_STANDARD {{.Standard}}){{end}}
 project({{.Name}} C{{if .IsCpp}}XX{{end}})
 
