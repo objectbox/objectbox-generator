@@ -118,10 +118,19 @@ func ({{$entityNameCamel}}_EntityInfo) AddToModel(model *objectbox.Model) {
     {{with $entity.Flags -}}
 		model.EntityFlags({{.}})
 	{{end -}}
+	{{with $entity.ExternalName -}}
+		model.EntityExternalName("{{.}}")
+	{{end -}}
     {{range $property := $entity.Properties -}}
     model.Property("{{$property.Name}}", {{$property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}})
     {{with $property.Flags -}}
 		model.PropertyFlags({{.}})
+	{{end -}}
+	{{with $property.ExternalName -}}
+		model.PropertyExternalName("{{$property.ExternalName}}")
+	{{end -}}
+	{{with $property.ExternalType -}}
+		model.PropertyExternalType({{$property.ExternalType}})
 	{{end -}}
 	{{if $property.RelationTarget}}model.PropertyRelation("{{$property.RelationTarget}}", {{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}})
 	{{else if $property.IndexId}}model.PropertyIndex({{$property.IndexId.GetId}}, {{$property.IndexId.GetUid}})
@@ -130,6 +139,12 @@ func ({{$entityNameCamel}}_EntityInfo) AddToModel(model *objectbox.Model) {
     model.EntityLastPropertyId({{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}})
 	{{range $relation := $entity.Relations -}}
     model.Relation({{$relation.Id.GetId}}, {{$relation.Id.GetUid}}, {{$relation.Target.Name}}Binding.Id, {{$relation.Target.Name}}Binding.Uid)
+	{{with $relation.ExternalName -}}
+		model.RelationExternalName("{{$relation.ExternalName}}")
+	{{end -}}
+	{{with $relation.ExternalType -}}
+		model.RelationExternalType({{$relation.ExternalType}})
+	{{end -}}
     {{end -}}
 }
 
