@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-fccVersion=v0.6.0
+#fccVersion=v0.6.2
+fccVersion=f064cefb2034d1e7407407ce32a6085c322212a7 # We need CMake 4.x support, for which no release exists yet
 fccRepo=github.com/dvidelabs/flatcc
 
 scriptDir=$(dirname "${BASH_SOURCE[0]}")
