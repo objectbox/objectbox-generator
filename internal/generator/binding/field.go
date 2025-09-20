@@ -208,10 +208,10 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 		distanceType := a["hnsw-distance-type"].Value
 		switch distanceType {
-		case "Unknown", "Euclidean", "Cosine", "DotProduct", "DotProductNonNormalized":
+		case "Unknown", "Euclidean", "Cosine", "DotProduct", "DotProductNonNormalized", "Geo":
 			break
 		default:
-			return fmt.Errorf("Annotation 'hnsw-distance-type' value type mismatch: must be one of 'Unknown', 'Euclidean', 'Cosine', 'DotProduct', 'DotPropductNonNormalized'")
+			return fmt.Errorf("Annotation 'hnsw-distance-type' value type mismatch: must be one of 'Unknown', 'Euclidean', 'Cosine', 'DotProduct', 'DotProductNonNormalized', 'Geo'")
 		}
 		field.ModelProperty.HnswParams.DistanceType = distanceType
 	}

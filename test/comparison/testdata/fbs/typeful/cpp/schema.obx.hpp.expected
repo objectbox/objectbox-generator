@@ -111,6 +111,7 @@ struct Annotated {
     std::vector<float> hnswVectorCosine;
     std::vector<float> hnswVectorDot;
     std::vector<float> hnswVectorDotNonNormalized;
+    std::vector<float> hnswVectorGeo;
 
     struct _OBX_MetaInfo {
         static constexpr obx_schema_id entityId() { return 2; }
@@ -145,6 +146,7 @@ struct Annotated_ {
     static const obx::Property<Annotated, OBXPropertyType_FloatVector> hnswVectorCosine;
     static const obx::Property<Annotated, OBXPropertyType_FloatVector> hnswVectorDot;
     static const obx::Property<Annotated, OBXPropertyType_FloatVector> hnswVectorDotNonNormalized;
+    static const obx::Property<Annotated, OBXPropertyType_FloatVector> hnswVectorGeo;
     static const obx::RelationStandalone<Annotated, Typeful> typefuls;
     static const obx::RelationStandalone<Annotated, Typeful> m2m;
 };

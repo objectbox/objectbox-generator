@@ -157,6 +157,7 @@ const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::
 const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVectorCosine(11);
 const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVectorDot(12);
 const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVectorDotNonNormalized(13);
+const obx::Property<ns::Annotated, OBXPropertyType_FloatVector> ns::Annotated_::hnswVectorGeo(14);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::typefuls(1);
 const obx::RelationStandalone<ns::Annotated, Typeful> ns::Annotated_::m2m(2);
 
@@ -171,6 +172,7 @@ void ns::Annotated::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& 
     auto offsethnswVectorCosine = fbb.CreateVector(object.hnswVectorCosine);
     auto offsethnswVectorDot = fbb.CreateVector(object.hnswVectorDot);
     auto offsethnswVectorDotNonNormalized = fbb.CreateVector(object.hnswVectorDotNonNormalized);
+    auto offsethnswVectorGeo = fbb.CreateVector(object.hnswVectorGeo);
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
     fbb.AddElement(4, object.identifier);
     fbb.AddOffset(6, offsetfullName);
@@ -185,6 +187,7 @@ void ns::Annotated::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& 
     fbb.AddOffset(24, offsethnswVectorCosine);
     fbb.AddOffset(26, offsethnswVectorDot);
     fbb.AddOffset(28, offsethnswVectorDotNonNormalized);
+    fbb.AddOffset(30, offsethnswVectorGeo);
     flatbuffers::Offset<flatbuffers::Table> offset;
     offset.o = fbb.EndTable(fbStart);
     fbb.Finish(offset);
@@ -279,6 +282,14 @@ void ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::
             outObject.hnswVectorDotNonNormalized.assign(ptr->begin(), ptr->end());
         } else {
             outObject.hnswVectorDotNonNormalized.clear();
+        }
+    }
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::Vector<float>*>(30);
+        if (ptr) { 
+            outObject.hnswVectorGeo.assign(ptr->begin(), ptr->end());
+        } else {
+            outObject.hnswVectorGeo.clear();
         }
     }
 }

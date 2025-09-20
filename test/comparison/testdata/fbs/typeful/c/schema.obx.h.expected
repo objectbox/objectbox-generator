@@ -127,6 +127,8 @@ typedef struct ns_Annotated {
     size_t hnswVectorDot_len;
     float* hnswVectorDotNonNormalized;
     size_t hnswVectorDotNonNormalized_len;
+    float* hnswVectorGeo;
+    size_t hnswVectorGeo_len;
     
 } ns_Annotated;
 
@@ -145,6 +147,7 @@ enum ns_Annotated_ {
     ns_Annotated_PROP_ID_hnswVectorCosine = 11,
     ns_Annotated_PROP_ID_hnswVectorDot = 12,
     ns_Annotated_PROP_ID_hnswVectorDotNonNormalized = 13,
+    ns_Annotated_PROP_ID_hnswVectorGeo = 14,
     ns_Annotated_REL_ID_typefuls = 1,
     ns_Annotated_REL_ID_m2m = 2,
 };
@@ -651,8 +654,9 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
     flatcc_builder_ref_t offset_hnswVectorCosine = !object->hnswVectorCosine ? 0 : flatcc_builder_create_vector(B, object->hnswVectorCosine, object->hnswVectorCosine_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
     flatcc_builder_ref_t offset_hnswVectorDot = !object->hnswVectorDot ? 0 : flatcc_builder_create_vector(B, object->hnswVectorDot, object->hnswVectorDot_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
     flatcc_builder_ref_t offset_hnswVectorDotNonNormalized = !object->hnswVectorDotNonNormalized ? 0 : flatcc_builder_create_vector(B, object->hnswVectorDotNonNormalized, object->hnswVectorDotNonNormalized_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
+    flatcc_builder_ref_t offset_hnswVectorGeo = !object->hnswVectorGeo ? 0 : flatcc_builder_create_vector(B, object->hnswVectorGeo, object->hnswVectorGeo_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
 
-    if (flatcc_builder_start_table(B, 13) != 0) return false;
+    if (flatcc_builder_start_table(B, 14) != 0) return false;
 
     void* p;
     flatcc_builder_ref_t* _p;
@@ -720,6 +724,11 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
     if (offset_hnswVectorDotNonNormalized) {
         if (!(_p = flatcc_builder_table_add_offset(B, 12))) return false;
         *_p = offset_hnswVectorDotNonNormalized;
+    }
+    
+    if (offset_hnswVectorGeo) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 13))) return false;
+        *_p = offset_hnswVectorGeo;
     }
     
     flatcc_builder_ref_t ref;
@@ -886,6 +895,21 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
         out_object->hnswVectorDotNonNormalized = NULL;
         out_object->hnswVectorDotNonNormalized_len = 0;
     }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 13))) {
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->hnswVectorGeo = (float*) malloc(len * sizeof(float));
+        if (out_object->hnswVectorGeo == NULL) {
+            ns_Annotated_free_pointers(out_object);
+            return false;
+        }
+        out_object->hnswVectorGeo_len = len;
+        memcpy((void*)out_object->hnswVectorGeo, (const void*)val, sizeof(float)*len);
+        
+    } else {
+        out_object->hnswVectorGeo = NULL;
+        out_object->hnswVectorGeo_len = 0;
+    }
     return true;
 }
 
@@ -949,6 +973,13 @@ static void ns_Annotated_free_pointers(ns_Annotated* object) {
         object->hnswVectorDotNonNormalized_len = 0;
     } else {
         assert(object->hnswVectorDotNonNormalized_len == 0);
+    }
+    if (object->hnswVectorGeo) {
+        free(object->hnswVectorGeo);
+        object->hnswVectorGeo = NULL;
+        object->hnswVectorGeo_len = 0;
+    } else {
+        assert(object->hnswVectorGeo_len == 0);
     }
     
 }

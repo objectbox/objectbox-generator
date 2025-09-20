@@ -143,7 +143,7 @@
     },
     {
       "id": "2:2259404117704393152",
-      "lastPropertyId": "13:7561811714888168464",
+      "lastPropertyId": "14:8902041070398994519",
       "name": "AnnotatedEntity",
       "flags": 2,
       "properties": [
@@ -256,16 +256,27 @@
             "dimensions": 2,
             "distance-type": "DotProductNonNormalized"
           }
+        },
+        {
+          "id": "14:8902041070398994519",
+          "name": "hnswVectorGeo",
+          "indexId": "13:303089054982227392",
+          "type": 28,
+          "flags": 8,
+          "hnswParams": {
+            "dimensions": 2,
+            "distance-type": "Geo"
+          }
         }
       ],
       "relations": [
         {
-          "id": "1:8902041070398994519",
+          "id": "1:7338728586234333996",
           "name": "typefuls",
           "targetId": "1:8717895732742165505"
         },
         {
-          "id": "2:303089054982227392",
+          "id": "2:5392504858645185670",
           "name": "m2m",
           "targetId": "1:8717895732742165505"
         }
@@ -273,27 +284,8 @@
     },
     {
       "id": "3:6050128673802995827",
-      "lastPropertyId": "2:5392504858645185670",
-      "name": "TSDate",
-      "properties": [
-        {
-          "id": "1:7338728586234333996",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:5392504858645185670",
-          "name": "timestamp",
-          "type": 10,
-          "flags": 16384
-        }
-      ]
-    },
-    {
-      "id": "4:501233450539197794",
       "lastPropertyId": "2:406703151708498928",
-      "name": "TSDateNano",
+      "name": "TSDate",
       "properties": [
         {
           "id": "1:7847956203786849690",
@@ -304,6 +296,25 @@
         {
           "id": "2:406703151708498928",
           "name": "timestamp",
+          "type": 10,
+          "flags": 16384
+        }
+      ]
+    },
+    {
+      "id": "4:501233450539197794",
+      "lastPropertyId": "2:5837486892148644279",
+      "name": "TSDateNano",
+      "properties": [
+        {
+          "id": "1:4756106358532488297",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5837486892148644279",
+          "name": "timestamp",
           "type": 12,
           "flags": 16384
         }
@@ -311,8 +322,8 @@
     }
   ],
   "lastEntityId": "4:501233450539197794",
-  "lastIndexId": "12:3959279844101328186",
-  "lastRelationId": "2:303089054982227392",
+  "lastIndexId": "13:303089054982227392",
+  "lastRelationId": "2:5392504858645185670",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
