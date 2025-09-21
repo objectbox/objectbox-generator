@@ -41,13 +41,30 @@ function(configureAndBuild multi generator)
         set(srcdir ${CMAKE_CURRENT_LIST_DIR}/${project})
         foreach(insource TRUE;FALSE)
             if (insource)
-                set(variant "insource")
+                set(variant "in-src")
                 set(configureFlags "-DDO_INSOURCE=TRUE")
             else()
                 set(variant "default")
                 set(configureFlags)
             endif()
-            set(builddir ${CMAKE_CURRENT_LIST_DIR}/build/${generatorLabel}/${project}/${variant})
+            if(WIN32)
+                # Shorten build directory path to avoid Windows 260-character path limit
+                # Use abbreviated generator name and shorter structure
+                string(REPLACE "Visual_Studio_18_2026" "VS2026" generatorLabel_short ${generatorLabel})
+                string(REPLACE "Visual_Studio_17_2022" "VS2022" generatorLabel_short ${generatorLabel_short})
+                string(REPLACE "Visual_Studio_16_2019" "VS2019" generatorLabel_short ${generatorLabel_short})
+                string(REPLACE "Visual_Studio_15_2017" "VS2017" generatorLabel_short ${generatorLabel_short})
+                # get path of CMAKE_CURRENT_LIST_DIR, but 4 levels up (test/integration/cmake/projects)
+                set(build_root ${CMAKE_CURRENT_LIST_DIR})
+                get_filename_component(build_root ${build_root} DIRECTORY)  # up 1
+                get_filename_component(build_root ${build_root} DIRECTORY)  # up 2
+                get_filename_component(build_root ${build_root} DIRECTORY)  # up 3
+                get_filename_component(build_root ${build_root} DIRECTORY)  # up 4
+                # Use the project top-level as base for the Windows short build path
+                set(builddir ${build_root}/build/${generatorLabel_short}/${project}/${variant})
+            else()
+                set(builddir ${CMAKE_CURRENT_LIST_DIR}/build/${generatorLabel}/${project}/${variant})
+            endif()
             # Remove all auto-generated files from sources
             file(GLOB_RECURSE auto_generated "*/objectbox-model.*" "*/*.obx.*")
             list(FILTER auto_generated EXCLUDE REGEX "/build/")
