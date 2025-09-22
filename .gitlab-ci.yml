@@ -43,9 +43,9 @@ bt:linux-x64:go1.22:
     paths:
       - objectbox-generator-Linux.zip
 
-bt:mac-x64:
+bt:mac:
   extends: [ .build ]
-  tags: [ mac, x64 ]
+  tags: [ mac, go, xcode ]
   after_script:
     - zip objectbox-generator-macOS.zip objectbox-generator
   artifacts:
