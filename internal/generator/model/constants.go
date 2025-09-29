@@ -117,72 +117,72 @@ var PropertyTypeNames = map[PropertyType]string{
 type ExternalType int32
 
 const (
-	ExternalTypeNone       ExternalType = 0
-	ExternalTypeInt128     ExternalType = 100
-	ExternalTypeUuid       ExternalType = 102
-	ExternalTypeDecimal128 ExternalType = 103
-	ExternalTypeUuidString ExternalType = 104
-	ExternalTypeUuidV4     ExternalType = 105
-	ExternalTypeUuidV4String     ExternalType = 106
-	ExternalTypeFlexMap    ExternalType = 107
-	ExternalTypeFlexVector ExternalType = 108
-	ExternalTypeJson       ExternalType = 109
-	ExternalTypeBson       ExternalType = 110
-	ExternalTypeJavaScript ExternalType = 111
-	ExternalTypeJsonToNative ExternalType = 112
-	ExternalTypeInt128Vector ExternalType = 116
-	ExternalTypeUuidVector ExternalType = 118
-	ExternalTypeMongoId    ExternalType = 123
-	ExternalTypeMongoIdVector ExternalType = 124
+	ExternalTypeNone           ExternalType = 0
+	ExternalTypeInt128         ExternalType = 100
+	ExternalTypeUuid           ExternalType = 102
+	ExternalTypeDecimal128     ExternalType = 103
+	ExternalTypeUuidString     ExternalType = 104
+	ExternalTypeUuidV4         ExternalType = 105
+	ExternalTypeUuidV4String   ExternalType = 106
+	ExternalTypeFlexMap        ExternalType = 107
+	ExternalTypeFlexVector     ExternalType = 108
+	ExternalTypeJson           ExternalType = 109
+	ExternalTypeBson           ExternalType = 110
+	ExternalTypeJavaScript     ExternalType = 111
+	ExternalTypeJsonToNative   ExternalType = 112
+	ExternalTypeInt128Vector   ExternalType = 116
+	ExternalTypeUuidVector     ExternalType = 118
+	ExternalTypeMongoId        ExternalType = 123
+	ExternalTypeMongoIdVector  ExternalType = 124
 	ExternalTypeMongoTimestamp ExternalType = 125
-	ExternalTypeMongoBinary ExternalType = 126
-	ExternalTypeMongoRegex  ExternalType = 127
+	ExternalTypeMongoBinary    ExternalType = 126
+	ExternalTypeMongoRegex     ExternalType = 127
 )
 
 var ExternalTypeNames = map[ExternalType]string{
-	ExternalTypeNone:       "None",
-	ExternalTypeInt128:     "Int128",
-	ExternalTypeUuid:       "Uuid",
-	ExternalTypeDecimal128: "Decimal128",
-	ExternalTypeUuidString: "UuidString",
-	ExternalTypeUuidV4:     "UuidV4",
-	ExternalTypeUuidV4String:     "UuidV4String",
-	ExternalTypeFlexMap:    "FlexMap",
-	ExternalTypeFlexVector: "FlexVector",
-	ExternalTypeJson:       "Json",
-	ExternalTypeBson:       "Bson",
-	ExternalTypeJavaScript: "JavaScript",
-	ExternalTypeJsonToNative: "JsonToNative",
-	ExternalTypeInt128Vector: "Int128Vector",
-	ExternalTypeUuidVector: "UuidVector",
-	ExternalTypeMongoId:    "MongoId",
-	ExternalTypeMongoIdVector: "MongoIdVector",
+	ExternalTypeNone:           "None",
+	ExternalTypeInt128:         "Int128",
+	ExternalTypeUuid:           "Uuid",
+	ExternalTypeDecimal128:     "Decimal128",
+	ExternalTypeUuidString:     "UuidString",
+	ExternalTypeUuidV4:         "UuidV4",
+	ExternalTypeUuidV4String:   "UuidV4String",
+	ExternalTypeFlexMap:        "FlexMap",
+	ExternalTypeFlexVector:     "FlexVector",
+	ExternalTypeJson:           "Json",
+	ExternalTypeBson:           "Bson",
+	ExternalTypeJavaScript:     "JavaScript",
+	ExternalTypeJsonToNative:   "JsonToNative",
+	ExternalTypeInt128Vector:   "Int128Vector",
+	ExternalTypeUuidVector:     "UuidVector",
+	ExternalTypeMongoId:        "MongoId",
+	ExternalTypeMongoIdVector:  "MongoIdVector",
 	ExternalTypeMongoTimestamp: "MongoTimestamp",
-	ExternalTypeMongoBinary: "MongoBinary",
-	ExternalTypeMongoRegex:  "MongoRegex",
+	ExternalTypeMongoBinary:    "MongoBinary",
+	ExternalTypeMongoRegex:     "MongoRegex",
 }
 
 var ExternalTypeValues = map[string]ExternalType{
-	"None":       ExternalTypeNone,
-	"Int128":    ExternalTypeInt128,
-	"Uuid":      ExternalTypeUuid,
-	"Decimal128": ExternalTypeDecimal128,
-	"UuidString": ExternalTypeUuidString,
-	"UuidV4":    ExternalTypeUuidV4,
-	"UuidV4String": ExternalTypeUuidV4String,
-	"FlexMap":   ExternalTypeFlexMap,
-	"FlexVector": ExternalTypeFlexVector,
-	"Json":      ExternalTypeJson,
-	"Bson":      ExternalTypeBson,
-	"JavaScript": ExternalTypeJavaScript,
-	"JsonToNative": ExternalTypeJsonToNative,
-	"Int128Vector": ExternalTypeInt128Vector,
-	"UuidVector": ExternalTypeUuidVector,
-	"MongoId":   ExternalTypeMongoId,
-	"MongoIdVector": ExternalTypeMongoIdVector,
+	"None":           ExternalTypeNone,
+	"Int128":         ExternalTypeInt128,
+	"Uuid":           ExternalTypeUuid,
+	"Decimal128":     ExternalTypeDecimal128,
+	"UuidString":     ExternalTypeUuidString,
+	"UuidV4":         ExternalTypeUuidV4,
+	"UuidV4String":   ExternalTypeUuidV4String,
+	"FlexMap":        ExternalTypeFlexMap,
+	"FlexVector":     ExternalTypeFlexVector,
+	"Json":           ExternalTypeJson,
+	"Bson":           ExternalTypeBson,
+	"JavaScript":     ExternalTypeJavaScript,
+	"JsonToNative":   ExternalTypeJsonToNative,
+	"Int128Vector":   ExternalTypeInt128Vector,
+	"UuidVector":     ExternalTypeUuidVector,
+	"MongoId":        ExternalTypeMongoId,
+	"MongoIdVector":  ExternalTypeMongoIdVector,
 	"MongoTimestamp": ExternalTypeMongoTimestamp,
-	"MongoBinary": ExternalTypeMongoBinary,
-	"MongoRegex":  ExternalTypeMongoRegex,
+	"MongoBinary":    ExternalTypeMongoBinary,
+	"MongoRegex":     ExternalTypeMongoRegex,
 }
 
 // HnswFlags is a bit combination of 0..n Hnsw flags corresponding with objectbox-c

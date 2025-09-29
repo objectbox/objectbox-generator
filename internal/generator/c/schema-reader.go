@@ -32,11 +32,11 @@ import (
 )
 
 var supportedEntityAnnotations = map[string]bool{
-	"name":      true,
-	"relation":  true, // to-many, standalone
-	"sync":      true,
-	"transient": true,
-	"uid":       true,
+	"name":          true,
+	"relation":      true, // to-many, standalone
+	"sync":          true,
+	"transient":     true,
+	"uid":           true,
 	"external-name": true,
 }
 
@@ -59,8 +59,8 @@ var supportedPropertyAnnotations = map[string]bool{
 	"hnsw-flags":                           true,
 	"hnsw-reparation-backlink-probability": true,
 	"hnsw-vector-cache-hint-size-kb":       true,
-	"external-name":                         true,
-	"external-type":                         true,
+	"external-name":                        true,
+	"external-type":                        true,
 }
 
 // fbSchemaReader reads FlatBuffers schema and populates a model
