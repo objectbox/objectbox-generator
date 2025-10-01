@@ -224,9 +224,9 @@
     },
     {
       "id": "3:6050128673802995827",
-      "lastPropertyId": "2:7561811714888168464",
-      "name": "ChildWithExtProp",
-      "externalName": "ChildEntityExternalName",
+      "lastPropertyId": "4:8902041070398994519",
+      "name": "ExternalNameType",
+      "externalName": "MyExternalTypeName",
       "properties": [
         {
           "id": "1:388440063886460141",
@@ -236,26 +236,69 @@
         },
         {
           "id": "2:7561811714888168464",
+          "name": "jsonProp",
+          "type": 9,
+          "externalType": 109
+        },
+        {
+          "id": "3:3959279844101328186",
+          "name": "dateCreated",
+          "type": 6,
+          "externalName": "dateCreatedExtName",
+          "flags": 8192
+        },
+        {
+          "id": "4:8902041070398994519",
+          "name": "externalUuid",
+          "type": 9,
+          "externalName": "MyUuidExtProperty",
+          "externalType": 102
+        }
+      ],
+      "relations": [
+        {
+          "id": "3:303089054982227392",
+          "name": "children",
+          "externalName": "MyExternalRelationName",
+          "externalType": 111,
+          "targetId": "4:501233450539197794"
+        }
+      ]
+    },
+    {
+      "id": "4:501233450539197794",
+      "lastPropertyId": "2:5392504858645185670",
+      "name": "ExternalNameTypeChild",
+      "externalName": "MyExternalChildTypeName",
+      "properties": [
+        {
+          "id": "1:7338728586234333996",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5392504858645185670",
           "name": "text",
           "type": 9
         }
       ]
     },
     {
-      "id": "4:501233450539197794",
-      "lastPropertyId": "6:4736217237333769909",
+      "id": "5:3390393562759376202",
+      "lastPropertyId": "6:4112921325496946042",
       "name": "HnswVectors",
       "properties": [
         {
-          "id": "1:3959279844101328186",
+          "id": "1:7847956203786849690",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:8902041070398994519",
+          "id": "2:406703151708498928",
           "name": "hnswVectorEuclidean",
-          "indexId": "9:303089054982227392",
+          "indexId": "9:4756106358532488297",
           "type": 28,
           "flags": 8,
           "hnswParams": {
@@ -269,9 +312,9 @@
           }
         },
         {
-          "id": "3:7338728586234333996",
+          "id": "3:5837486892148644279",
           "name": "hnswVectorCosine",
-          "indexId": "10:5392504858645185670",
+          "indexId": "10:4736217237333769909",
           "type": 28,
           "flags": 8,
           "hnswParams": {
@@ -280,9 +323,9 @@
           }
         },
         {
-          "id": "4:7847956203786849690",
+          "id": "4:2264299874001785192",
           "name": "hnswVectorDot",
-          "indexId": "11:406703151708498928",
+          "indexId": "11:1061380815263676471",
           "type": 28,
           "flags": 8,
           "hnswParams": {
@@ -291,9 +334,9 @@
           }
         },
         {
-          "id": "5:4756106358532488297",
+          "id": "5:7242748068272024738",
           "name": "hnswVectorDotNonNormalized",
-          "indexId": "12:5837486892148644279",
+          "indexId": "12:7719717197379695442",
           "type": 28,
           "flags": 8,
           "hnswParams": {
@@ -302,57 +345,15 @@
           }
         },
         {
-          "id": "6:4736217237333769909",
+          "id": "6:4112921325496946042",
           "name": "hnswVectorGeo",
-          "indexId": "13:2264299874001785192",
+          "indexId": "13:2671030200101705776",
           "type": 28,
           "flags": 8,
           "hnswParams": {
             "dimensions": 2,
             "distance-type": "Geo"
           }
-        }
-      ]
-    },
-    {
-      "id": "5:3390393562759376202",
-      "lastPropertyId": "4:4112921325496946042",
-      "name": "ParentWithExtProp",
-      "properties": [
-        {
-          "id": "1:1061380815263676471",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:7242748068272024738",
-          "name": "jsonProp",
-          "type": 9,
-          "externalType": 109
-        },
-        {
-          "id": "3:7719717197379695442",
-          "name": "dateCreated",
-          "type": 6,
-          "externalName": "dateCreatedExtName",
-          "flags": 8192
-        },
-        {
-          "id": "4:4112921325496946042",
-          "name": "externalUuid",
-          "type": 9,
-          "externalName": "MyUuidExtProperty",
-          "externalType": 102
-        }
-      ],
-      "relations": [
-        {
-          "id": "3:2671030200101705776",
-          "name": "children",
-          "externalName": "ChildWithExtPropName",
-          "externalType": 111,
-          "targetId": "3:6050128673802995827"
         }
       ]
     },
@@ -396,8 +397,8 @@
     }
   ],
   "lastEntityId": "7:1774932891286980153",
-  "lastIndexId": "13:2264299874001785192",
-  "lastRelationId": "3:2671030200101705776",
+  "lastIndexId": "13:2671030200101705776",
+  "lastRelationId": "3:303089054982227392",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],

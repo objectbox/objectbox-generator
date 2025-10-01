@@ -88,17 +88,33 @@ static inline OBX_model* create_obx_model() {
     obx_model_property_index_id(model, 8, 8683452355129068124);
     obx_model_relation(model, 1, 4345851588384648695, 1, 8717895732742165505);obx_model_relation(model, 2, 7699391924090763411, 1, 8717895732742165505);obx_model_entity_last_property_id(model, 9, 8514850266767180993);
     
-    obx_model_entity(model, "ChildWithExtProp", 3, 6050128673802995827);
-    obx_model_entity_external_name(model, "ChildEntityExternalName");
+    obx_model_entity(model, "ExternalNameType", 3, 6050128673802995827);
+    obx_model_entity_external_name(model, "MyExternalTypeName");
     obx_model_property(model, "id", OBXPropertyType_Long, 1, 388440063886460141);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_property(model, "text", OBXPropertyType_String, 2, 7561811714888168464);
-    obx_model_entity_last_property_id(model, 2, 7561811714888168464);
+    obx_model_property(model, "jsonProp", OBXPropertyType_String, 2, 7561811714888168464);
+    obx_model_property_external_type(model, OBXExternalPropertyType_Json);
+    obx_model_property(model, "dateCreated", OBXPropertyType_Long, 3, 3959279844101328186);
+    obx_model_property_flags(model, OBXPropertyFlags_UNSIGNED);
+    obx_model_property_external_name(model, "dateCreatedExtName");
+    obx_model_property(model, "externalUuid", OBXPropertyType_String, 4, 8902041070398994519);
+    obx_model_property_external_name(model, "MyUuidExtProperty");
+    obx_model_property_external_type(model, OBXExternalPropertyType_Uuid);
+    obx_model_relation(model, 3, 303089054982227392, 4, 501233450539197794);
+    obx_model_relation_external_name(model, "MyExternalRelationName");
+    obx_model_relation_external_type(model, OBXExternalPropertyType_JavaScript);obx_model_entity_last_property_id(model, 4, 8902041070398994519);
     
-    obx_model_entity(model, "HnswVectors", 4, 501233450539197794);
-    obx_model_property(model, "id", OBXPropertyType_Long, 1, 3959279844101328186);
+    obx_model_entity(model, "ExternalNameTypeChild", 4, 501233450539197794);
+    obx_model_entity_external_name(model, "MyExternalChildTypeName");
+    obx_model_property(model, "id", OBXPropertyType_Long, 1, 7338728586234333996);
     obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_property(model, "hnswVectorEuclidean", OBXPropertyType_FloatVector, 2, 8902041070398994519);
+    obx_model_property(model, "text", OBXPropertyType_String, 2, 5392504858645185670);
+    obx_model_entity_last_property_id(model, 2, 5392504858645185670);
+    
+    obx_model_entity(model, "HnswVectors", 5, 3390393562759376202);
+    obx_model_property(model, "id", OBXPropertyType_Long, 1, 7847956203786849690);
+    obx_model_property_flags(model, OBXPropertyFlags_ID);
+    obx_model_property(model, "hnswVectorEuclidean", OBXPropertyType_FloatVector, 2, 406703151708498928);
     obx_model_property_flags(model, OBXPropertyFlags_INDEXED);
     obx_model_property_index_hnsw_dimensions(model, 3);
     obx_model_property_index_hnsw_distance_type(model, OBXVectorDistanceType_Euclidean);
@@ -107,43 +123,28 @@ static inline OBX_model* create_obx_model() {
     obx_model_property_index_hnsw_reparation_backlink_probability(model, 0.7);
     obx_model_property_index_hnsw_vector_cache_hint_size_kb(model, 1024);
     obx_model_property_index_hnsw_flags(model, (OBXHnswFlags_DebugLogs | OBXHnswFlags_DebugLogsDetailed | OBXHnswFlags_ReparationLimitCandidates | OBXHnswFlags_VectorCacheSimdPaddingOff));
-    obx_model_property_index_id(model, 9, 303089054982227392);
-    obx_model_property(model, "hnswVectorCosine", OBXPropertyType_FloatVector, 3, 7338728586234333996);
+    obx_model_property_index_id(model, 9, 4756106358532488297);
+    obx_model_property(model, "hnswVectorCosine", OBXPropertyType_FloatVector, 3, 5837486892148644279);
     obx_model_property_flags(model, OBXPropertyFlags_INDEXED);
     obx_model_property_index_hnsw_dimensions(model, 2);
     obx_model_property_index_hnsw_distance_type(model, OBXVectorDistanceType_Cosine);
-    obx_model_property_index_id(model, 10, 5392504858645185670);
-    obx_model_property(model, "hnswVectorDot", OBXPropertyType_FloatVector, 4, 7847956203786849690);
+    obx_model_property_index_id(model, 10, 4736217237333769909);
+    obx_model_property(model, "hnswVectorDot", OBXPropertyType_FloatVector, 4, 2264299874001785192);
     obx_model_property_flags(model, OBXPropertyFlags_INDEXED);
     obx_model_property_index_hnsw_dimensions(model, 2);
     obx_model_property_index_hnsw_distance_type(model, OBXVectorDistanceType_DotProduct);
-    obx_model_property_index_id(model, 11, 406703151708498928);
-    obx_model_property(model, "hnswVectorDotNonNormalized", OBXPropertyType_FloatVector, 5, 4756106358532488297);
+    obx_model_property_index_id(model, 11, 1061380815263676471);
+    obx_model_property(model, "hnswVectorDotNonNormalized", OBXPropertyType_FloatVector, 5, 7242748068272024738);
     obx_model_property_flags(model, OBXPropertyFlags_INDEXED);
     obx_model_property_index_hnsw_dimensions(model, 2);
     obx_model_property_index_hnsw_distance_type(model, OBXVectorDistanceType_DotProductNonNormalized);
-    obx_model_property_index_id(model, 12, 5837486892148644279);
-    obx_model_property(model, "hnswVectorGeo", OBXPropertyType_FloatVector, 6, 4736217237333769909);
+    obx_model_property_index_id(model, 12, 7719717197379695442);
+    obx_model_property(model, "hnswVectorGeo", OBXPropertyType_FloatVector, 6, 4112921325496946042);
     obx_model_property_flags(model, OBXPropertyFlags_INDEXED);
     obx_model_property_index_hnsw_dimensions(model, 2);
     obx_model_property_index_hnsw_distance_type(model, OBXVectorDistanceType_Geo);
-    obx_model_property_index_id(model, 13, 2264299874001785192);
-    obx_model_entity_last_property_id(model, 6, 4736217237333769909);
-    
-    obx_model_entity(model, "ParentWithExtProp", 5, 3390393562759376202);
-    obx_model_property(model, "id", OBXPropertyType_Long, 1, 1061380815263676471);
-    obx_model_property_flags(model, OBXPropertyFlags_ID);
-    obx_model_property(model, "jsonProp", OBXPropertyType_String, 2, 7242748068272024738);
-    obx_model_property_external_type(model, OBXExternalPropertyType_Json);
-    obx_model_property(model, "dateCreated", OBXPropertyType_Long, 3, 7719717197379695442);
-    obx_model_property_flags(model, OBXPropertyFlags_UNSIGNED);
-    obx_model_property_external_name(model, "dateCreatedExtName");
-    obx_model_property(model, "externalUuid", OBXPropertyType_String, 4, 4112921325496946042);
-    obx_model_property_external_name(model, "MyUuidExtProperty");
-    obx_model_property_external_type(model, OBXExternalPropertyType_Uuid);
-    obx_model_relation(model, 3, 2671030200101705776, 3, 6050128673802995827);
-    obx_model_relation_external_name(model, "ChildWithExtPropName");
-    obx_model_relation_external_type(model, OBXExternalPropertyType_JavaScript);obx_model_entity_last_property_id(model, 4, 4112921325496946042);
+    obx_model_property_index_id(model, 13, 2671030200101705776);
+    obx_model_entity_last_property_id(model, 6, 4112921325496946042);
     
     obx_model_entity(model, "TSDate", 6, 2669985732393126063);
     obx_model_property(model, "id", OBXPropertyType_Long, 1, 3508963237347473586);
@@ -160,8 +161,8 @@ static inline OBX_model* create_obx_model() {
     obx_model_entity_last_property_id(model, 2, 1198006251912892506);
     
     obx_model_last_entity_id(model, 7, 1774932891286980153);
-    obx_model_last_index_id(model, 13, 2264299874001785192);
-    obx_model_last_relation_id(model, 3, 2671030200101705776);
+    obx_model_last_index_id(model, 13, 2671030200101705776);
+    obx_model_last_relation_id(model, 3, 303089054982227392);
     return model; // NOTE: the returned model will contain error information if an error occurred.
 }
 

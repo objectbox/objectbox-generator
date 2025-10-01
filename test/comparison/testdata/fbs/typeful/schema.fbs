@@ -116,11 +116,14 @@ table TSDateNano {
 	timestamp    : int64	;
 }
 
-/// objectbox:relation(name=children,to=ChildWithExtProp,external-name=ChildWithExtPropName, external-type=JavaScript)
-table ParentWithExtProp {
+/// objectbox:relation(name=children, to=ExternalNameTypeChild, external-name=MyExternalRelationName, external-type=JavaScript)
+/// objectbox:external-name=MyExternalTypeName
+table ExternalNameType {
     id: ulong;
+
     /// objectbox: external-type=Json
     jsonProp: string;
+
     /// objectbox: external-name=dateCreatedExtName
     dateCreated: ulong;
 
@@ -129,8 +132,8 @@ table ParentWithExtProp {
     externalUuid: string;
 }
 
-/// objectbox:external-name=ChildEntityExternalName
-table ChildWithExtProp {
+/// objectbox:external-name=MyExternalChildTypeName
+table ExternalNameTypeChild {
     id: ulong;
     text: string;
 }

@@ -239,10 +239,65 @@ void ns::Annotated::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::
     outObject.uid = table->GetField<int32_t>(20, 0);
 }
 
-const obx::Property<ns::ChildWithExtProp, OBXPropertyType_Long> ns::ChildWithExtProp_::id(1);
-const obx::Property<ns::ChildWithExtProp, OBXPropertyType_String> ns::ChildWithExtProp_::text(2);
+const obx::Property<ns::ExternalNameType, OBXPropertyType_Long> ns::ExternalNameType_::id(1);
+const obx::Property<ns::ExternalNameType, OBXPropertyType_String> ns::ExternalNameType_::jsonProp(2);
+const obx::Property<ns::ExternalNameType, OBXPropertyType_Long> ns::ExternalNameType_::dateCreated(3);
+const obx::Property<ns::ExternalNameType, OBXPropertyType_String> ns::ExternalNameType_::externalUuid(4);
+const obx::RelationStandalone<ns::ExternalNameType, ns::ExternalNameTypeChild> ns::ExternalNameType_::children(3);
 
-void ns::ChildWithExtProp::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::ChildWithExtProp& object) {
+void ns::ExternalNameType::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::ExternalNameType& object) {
+    fbb.Clear();
+    auto offsetjsonProp = fbb.CreateString(object.jsonProp);
+    auto offsetexternalUuid = fbb.CreateString(object.externalUuid);
+    flatbuffers::uoffset_t fbStart = fbb.StartTable();
+    fbb.AddElement(4, object.id);
+    fbb.AddOffset(6, offsetjsonProp);
+    fbb.AddElement(8, object.dateCreated);
+    fbb.AddOffset(10, offsetexternalUuid);
+    flatbuffers::Offset<flatbuffers::Table> offset;
+    offset.o = fbb.EndTable(fbStart);
+    fbb.Finish(offset);
+}
+
+ns::ExternalNameType ns::ExternalNameType::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
+    ns::ExternalNameType object;
+    fromFlatBuffer(data, size, object);
+    return object;
+}
+
+std::unique_ptr<ns::ExternalNameType> ns::ExternalNameType::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
+    auto object = std::unique_ptr<ns::ExternalNameType>(new ns::ExternalNameType());
+    fromFlatBuffer(data, size, *object);
+    return object;
+}
+
+void ns::ExternalNameType::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::ExternalNameType& outObject) {
+    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
+    assert(table);
+    outObject.id = table->GetField<obx_id>(4, 0);
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::String*>(6);
+        if (ptr) {
+            outObject.jsonProp.assign(ptr->c_str(), ptr->size());
+        } else {
+            outObject.jsonProp.clear();
+        }
+    }
+    outObject.dateCreated = table->GetField<uint64_t>(8, 0);
+    {
+        auto* ptr = table->GetPointer<const flatbuffers::String*>(10);
+        if (ptr) {
+            outObject.externalUuid.assign(ptr->c_str(), ptr->size());
+        } else {
+            outObject.externalUuid.clear();
+        }
+    }
+}
+
+const obx::Property<ns::ExternalNameTypeChild, OBXPropertyType_Long> ns::ExternalNameTypeChild_::id(1);
+const obx::Property<ns::ExternalNameTypeChild, OBXPropertyType_String> ns::ExternalNameTypeChild_::text(2);
+
+void ns::ExternalNameTypeChild::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::ExternalNameTypeChild& object) {
     fbb.Clear();
     auto offsettext = fbb.CreateString(object.text);
     flatbuffers::uoffset_t fbStart = fbb.StartTable();
@@ -253,19 +308,19 @@ void ns::ChildWithExtProp::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBu
     fbb.Finish(offset);
 }
 
-ns::ChildWithExtProp ns::ChildWithExtProp::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
-    ns::ChildWithExtProp object;
+ns::ExternalNameTypeChild ns::ExternalNameTypeChild::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
+    ns::ExternalNameTypeChild object;
     fromFlatBuffer(data, size, object);
     return object;
 }
 
-std::unique_ptr<ns::ChildWithExtProp> ns::ChildWithExtProp::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::unique_ptr<ns::ChildWithExtProp>(new ns::ChildWithExtProp());
+std::unique_ptr<ns::ExternalNameTypeChild> ns::ExternalNameTypeChild::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
+    auto object = std::unique_ptr<ns::ExternalNameTypeChild>(new ns::ExternalNameTypeChild());
     fromFlatBuffer(data, size, *object);
     return object;
 }
 
-void ns::ChildWithExtProp::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::ChildWithExtProp& outObject) {
+void ns::ExternalNameTypeChild::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::ExternalNameTypeChild& outObject) {
     const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
     assert(table);
     outObject.id = table->GetField<obx_id>(4, 0);
@@ -359,61 +414,6 @@ void ns::HnswVectors::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns
             outObject.hnswVectorGeo.assign(ptr->begin(), ptr->end());
         } else {
             outObject.hnswVectorGeo.clear();
-        }
-    }
-}
-
-const obx::Property<ns::ParentWithExtProp, OBXPropertyType_Long> ns::ParentWithExtProp_::id(1);
-const obx::Property<ns::ParentWithExtProp, OBXPropertyType_String> ns::ParentWithExtProp_::jsonProp(2);
-const obx::Property<ns::ParentWithExtProp, OBXPropertyType_Long> ns::ParentWithExtProp_::dateCreated(3);
-const obx::Property<ns::ParentWithExtProp, OBXPropertyType_String> ns::ParentWithExtProp_::externalUuid(4);
-const obx::RelationStandalone<ns::ParentWithExtProp, ns::ChildWithExtProp> ns::ParentWithExtProp_::children(3);
-
-void ns::ParentWithExtProp::_OBX_MetaInfo::toFlatBuffer(flatbuffers::FlatBufferBuilder& fbb, const ns::ParentWithExtProp& object) {
-    fbb.Clear();
-    auto offsetjsonProp = fbb.CreateString(object.jsonProp);
-    auto offsetexternalUuid = fbb.CreateString(object.externalUuid);
-    flatbuffers::uoffset_t fbStart = fbb.StartTable();
-    fbb.AddElement(4, object.id);
-    fbb.AddOffset(6, offsetjsonProp);
-    fbb.AddElement(8, object.dateCreated);
-    fbb.AddOffset(10, offsetexternalUuid);
-    flatbuffers::Offset<flatbuffers::Table> offset;
-    offset.o = fbb.EndTable(fbStart);
-    fbb.Finish(offset);
-}
-
-ns::ParentWithExtProp ns::ParentWithExtProp::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t size) {
-    ns::ParentWithExtProp object;
-    fromFlatBuffer(data, size, object);
-    return object;
-}
-
-std::unique_ptr<ns::ParentWithExtProp> ns::ParentWithExtProp::_OBX_MetaInfo::newFromFlatBuffer(const void* data, size_t size) {
-    auto object = std::unique_ptr<ns::ParentWithExtProp>(new ns::ParentWithExtProp());
-    fromFlatBuffer(data, size, *object);
-    return object;
-}
-
-void ns::ParentWithExtProp::_OBX_MetaInfo::fromFlatBuffer(const void* data, size_t, ns::ParentWithExtProp& outObject) {
-    const auto* table = flatbuffers::GetRoot<flatbuffers::Table>(data);
-    assert(table);
-    outObject.id = table->GetField<obx_id>(4, 0);
-    {
-        auto* ptr = table->GetPointer<const flatbuffers::String*>(6);
-        if (ptr) {
-            outObject.jsonProp.assign(ptr->c_str(), ptr->size());
-        } else {
-            outObject.jsonProp.clear();
-        }
-    }
-    outObject.dateCreated = table->GetField<uint64_t>(8, 0);
-    {
-        auto* ptr = table->GetPointer<const flatbuffers::String*>(10);
-        if (ptr) {
-            outObject.externalUuid.assign(ptr->c_str(), ptr->size());
-        } else {
-            outObject.externalUuid.clear();
         }
     }
 }
