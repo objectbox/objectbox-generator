@@ -69,44 +69,47 @@ table Annotated {
 	/// unique on string without index type implies HASH index
 	/// objectbox:unique
 	uid:int;
+}
+
+table HnswVectors {
+	id: uint64;
 
 	/// objectbox:index="hnsw"
 	/// objectbox:hnsw-dimensions = 3, hnsw-distance-type = Euclidean
 	/// objectbox:hnsw-neighbors-per-node=10, hnsw-indexing-search-count=5
 	/// objectbox:hnsw-reparation-backlink-probability=0.7, hnsw-vector-cache-hint-size-kb=1024
 	/// objectbox:hnsw-flags=DebugLogs|DebugLogsDetailed|VectorCacheSimdPaddingOff|ReparationLimitCandidates
-	hnswVectorEuclidean:[float];
+	hnswVectorEuclidean: [float];
 	
 	/// objectbox:index=hnsw
 	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = Cosine
-	hnswVectorCosine:[float];
+	hnswVectorCosine: [float];
 	
 	/// objectbox:index = hnsw 
 	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = DotProduct
-	hnswVectorDot:[float];
+	hnswVectorDot: [float];
 	
 	/// objectbox:index="hnsw"
 	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = DotProductNonNormalized
-	hnswVectorDotNonNormalized:[float];
+	hnswVectorDotNonNormalized: [float];
 
     /// objectbox:index="hnsw"
 	/// objectbox:hnsw-dimensions = 2, hnsw-distance-type = Geo
 	hnswVectorGeo:[float];
-    /// objectbox:external-type=Uuid
-    /// objectbox:external-name=MyUuidExtProperty
-    externalUuid:string;
 }
 
 /// objectbox: transient
 table SkippedEntity {
 }
 
+/// Time series: ID companion of type date
 table TSDate {
 	id           : uint64	;
 	/// objectbox:id-companion,date
 	timestamp    : int64	;
 }
 
+/// Time series: ID companion of type date-nano
 table TSDateNano {
 	id           : uint64	;
 	/// objectbox:id-companion,date-nano
@@ -120,6 +123,10 @@ table ParentWithExtProp {
     jsonProp: string;
     /// objectbox: external-name=dateCreatedExtName
     dateCreated: ulong;
+
+    /// objectbox:external-type=Uuid
+    /// objectbox:external-name=MyUuidExtProperty
+    externalUuid: string;
 }
 
 /// objectbox:external-name=ChildEntityExternalName

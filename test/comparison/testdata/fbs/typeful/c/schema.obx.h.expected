@@ -119,17 +119,6 @@ typedef struct ns_Annotated {
     char* uniqueHash64;
     /// unique on string without index type implies HASH index
     int32_t uid;
-    float* hnswVectorEuclidean;
-    size_t hnswVectorEuclidean_len;
-    float* hnswVectorCosine;
-    size_t hnswVectorCosine_len;
-    float* hnswVectorDot;
-    size_t hnswVectorDot_len;
-    float* hnswVectorDotNonNormalized;
-    size_t hnswVectorDotNonNormalized_len;
-    float* hnswVectorGeo;
-    size_t hnswVectorGeo_len;
-    char* externalUuid;
     
 } ns_Annotated;
 
@@ -144,12 +133,6 @@ enum ns_Annotated_ {
     ns_Annotated_PROP_ID_uniqueHash = 7,
     ns_Annotated_PROP_ID_uniqueHash64 = 8,
     ns_Annotated_PROP_ID_uid = 9,
-    ns_Annotated_PROP_ID_hnswVectorEuclidean = 10,
-    ns_Annotated_PROP_ID_hnswVectorCosine = 11,
-    ns_Annotated_PROP_ID_hnswVectorDot = 12,
-    ns_Annotated_PROP_ID_hnswVectorDotNonNormalized = 13,
-    ns_Annotated_PROP_ID_hnswVectorGeo = 14,
-    ns_Annotated_PROP_ID_externalUuid = 15,
     ns_Annotated_REL_ID_typefuls = 1,
     ns_Annotated_REL_ID_m2m = 2,
 };
@@ -208,18 +191,66 @@ static void ns_ChildWithExtProp_free_pointers(ns_ChildWithExtProp* object);
 /// Equivalent to calling ns_ChildWithExtProp_free_pointers() followed by free();
 static void ns_ChildWithExtProp_free(ns_ChildWithExtProp* object);
 
+typedef struct ns_HnswVectors {
+    obx_id id;
+    float* hnswVectorEuclidean;
+    size_t hnswVectorEuclidean_len;
+    float* hnswVectorCosine;
+    size_t hnswVectorCosine_len;
+    float* hnswVectorDot;
+    size_t hnswVectorDot_len;
+    float* hnswVectorDotNonNormalized;
+    size_t hnswVectorDotNonNormalized_len;
+    float* hnswVectorGeo;
+    size_t hnswVectorGeo_len;
+    
+} ns_HnswVectors;
+
+enum ns_HnswVectors_ {
+    ns_HnswVectors_ENTITY_ID = 4,
+    ns_HnswVectors_PROP_ID_id = 1,
+    ns_HnswVectors_PROP_ID_hnswVectorEuclidean = 2,
+    ns_HnswVectors_PROP_ID_hnswVectorCosine = 3,
+    ns_HnswVectors_PROP_ID_hnswVectorDot = 4,
+    ns_HnswVectors_PROP_ID_hnswVectorDotNonNormalized = 5,
+    ns_HnswVectors_PROP_ID_hnswVectorGeo = 6,
+};
+
+/// Write given object to the FlatBufferBuilder
+static bool ns_HnswVectors_to_flatbuffer(flatcc_builder_t* B, const ns_HnswVectors* object, void** out_buffer, size_t* out_size);
+
+/// Read an object from a valid FlatBuffer.
+/// If the read object contains vectors or strings, those are allocated on heap and must be freed after use by calling ns_HnswVectors_free_pointers().
+/// Thus, when calling this function multiple times on the same object, ensure to call ns_HnswVectors_free_pointers() before subsequent calls to avoid leaks. 
+/// @returns true if the object was deserialized successfully or false on (allocation) error in which case any memory 
+///          allocated by this function will also be freed before returning, allowing you to retry.
+static bool ns_HnswVectors_from_flatbuffer(const void* data, size_t size, ns_HnswVectors* out_object);
+
+/// Read an object from a valid FlatBuffer, allocating the object on heap. 
+/// The object must be freed after use by calling ns_HnswVectors_free();
+static ns_HnswVectors* ns_HnswVectors_new_from_flatbuffer(const void* data, size_t size);
+
+/// Free memory allocated for vector and string properties, setting the freed pointers to NULL.  
+static void ns_HnswVectors_free_pointers(ns_HnswVectors* object);
+
+/// Free ns_HnswVectors* object pointer and all its property pointers (vectors and strings).
+/// Equivalent to calling ns_HnswVectors_free_pointers() followed by free();
+static void ns_HnswVectors_free(ns_HnswVectors* object);
+
 typedef struct ns_ParentWithExtProp {
     obx_id id;
     char* jsonProp;
     uint64_t dateCreated;
+    char* externalUuid;
     
 } ns_ParentWithExtProp;
 
 enum ns_ParentWithExtProp_ {
-    ns_ParentWithExtProp_ENTITY_ID = 4,
+    ns_ParentWithExtProp_ENTITY_ID = 5,
     ns_ParentWithExtProp_PROP_ID_id = 1,
     ns_ParentWithExtProp_PROP_ID_jsonProp = 2,
     ns_ParentWithExtProp_PROP_ID_dateCreated = 3,
+    ns_ParentWithExtProp_PROP_ID_externalUuid = 4,
     ns_ParentWithExtProp_REL_ID_children = 3,
 };
 
@@ -244,6 +275,7 @@ static void ns_ParentWithExtProp_free_pointers(ns_ParentWithExtProp* object);
 /// Equivalent to calling ns_ParentWithExtProp_free_pointers() followed by free();
 static void ns_ParentWithExtProp_free(ns_ParentWithExtProp* object);
 
+/// Time series: ID companion of type date
 typedef struct ns_TSDate {
     obx_id id;
     int64_t timestamp;
@@ -251,7 +283,7 @@ typedef struct ns_TSDate {
 } ns_TSDate;
 
 enum ns_TSDate_ {
-    ns_TSDate_ENTITY_ID = 5,
+    ns_TSDate_ENTITY_ID = 6,
     ns_TSDate_PROP_ID_id = 1,
     ns_TSDate_PROP_ID_timestamp = 2,
 };
@@ -277,6 +309,7 @@ static void ns_TSDate_free_pointers(ns_TSDate* object);
 /// Equivalent to calling ns_TSDate_free_pointers() followed by free();
 static void ns_TSDate_free(ns_TSDate* object);
 
+/// Time series: ID companion of type date-nano
 typedef struct ns_TSDateNano {
     obx_id id;
     int64_t timestamp;
@@ -284,7 +317,7 @@ typedef struct ns_TSDateNano {
 } ns_TSDateNano;
 
 enum ns_TSDateNano_ {
-    ns_TSDateNano_ENTITY_ID = 6,
+    ns_TSDateNano_ENTITY_ID = 7,
     ns_TSDateNano_PROP_ID_id = 1,
     ns_TSDateNano_PROP_ID_timestamp = 2,
 };
@@ -721,14 +754,8 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
     flatcc_builder_ref_t offset_uniqueValue = !object->uniqueValue ? 0 : flatcc_builder_create_string_str(B, object->uniqueValue);
     flatcc_builder_ref_t offset_uniqueHash = !object->uniqueHash ? 0 : flatcc_builder_create_string_str(B, object->uniqueHash);
     flatcc_builder_ref_t offset_uniqueHash64 = !object->uniqueHash64 ? 0 : flatcc_builder_create_string_str(B, object->uniqueHash64);
-    flatcc_builder_ref_t offset_hnswVectorEuclidean = !object->hnswVectorEuclidean ? 0 : flatcc_builder_create_vector(B, object->hnswVectorEuclidean, object->hnswVectorEuclidean_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
-    flatcc_builder_ref_t offset_hnswVectorCosine = !object->hnswVectorCosine ? 0 : flatcc_builder_create_vector(B, object->hnswVectorCosine, object->hnswVectorCosine_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
-    flatcc_builder_ref_t offset_hnswVectorDot = !object->hnswVectorDot ? 0 : flatcc_builder_create_vector(B, object->hnswVectorDot, object->hnswVectorDot_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
-    flatcc_builder_ref_t offset_hnswVectorDotNonNormalized = !object->hnswVectorDotNonNormalized ? 0 : flatcc_builder_create_vector(B, object->hnswVectorDotNonNormalized, object->hnswVectorDotNonNormalized_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
-    flatcc_builder_ref_t offset_hnswVectorGeo = !object->hnswVectorGeo ? 0 : flatcc_builder_create_vector(B, object->hnswVectorGeo, object->hnswVectorGeo_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
-    flatcc_builder_ref_t offset_externalUuid = !object->externalUuid ? 0 : flatcc_builder_create_string_str(B, object->externalUuid);
 
-    if (flatcc_builder_start_table(B, 15) != 0) return false;
+    if (flatcc_builder_start_table(B, 9) != 0) return false;
 
     void* p;
     flatcc_builder_ref_t* _p;
@@ -776,36 +803,6 @@ static bool ns_Annotated_to_flatbuffer(flatcc_builder_t* B, const ns_Annotated* 
     {
         if (!(p = flatcc_builder_table_add(B, 8, 4, 4))) return false;
         flatbuffers_int32_write_to_pe(p, object->uid);
-    }
-    
-    if (offset_hnswVectorEuclidean) {
-        if (!(_p = flatcc_builder_table_add_offset(B, 9))) return false;
-        *_p = offset_hnswVectorEuclidean;
-    }
-    
-    if (offset_hnswVectorCosine) {
-        if (!(_p = flatcc_builder_table_add_offset(B, 10))) return false;
-        *_p = offset_hnswVectorCosine;
-    }
-    
-    if (offset_hnswVectorDot) {
-        if (!(_p = flatcc_builder_table_add_offset(B, 11))) return false;
-        *_p = offset_hnswVectorDot;
-    }
-    
-    if (offset_hnswVectorDotNonNormalized) {
-        if (!(_p = flatcc_builder_table_add_offset(B, 12))) return false;
-        *_p = offset_hnswVectorDotNonNormalized;
-    }
-    
-    if (offset_hnswVectorGeo) {
-        if (!(_p = flatcc_builder_table_add_offset(B, 13))) return false;
-        *_p = offset_hnswVectorGeo;
-    }
-    
-    if (offset_externalUuid) {
-        if (!(_p = flatcc_builder_table_add_offset(B, 14))) return false;
-        *_p = offset_externalUuid;
     }
     
     flatcc_builder_ref_t ref;
@@ -912,94 +909,6 @@ static bool ns_Annotated_from_flatbuffer(const void* data, size_t size, ns_Annot
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 8))) {
         out_object->uid = flatbuffers_int32_read_from_pe(table + offset);
     }
-    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 9))) {
-        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
-        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
-        out_object->hnswVectorEuclidean = (float*) malloc(len * sizeof(float));
-        if (out_object->hnswVectorEuclidean == NULL) {
-            ns_Annotated_free_pointers(out_object);
-            return false;
-        }
-        out_object->hnswVectorEuclidean_len = len;
-        memcpy((void*)out_object->hnswVectorEuclidean, (const void*)val, sizeof(float)*len);
-        
-    } else {
-        out_object->hnswVectorEuclidean = NULL;
-        out_object->hnswVectorEuclidean_len = 0;
-    }
-    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 10))) {
-        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
-        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
-        out_object->hnswVectorCosine = (float*) malloc(len * sizeof(float));
-        if (out_object->hnswVectorCosine == NULL) {
-            ns_Annotated_free_pointers(out_object);
-            return false;
-        }
-        out_object->hnswVectorCosine_len = len;
-        memcpy((void*)out_object->hnswVectorCosine, (const void*)val, sizeof(float)*len);
-        
-    } else {
-        out_object->hnswVectorCosine = NULL;
-        out_object->hnswVectorCosine_len = 0;
-    }
-    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 11))) {
-        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
-        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
-        out_object->hnswVectorDot = (float*) malloc(len * sizeof(float));
-        if (out_object->hnswVectorDot == NULL) {
-            ns_Annotated_free_pointers(out_object);
-            return false;
-        }
-        out_object->hnswVectorDot_len = len;
-        memcpy((void*)out_object->hnswVectorDot, (const void*)val, sizeof(float)*len);
-        
-    } else {
-        out_object->hnswVectorDot = NULL;
-        out_object->hnswVectorDot_len = 0;
-    }
-    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 12))) {
-        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
-        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
-        out_object->hnswVectorDotNonNormalized = (float*) malloc(len * sizeof(float));
-        if (out_object->hnswVectorDotNonNormalized == NULL) {
-            ns_Annotated_free_pointers(out_object);
-            return false;
-        }
-        out_object->hnswVectorDotNonNormalized_len = len;
-        memcpy((void*)out_object->hnswVectorDotNonNormalized, (const void*)val, sizeof(float)*len);
-        
-    } else {
-        out_object->hnswVectorDotNonNormalized = NULL;
-        out_object->hnswVectorDotNonNormalized_len = 0;
-    }
-    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 13))) {
-        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
-        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
-        out_object->hnswVectorGeo = (float*) malloc(len * sizeof(float));
-        if (out_object->hnswVectorGeo == NULL) {
-            ns_Annotated_free_pointers(out_object);
-            return false;
-        }
-        out_object->hnswVectorGeo_len = len;
-        memcpy((void*)out_object->hnswVectorGeo, (const void*)val, sizeof(float)*len);
-        
-    } else {
-        out_object->hnswVectorGeo = NULL;
-        out_object->hnswVectorGeo_len = 0;
-    }
-    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 14))) {
-        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
-        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
-        out_object->externalUuid = (char*) malloc((len+1) * sizeof(char));
-        if (out_object->externalUuid == NULL) {
-            ns_Annotated_free_pointers(out_object);
-            return false;
-        }
-        memcpy((void*)out_object->externalUuid, (const void*)val, len+1);
-        
-    } else {
-        out_object->externalUuid = NULL;
-    }
     return true;
 }
 
@@ -1035,45 +944,6 @@ static void ns_Annotated_free_pointers(ns_Annotated* object) {
     if (object->uniqueHash64) {
         free(object->uniqueHash64);
         object->uniqueHash64 = NULL;
-    }
-    if (object->hnswVectorEuclidean) {
-        free(object->hnswVectorEuclidean);
-        object->hnswVectorEuclidean = NULL;
-        object->hnswVectorEuclidean_len = 0;
-    } else {
-        assert(object->hnswVectorEuclidean_len == 0);
-    }
-    if (object->hnswVectorCosine) {
-        free(object->hnswVectorCosine);
-        object->hnswVectorCosine = NULL;
-        object->hnswVectorCosine_len = 0;
-    } else {
-        assert(object->hnswVectorCosine_len == 0);
-    }
-    if (object->hnswVectorDot) {
-        free(object->hnswVectorDot);
-        object->hnswVectorDot = NULL;
-        object->hnswVectorDot_len = 0;
-    } else {
-        assert(object->hnswVectorDot_len == 0);
-    }
-    if (object->hnswVectorDotNonNormalized) {
-        free(object->hnswVectorDotNonNormalized);
-        object->hnswVectorDotNonNormalized = NULL;
-        object->hnswVectorDotNonNormalized_len = 0;
-    } else {
-        assert(object->hnswVectorDotNonNormalized_len == 0);
-    }
-    if (object->hnswVectorGeo) {
-        free(object->hnswVectorGeo);
-        object->hnswVectorGeo = NULL;
-        object->hnswVectorGeo_len = 0;
-    } else {
-        assert(object->hnswVectorGeo_len == 0);
-    }
-    if (object->externalUuid) {
-        free(object->externalUuid);
-        object->externalUuid = NULL;
     }
     
 }
@@ -1230,6 +1100,245 @@ static ns_ChildWithExtProp* ns_ChildWithExtProp_get(OBX_box* box, obx_id id) {
     return (ns_ChildWithExtProp*) schema_obx_h_get_object(box, id, (void* (*) (const void*, size_t)) ns_ChildWithExtProp_new_from_flatbuffer);
 }
 
+static bool ns_HnswVectors_to_flatbuffer(flatcc_builder_t* B, const ns_HnswVectors* object, void** out_buffer, size_t* out_size) {
+    assert(B);
+    assert(object);
+    assert(out_buffer);
+    assert(out_size);
+
+    flatcc_builder_reset(B);
+    flatcc_builder_start_buffer(B, 0, 0, 0);
+    
+    flatcc_builder_ref_t offset_hnswVectorEuclidean = !object->hnswVectorEuclidean ? 0 : flatcc_builder_create_vector(B, object->hnswVectorEuclidean, object->hnswVectorEuclidean_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
+    flatcc_builder_ref_t offset_hnswVectorCosine = !object->hnswVectorCosine ? 0 : flatcc_builder_create_vector(B, object->hnswVectorCosine, object->hnswVectorCosine_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
+    flatcc_builder_ref_t offset_hnswVectorDot = !object->hnswVectorDot ? 0 : flatcc_builder_create_vector(B, object->hnswVectorDot, object->hnswVectorDot_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
+    flatcc_builder_ref_t offset_hnswVectorDotNonNormalized = !object->hnswVectorDotNonNormalized ? 0 : flatcc_builder_create_vector(B, object->hnswVectorDotNonNormalized, object->hnswVectorDotNonNormalized_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
+    flatcc_builder_ref_t offset_hnswVectorGeo = !object->hnswVectorGeo ? 0 : flatcc_builder_create_vector(B, object->hnswVectorGeo, object->hnswVectorGeo_len, sizeof(float), sizeof(float), FLATBUFFERS_COUNT_MAX(sizeof(float)));
+
+    if (flatcc_builder_start_table(B, 6) != 0) return false;
+
+    void* p;
+    flatcc_builder_ref_t* _p;
+    
+    {
+        if (!(p = flatcc_builder_table_add(B, 0, 8, 8))) return false;
+        flatbuffers_uint64_write_to_pe(p, object->id);
+    }
+    
+    if (offset_hnswVectorEuclidean) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 1))) return false;
+        *_p = offset_hnswVectorEuclidean;
+    }
+    
+    if (offset_hnswVectorCosine) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 2))) return false;
+        *_p = offset_hnswVectorCosine;
+    }
+    
+    if (offset_hnswVectorDot) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 3))) return false;
+        *_p = offset_hnswVectorDot;
+    }
+    
+    if (offset_hnswVectorDotNonNormalized) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 4))) return false;
+        *_p = offset_hnswVectorDotNonNormalized;
+    }
+    
+    if (offset_hnswVectorGeo) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 5))) return false;
+        *_p = offset_hnswVectorGeo;
+    }
+    
+    flatcc_builder_ref_t ref;
+    if (!(ref = flatcc_builder_end_table(B))) return false;
+    if (!flatcc_builder_end_buffer(B, ref)) return false;
+    return (*out_buffer = flatcc_builder_finalize_aligned_buffer(B, out_size)) != NULL;
+}
+
+static bool ns_HnswVectors_from_flatbuffer(const void* data, size_t size, ns_HnswVectors* out_object) {
+    assert(data);
+    assert(size > 0);
+    assert(out_object);
+
+    const uint8_t* table = (const uint8_t*) data + __flatbuffers_uoffset_read_from_pe(data);
+    assert(table);
+    const flatbuffers_voffset_t* vt = (const flatbuffers_voffset_t*) (table - __flatbuffers_soffset_read_from_pe(table));
+    flatbuffers_voffset_t vs = __flatbuffers_voffset_read_from_pe(vt);
+
+    // variables reused when reading strings and vectors
+    flatbuffers_voffset_t offset;
+    const flatbuffers_uoffset_t* val;
+    size_t len;
+
+    // reset so that dangling pointers are freed properly on malloc() failures
+#ifdef __cplusplus
+    *out_object = {};
+#else
+    *out_object = (ns_HnswVectors){0};
+#endif
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 0))) {
+        out_object->id = flatbuffers_uint64_read_from_pe(table + offset);
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 1))) {
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->hnswVectorEuclidean = (float*) malloc(len * sizeof(float));
+        if (out_object->hnswVectorEuclidean == NULL) {
+            ns_HnswVectors_free_pointers(out_object);
+            return false;
+        }
+        out_object->hnswVectorEuclidean_len = len;
+        memcpy((void*)out_object->hnswVectorEuclidean, (const void*)val, sizeof(float)*len);
+        
+    } else {
+        out_object->hnswVectorEuclidean = NULL;
+        out_object->hnswVectorEuclidean_len = 0;
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 2))) {
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->hnswVectorCosine = (float*) malloc(len * sizeof(float));
+        if (out_object->hnswVectorCosine == NULL) {
+            ns_HnswVectors_free_pointers(out_object);
+            return false;
+        }
+        out_object->hnswVectorCosine_len = len;
+        memcpy((void*)out_object->hnswVectorCosine, (const void*)val, sizeof(float)*len);
+        
+    } else {
+        out_object->hnswVectorCosine = NULL;
+        out_object->hnswVectorCosine_len = 0;
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 3))) {
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->hnswVectorDot = (float*) malloc(len * sizeof(float));
+        if (out_object->hnswVectorDot == NULL) {
+            ns_HnswVectors_free_pointers(out_object);
+            return false;
+        }
+        out_object->hnswVectorDot_len = len;
+        memcpy((void*)out_object->hnswVectorDot, (const void*)val, sizeof(float)*len);
+        
+    } else {
+        out_object->hnswVectorDot = NULL;
+        out_object->hnswVectorDot_len = 0;
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 4))) {
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->hnswVectorDotNonNormalized = (float*) malloc(len * sizeof(float));
+        if (out_object->hnswVectorDotNonNormalized == NULL) {
+            ns_HnswVectors_free_pointers(out_object);
+            return false;
+        }
+        out_object->hnswVectorDotNonNormalized_len = len;
+        memcpy((void*)out_object->hnswVectorDotNonNormalized, (const void*)val, sizeof(float)*len);
+        
+    } else {
+        out_object->hnswVectorDotNonNormalized = NULL;
+        out_object->hnswVectorDotNonNormalized_len = 0;
+    }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 5))) {
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->hnswVectorGeo = (float*) malloc(len * sizeof(float));
+        if (out_object->hnswVectorGeo == NULL) {
+            ns_HnswVectors_free_pointers(out_object);
+            return false;
+        }
+        out_object->hnswVectorGeo_len = len;
+        memcpy((void*)out_object->hnswVectorGeo, (const void*)val, sizeof(float)*len);
+        
+    } else {
+        out_object->hnswVectorGeo = NULL;
+        out_object->hnswVectorGeo_len = 0;
+    }
+    return true;
+}
+
+static ns_HnswVectors* ns_HnswVectors_new_from_flatbuffer(const void* data, size_t size) {
+    ns_HnswVectors* object = (ns_HnswVectors*) malloc(sizeof(ns_HnswVectors));
+    if (object) {
+        if (!ns_HnswVectors_from_flatbuffer(data, size, object)) {
+            free(object);
+            object = NULL;
+        }
+    }
+    return object;
+}
+
+static void ns_HnswVectors_free_pointers(ns_HnswVectors* object) {
+    if (object == NULL) return;
+    if (object->hnswVectorEuclidean) {
+        free(object->hnswVectorEuclidean);
+        object->hnswVectorEuclidean = NULL;
+        object->hnswVectorEuclidean_len = 0;
+    } else {
+        assert(object->hnswVectorEuclidean_len == 0);
+    }
+    if (object->hnswVectorCosine) {
+        free(object->hnswVectorCosine);
+        object->hnswVectorCosine = NULL;
+        object->hnswVectorCosine_len = 0;
+    } else {
+        assert(object->hnswVectorCosine_len == 0);
+    }
+    if (object->hnswVectorDot) {
+        free(object->hnswVectorDot);
+        object->hnswVectorDot = NULL;
+        object->hnswVectorDot_len = 0;
+    } else {
+        assert(object->hnswVectorDot_len == 0);
+    }
+    if (object->hnswVectorDotNonNormalized) {
+        free(object->hnswVectorDotNonNormalized);
+        object->hnswVectorDotNonNormalized = NULL;
+        object->hnswVectorDotNonNormalized_len = 0;
+    } else {
+        assert(object->hnswVectorDotNonNormalized_len == 0);
+    }
+    if (object->hnswVectorGeo) {
+        free(object->hnswVectorGeo);
+        object->hnswVectorGeo = NULL;
+        object->hnswVectorGeo_len = 0;
+    } else {
+        assert(object->hnswVectorGeo_len == 0);
+    }
+    
+}
+
+static void ns_HnswVectors_free(ns_HnswVectors* object) {
+    ns_HnswVectors_free_pointers(object);
+    free(object);
+}
+
+/// Insert or update the given object in the database.
+/// @param object (in & out) will be updated with a newly inserted ID if the one specified previously was zero. If an ID 
+/// was already specified (non-zero), it will remain unchanged.
+/// @return object ID from the object param (see object param docs) or a zero on error. If a zero was returned, you can
+/// check obx_last_error_*() to get the error details. In an unlikely event that those functions return no error
+/// code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+static obx_id ns_HnswVectors_put(OBX_box* box, ns_HnswVectors* object) {
+    obx_id id = schema_obx_h_put_object(box, object,
+                               (bool (*)(flatcc_builder_t*, const void*, void**, size_t*)) ns_HnswVectors_to_flatbuffer,
+                               OBXPutMode_PUT);
+    if (id != 0) {
+        object->id = id;  // update the ID property on new objects for convenience
+    }
+    return id;
+}
+
+/// Read an object from the database, returning a pointer.
+/// @return an object pointer or NULL if an object with the given ID doesn't exist or any other error occurred. You can
+/// check obx_last_error_*() if NULL is returned to get the error details. In an unlikely event that those functions
+/// return no error code/message, the error occurred in FlatBuffers serialization, e.g. due to memory allocation issues.
+/// @note: The returned object must be freed after use by calling ns_HnswVectors_free();
+static ns_HnswVectors* ns_HnswVectors_get(OBX_box* box, obx_id id) {
+    return (ns_HnswVectors*) schema_obx_h_get_object(box, id, (void* (*) (const void*, size_t)) ns_HnswVectors_new_from_flatbuffer);
+}
+
 static bool ns_ParentWithExtProp_to_flatbuffer(flatcc_builder_t* B, const ns_ParentWithExtProp* object, void** out_buffer, size_t* out_size) {
     assert(B);
     assert(object);
@@ -1240,8 +1349,9 @@ static bool ns_ParentWithExtProp_to_flatbuffer(flatcc_builder_t* B, const ns_Par
     flatcc_builder_start_buffer(B, 0, 0, 0);
     
     flatcc_builder_ref_t offset_jsonProp = !object->jsonProp ? 0 : flatcc_builder_create_string_str(B, object->jsonProp);
+    flatcc_builder_ref_t offset_externalUuid = !object->externalUuid ? 0 : flatcc_builder_create_string_str(B, object->externalUuid);
 
-    if (flatcc_builder_start_table(B, 3) != 0) return false;
+    if (flatcc_builder_start_table(B, 4) != 0) return false;
 
     void* p;
     flatcc_builder_ref_t* _p;
@@ -1259,6 +1369,11 @@ static bool ns_ParentWithExtProp_to_flatbuffer(flatcc_builder_t* B, const ns_Par
     {
         if (!(p = flatcc_builder_table_add(B, 2, 8, 8))) return false;
         flatbuffers_uint64_write_to_pe(p, object->dateCreated);
+    }
+    
+    if (offset_externalUuid) {
+        if (!(_p = flatcc_builder_table_add_offset(B, 3))) return false;
+        *_p = offset_externalUuid;
     }
     
     flatcc_builder_ref_t ref;
@@ -1307,6 +1422,19 @@ static bool ns_ParentWithExtProp_from_flatbuffer(const void* data, size_t size, 
     if ((offset = schema_obx_h_fb_field_offset(vs, vt, 2))) {
         out_object->dateCreated = flatbuffers_uint64_read_from_pe(table + offset);
     }
+    if ((offset = schema_obx_h_fb_field_offset(vs, vt, 3))) {
+        val = (const flatbuffers_uoffset_t*)(table + offset + sizeof(flatbuffers_uoffset_t) + __flatbuffers_uoffset_read_from_pe(table + offset));
+        len = (size_t) __flatbuffers_uoffset_read_from_pe(val - 1);
+        out_object->externalUuid = (char*) malloc((len+1) * sizeof(char));
+        if (out_object->externalUuid == NULL) {
+            ns_ParentWithExtProp_free_pointers(out_object);
+            return false;
+        }
+        memcpy((void*)out_object->externalUuid, (const void*)val, len+1);
+        
+    } else {
+        out_object->externalUuid = NULL;
+    }
     return true;
 }
 
@@ -1326,6 +1454,10 @@ static void ns_ParentWithExtProp_free_pointers(ns_ParentWithExtProp* object) {
     if (object->jsonProp) {
         free(object->jsonProp);
         object->jsonProp = NULL;
+    }
+    if (object->externalUuid) {
+        free(object->externalUuid);
+        object->externalUuid = NULL;
     }
     
 }

@@ -191,7 +191,7 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 	assert.NoErr(t, err)
 
 	if 0 != bytes.Compare(content, contentExpected) {
-		//assert.Failf(t, "generated file %s is not the same as %s", file, expectedFile)
+		assert.Failf(t, "generated file %s is not the same as %s", file, expectedFile)
 	}
 
 	// Use git diff to compare the files
