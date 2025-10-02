@@ -116,7 +116,7 @@ table TSDateNano {
 	timestamp    : int64	;
 }
 
-/// objectbox:relation(name=children, to=ExternalNameTypeChild, external-name=MyExternalRelationName, external-type=JavaScript)
+/// objectbox:relation(name=children, to=ExternalNameTypeChild, external-name=MyExternalRelationName, external-type=Uuid)
 /// objectbox:external-name=MyExternalTypeName
 table ExternalNameType {
     id: ulong;

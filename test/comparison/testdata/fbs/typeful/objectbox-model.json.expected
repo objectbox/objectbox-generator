@@ -260,7 +260,7 @@
           "id": "3:303089054982227392",
           "name": "children",
           "externalName": "MyExternalRelationName",
-          "externalType": 111,
+          "externalType": 102,
           "targetId": "4:501233450539197794"
         }
       ]

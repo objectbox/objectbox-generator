@@ -8,6 +8,7 @@ If you see redundancy, you are welcome to remove it.
 Use with care as this is a messy way to test in the sense of generating a lot of text;
 sometimes even for simple changes.
 The signal-to-noise ratio in commits is usually bad as generated reference files "drown out" the actual changes.
+One direct consequence is that developers may miss errors in the generated code. 
 
 Thus, in general, **we prefer other ways of testing**.
 E.g., actually compile the generated code, run it and check its behavior as part of a test.

@@ -1,6 +1,6 @@
 /*
  * ObjectBox Generator - a build time tool for ObjectBox
- * Copyright (C) 2018-2024 ObjectBox Ltd. All rights reserved.
+ * Copyright (C) 2018-2025 ObjectBox Ltd. All rights reserved.
  * https://objectbox.io
  *
  * This file is part of ObjectBox Generator.
@@ -104,10 +104,10 @@ static inline OBX_model* create_obx_model() {
     obx_model_relation(model, {{$relation.Id.GetId}}, {{$relation.Id.GetUid}}, {{$relation.Target.Id.GetId}}, {{$relation.Target.Id.GetUid}});
 	{{- if $relation.ExternalName}}
 	obx_model_relation_external_name(model, "{{$relation.ExternalName}}");
-	{{- end -}}
+	{{- end}}
 	{{- if $relation.ExternalType}}
 	obx_model_relation_external_type(model, {{CoreExternalTypes $relation.ExternalType}});
-	{{- end -}}
+	{{- end}}
 	{{end -}}
 	obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}});
 	{{end}}
