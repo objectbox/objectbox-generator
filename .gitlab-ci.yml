@@ -53,8 +53,12 @@ bt:mac:
     paths:
       - objectbox-generator-macOS.zip
 
-# TODO: Prepare CI/Windows to build and test this project; Prerequisites: MinGW Make 
 t:cmake:win-x64:
-  tags: [ windows ]
-  script:
-    - cd test/integration/cmake/projects && cmake -DMULTI="Visual Studio 17 2022" -P test-cmake-generators.cmake
+  extends: [ .build ]
+  tags: [ windows, go ]
+  after_script:
+    - zip objectbox-generator-Windows.zip objectbox-generator.exe
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - objectbox-generator-Windows.zip
