@@ -170,6 +170,30 @@ func setupInitialFiles(t *testing.T, srcDir, targetDir string) {
 	}
 }
 
+// normalizeLineEndings converts all line endings to LF (\n) for consistent comparison across platforms
+func normalizeLineEndings(data []byte) []byte {
+	return bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
+}
+
+// normalizeErrorString normalizes error strings for cross-platform comparison by:
+// 1. Converting CRLF to LF
+// 2. Trimming trailing whitespace from each line
+// 3. Trimming leading/trailing whitespace from the entire string
+func normalizeErrorString(s string) string {
+	// Convert CRLF to LF
+	s = strings.ReplaceAll(s, "\r\n", "\n")
+
+	// Split into lines, trim trailing spaces from each line, then rejoin
+	lines := strings.Split(s, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimRight(line, " \t")
+	}
+	s = strings.Join(lines, "\n")
+
+	// Trim leading/trailing whitespace from the entire string
+	return strings.TrimSpace(s)
+}
+
 func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExpected bool) {
 	if overwriteExpected && fileExists(file) {
 		assert.NoErr(t, CopyFile(file, expectedFile, 0))
@@ -189,6 +213,10 @@ func assertSameFile(t *testing.T, file string, expectedFile string, overwriteExp
 
 	contentExpected, err := ioutil.ReadFile(expectedFile)
 	assert.NoErr(t, err)
+
+	// Normalize line endings for cross-platform comparison
+	content = normalizeLineEndings(content)
+	contentExpected = normalizeLineEndings(contentExpected)
 
 	if 0 != bytes.Compare(content, contentExpected) {
 		assert.Failf(t, "generated file %s is not the same as %s", file, expectedFile)
@@ -256,7 +284,10 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 				assert.Failf(t, "Unexpected PASS on a negative test %s", sourceFile)
 			} else {
 				var unifiedError = strings.Replace(err.Error(), "\\", "/", -1) // "Unify" Windows paths
+				// Normalize line endings and trim trailing spaces from each line for cross-platform comparison
+				unifiedError = normalizeErrorString(unifiedError)
 				expectedError := getExpectedError(t, sourceFile).Error()
+				expectedError = normalizeErrorString(expectedError)
 				if strings.HasPrefix(unifiedError, "error generating model from schema ") {
 					// Compare only the last part of unifiedError as it contains the full path to the schema file
 					unifiedError = unifiedError[len(unifiedError)-len(expectedError):]
