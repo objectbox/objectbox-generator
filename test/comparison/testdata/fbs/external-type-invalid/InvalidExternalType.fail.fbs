@@ -1,0 +1,8 @@
+// ERROR = object 0 test.EntityWithInvalidExternalType: field 0 data: invalid external-type 'InvalidTypeName' for property data - must be one of the supported external types
+namespace test;
+
+table EntityWithInvalidExternalType {
+    id: ulong;
+    /// objectbox: external-type=InvalidTypeName
+    data: string;
+}

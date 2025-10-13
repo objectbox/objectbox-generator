@@ -255,8 +255,16 @@ func generateAllFiles(t *testing.T, overwriteExpected bool, conf testSpec, srcDi
 			if err == nil {
 				assert.Failf(t, "Unexpected PASS on a negative test %s", sourceFile)
 			} else {
-				var errPlatformIndependent = strings.Replace(err.Error(), "\\", "/", -1)
-				assert.Eq(t, getExpectedError(t, sourceFile).Error(), errPlatformIndependent)
+				var unifiedError = strings.Replace(err.Error(), "\\", "/", -1) // "Unify" Windows paths
+				expectedError := getExpectedError(t, sourceFile).Error()
+				if strings.HasPrefix(unifiedError, "error generating model from schema ") {
+					// Compare only the last part of unifiedError as it contains the full path to the schema file
+					unifiedError = unifiedError[len(unifiedError)-len(expectedError):]
+					if unifiedError != expectedError {
+						t.Logf("Full error: %s", err) // Initial error, which may contain additional information
+					}
+				}
+				assert.Eq(t, expectedError, unifiedError)
 				continue
 			}
 		} else {

@@ -140,7 +140,12 @@ func (object *Object) AddRelation(details map[string]*Annotation) (*model.Standa
 	}
 
 	if details["external-type"] != nil {
-		relation.ExternalType = model.ExternalTypeValues[details["external-type"].Value]
+		externalTypeValue := details["external-type"].Value
+		externalType, exists := model.ExternalTypeValues[externalTypeValue]
+		if !exists {
+			return nil, fmt.Errorf("invalid external-type '%s' for relation %s - must be one of the supported external types", externalTypeValue, relation.Name)
+		}
+		relation.ExternalType = externalType
 	}
 
 	// NOTE: we don't need an actual entity pointer, it's resolved during stored model merging.
