@@ -247,10 +247,18 @@ func (conf *CCppTestConf) Run(t *testing.T, envVars []string) {
 		var testExecutable = path.Join(conf.Cmake.BuildDir, conf.Cmake.Name)
 		if runtime.GOOS == "windows" {
 			testExecutable = testExecutable + ".exe"
-			assert.NoErr(t, comparison.CopyFile(
-				path.Join(repoRoot(t), build.ObjectBoxCDir, "lib", "objectbox.dll"),
-				path.Join(conf.Cmake.BuildDir, "objectbox.dll"),
-				0))
+			// Copy (and log) objectbox.dll and any other DLL files
+			libDir := filepath.Join(repoRoot(t), build.ObjectBoxCDir, "lib")
+			dllFiles, err := filepath.Glob(filepath.Join(libDir, "*.dll"))
+			assert.NoErr(t, err)
+			for _, dllFile := range dllFiles {
+				dllName := filepath.Base(dllFile)
+				t.Logf("Copying DLL: %s", dllName)
+				assert.NoErr(t, comparison.CopyFile(
+					dllFile,
+					filepath.Join(conf.Cmake.BuildDir, dllName),
+					0))
+			}
 		}
 		var cmd = exec.Command(testExecutable)
 		cmd.Dir = conf.Cmake.BuildDir
