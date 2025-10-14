@@ -88,6 +88,7 @@ func mergeModelEntity(currentEntity *model.Entity, storedEntity *model.Entity, s
 	storedEntity.Name = currentEntity.Name
 	storedEntity.Flags = currentEntity.Flags
 	storedEntity.Comments = currentEntity.Comments
+	storedEntity.ExternalName = currentEntity.ExternalName
 
 	if currentEntity.Meta != nil {
 		storedEntity.Meta = currentEntity.Meta.Merge(storedEntity)
@@ -275,6 +276,8 @@ func mergeModelProperty(currentProperty *model.Property, storedProperty *model.P
 	storedProperty.Type = currentProperty.Type
 	storedProperty.Flags = currentProperty.Flags
 	storedProperty.HnswParams = currentProperty.HnswParams
+	storedProperty.ExternalName = currentProperty.ExternalName
+	storedProperty.ExternalType = currentProperty.ExternalType
 
 	return nil
 }
@@ -323,6 +326,8 @@ func getModelRelation(currentRelation *model.StandaloneRelation, storedEntity *m
 
 func mergeModelRelation(currentRelation *model.StandaloneRelation, storedRelation *model.StandaloneRelation, storedModel *model.ModelInfo) (err error) {
 	storedRelation.Name = currentRelation.Name
+	storedRelation.ExternalName = currentRelation.ExternalName
+	storedRelation.ExternalType = currentRelation.ExternalType
 
 	if currentRelation.Meta != nil {
 		storedRelation.Meta = currentRelation.Meta.Merge(storedRelation)

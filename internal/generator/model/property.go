@@ -32,7 +32,7 @@ const (
 	HnswDistanceType_Cosine                  = "Cosine"
 	HnswDistanceType_DotProduct              = "DotProduct"
 	HnswDistanceType_DotProductNonNormalized = "DotProductNonNormalized"
-	HnswDistanceType_Geo					 = "Geo"
+	HnswDistanceType_Geo                     = "Geo"
 )
 
 type HnswParams struct {
@@ -51,6 +51,8 @@ type Property struct {
 	Name           string        `json:"name"`
 	IndexId        *IdUid        `json:"indexId,omitempty"` // a pointer because it may be nil
 	Type           PropertyType  `json:"type"`
+	ExternalName   string        `json:"externalName,omitempty"`
+	ExternalType   ExternalType  `json:"externalType,omitempty"`
 	Flags          PropertyFlags `json:"flags,omitempty"`
 	RelationTarget string        `json:"relationTarget,omitempty"`
 	Entity         *Entity       `json:"-"`

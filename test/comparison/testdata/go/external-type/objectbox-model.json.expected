@@ -1,0 +1,71 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:8717895732742165505",
+      "lastPropertyId": "3:3390393562759376202",
+      "name": "Entity",
+      "externalName": "MyExtEntityName",
+      "properties": [
+        {
+          "id": "1:6050128673802995827",
+          "name": "ID",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:501233450539197794",
+          "name": "Name",
+          "type": 9,
+          "externalName": "MyExtPropName"
+        },
+        {
+          "id": "3:3390393562759376202",
+          "name": "Email",
+          "type": 9,
+          "externalName": "MyExtPropName2",
+          "externalType": 102
+        }
+      ],
+      "relations": [
+        {
+          "id": "1:2669985732393126063",
+          "name": "ChildEntities",
+          "externalName": "MyExtRelName",
+          "externalType": 123,
+          "targetId": "2:2259404117704393152"
+        }
+      ]
+    },
+    {
+      "id": "2:2259404117704393152",
+      "lastPropertyId": "2:6044372234677422456",
+      "name": "ChildEntity",
+      "properties": [
+        {
+          "id": "1:1774932891286980153",
+          "name": "Id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6044372234677422456",
+          "name": "ImageURL",
+          "type": 9
+        }
+      ]
+    }
+  ],
+  "lastEntityId": "2:2259404117704393152",
+  "lastIndexId": "",
+  "lastRelationId": "1:2669985732393126063",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

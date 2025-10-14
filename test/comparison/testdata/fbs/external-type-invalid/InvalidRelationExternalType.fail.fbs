@@ -1,0 +1,12 @@
+// ERROR = invalid external-type 'NonExistentType' for relation children - must be one of the supported external types
+namespace test;
+
+table Child {
+    id: ulong;
+    text: string;
+}
+
+/// objectbox:relation(name=children, to=Child, external-type=NonExistentType)
+table Parent {
+    id: ulong;
+}

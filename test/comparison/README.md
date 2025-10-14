@@ -1,7 +1,42 @@
 # Code comparison tests
 
-This test suite is based on a premise that we expect an exact generator output (file contents).
-Therefore, the test works as follows:
+For a few basic scenarios **only(!)**, we compare the generated code with the expected code.
+Rule of thumb: **avoid any redundancy in the generated code**.
+For example, a string property should be generated **only once** for each possible annotation value (e.g., index).
+If you see redundancy, you are welcome to remove it.
+
+Use with care as this is a messy way to test in the sense of generating a lot of text;
+sometimes even for simple changes.
+The signal-to-noise ratio in commits is usually bad as generated reference files "drown out" the actual changes.
+One direct consequence is that developers may miss errors in the generated code. 
+
+Thus, in general, **we prefer other ways of testing**.
+E.g., actually compile the generated code, run it and check its behavior as part of a test.
+This can still be combined with a few targeted "text contains" checks in the generated code.
+
+## Expected UIDs
+
+Note: **the generated UIDs do not consider the existing ones in the JSON file!**
+
+In tests, UIDs are generated using a preseeded random number generator (given via Options to the generator).
+While this gives us a fixed sequence of numbers, certain changes "avalanche" different UIDs to lots of properties.
+The reason for this is that UIDs are first assigned to all entities, and then to all properties.
+Thus, if a new class is added, the UIDs of all properties are changed.
+This makes the commits "noisier" and harder to review than necessary.
+
+## Update expected files
+
+If you read the disclaimer above, and you still want to extend the "expected files" tests (are you sure?):
+
+* Edit generator_test.go: set the Flag value of overwriteExpected to `true`
+* Run generator_test.go (TestCompare) or run `go test test`: this overwrites the existing expected files
+* Review the changes (the expected files that are generated) and make changes if needed 
+* Edit generator_test.go: set the Flag value of overwriteExpected back to `false`
+* Run generator_test.go (TestCompare) or run `go test test` to verify
+* Commit
+
+## Basic outline
+
 * read a test-case - all "source" files (e.g. *.fbs) in a single folder 
 * clean-up any previously generated files
 * execute a generator on the test-case (file by file)

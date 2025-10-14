@@ -1,6 +1,6 @@
 /*
  * ObjectBox Generator - a build time tool for ObjectBox
- * Copyright (C) 2018-2024 ObjectBox Ltd. All rights reserved.
+ * Copyright (C) 2018-2025 ObjectBox Ltd. All rights reserved.
  * https://objectbox.io
  *
  * This file is part of ObjectBox Generator.
@@ -55,10 +55,19 @@ static inline OBX_model* create_obx_model() {
 	{{- with $entity.Flags}}
 	obx_model_entity_flags(model, {{CoreEntityFlags .}});
 	{{- end -}}
+	{{- if $entity.ExternalName}}
+	obx_model_entity_external_name(model, "{{ $entity.ExternalName }}");
+	{{- end -}}
 	{{range $property := $entity.Properties}}
 	obx_model_property(model, "{{$property.Name}}", OBXPropertyType_{{PropTypeName $property.Type}}, {{$property.Id.GetId}}, {{$property.Id.GetUid}});
 	{{- with $property.Flags}}
 	obx_model_property_flags(model, {{CorePropFlags .}});
+	{{- end -}}
+	{{- if $property.ExternalName}}
+	obx_model_property_external_name(model, "{{ $property.ExternalName }}");
+	{{- end -}}
+	{{- if $property.ExternalType}}
+	obx_model_property_external_type(model, {{CoreExternalTypes $property.ExternalType}});
 	{{- end -}}
 	{{- if $property.HnswParams -}}
 	{{- if $property.HnswParams.Dimensions}}
@@ -93,6 +102,12 @@ static inline OBX_model* create_obx_model() {
 	{{- end}}
 	{{range $relation := $entity.Relations -}}
     obx_model_relation(model, {{$relation.Id.GetId}}, {{$relation.Id.GetUid}}, {{$relation.Target.Id.GetId}}, {{$relation.Target.Id.GetUid}});
+	{{- if $relation.ExternalName}}
+	obx_model_relation_external_name(model, "{{$relation.ExternalName}}");
+	{{- end}}
+	{{- if $relation.ExternalType}}
+	obx_model_relation_external_type(model, {{CoreExternalTypes $relation.ExternalType}});
+	{{- end}}
 	{{end -}}
 	obx_model_entity_last_property_id(model, {{$entity.LastPropertyId.GetId}}, {{$entity.LastPropertyId.GetUid}});
 	{{end}}

@@ -247,10 +247,8 @@ func (conf *CCppTestConf) Run(t *testing.T, envVars []string) {
 		var testExecutable = path.Join(conf.Cmake.BuildDir, conf.Cmake.Name)
 		if runtime.GOOS == "windows" {
 			testExecutable = testExecutable + ".exe"
-			assert.NoErr(t, comparison.CopyFile(
-				path.Join(repoRoot(t), build.ObjectBoxCDir, "lib", "objectbox.dll"),
-				path.Join(conf.Cmake.BuildDir, "objectbox.dll"),
-				0))
+			conf.copyObjectBoxDll(t)
+			conf.copyMinGwDlls(t)
 		}
 		var cmd = exec.Command(testExecutable)
 		cmd.Dir = conf.Cmake.BuildDir
@@ -261,5 +259,50 @@ func (conf *CCppTestConf) Run(t *testing.T, envVars []string) {
 		}
 		t.Logf("compiled test output: \n%s", string(stdOut))
 		assert.NoErr(t, err)
+	}
+}
+
+func (conf *CCppTestConf) copyObjectBoxDll(t *testing.T) {
+	libDir := filepath.Join(repoRoot(t), build.ObjectBoxCDir, "lib")
+	dllFiles, err := filepath.Glob(filepath.Join(libDir, "*.dll"))
+	assert.NoErr(t, err)
+	for _, dllFile := range dllFiles {
+		dllName := filepath.Base(dllFile)
+		t.Logf("Copying DLL from lib: %s", dllName)
+		assert.NoErr(t, comparison.CopyFile(
+			dllFile,
+			filepath.Join(conf.Cmake.BuildDir, dllName),
+			0))
+	}
+}
+
+// Required on **some** CI runners only: copy MinGW runtime DLLs that objectbox.dll may depend on.
+// Finds the C++ compiler path to locate the MinGW bin directory.
+func (conf *CCppTestConf) copyMinGwDlls(t *testing.T) {
+	cppPath, err := exec.LookPath("c++")
+	if err == nil {
+		mingwBinDir := filepath.Dir(cppPath)
+		t.Logf("MinGW bin directory: %s", mingwBinDir)
+
+		// Common MinGW runtime DLLs that objectbox.dll likely depends on
+		runtimeDlls := []string{
+			"libwinpthread-1.dll",
+			"libgcc_s_seh-1.dll",
+			"libgcc_s_dw2-1.dll", // Alternative GCC DLL
+			"libstdc++-6.dll",
+		}
+
+		for _, dllName := range runtimeDlls {
+			srcPath := filepath.Join(mingwBinDir, dllName)
+			if _, err := os.Stat(srcPath); err == nil {
+				t.Logf("Copying MinGW runtime DLL: %s", dllName)
+				assert.NoErr(t, comparison.CopyFile(
+					srcPath,
+					filepath.Join(conf.Cmake.BuildDir, dllName),
+					0))
+			}
+		}
+	} else {
+		t.Logf("Warning: Could not locate c++ compiler to find MinGW runtime DLLs: %v", err)
 	}
 }

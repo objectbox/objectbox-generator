@@ -121,6 +121,18 @@ func (field *Field) ProcessAnnotations(a map[string]*Annotation) error {
 		}
 	}
 
+	if a["external-name"] != nil {
+		field.ModelProperty.ExternalName = a["external-name"].Value
+	}
+	if a["external-type"] != nil {
+		externalTypeValue := a["external-type"].Value
+		externalType, exists := model.ExternalTypeValues[externalTypeValue]
+		if !exists {
+			return fmt.Errorf("invalid external-type '%s' for property %s - must be one of the supported external types", externalTypeValue, field.Name)
+		}
+		field.ModelProperty.ExternalType = externalType
+	}
+
 	if a["index"] != nil {
 		switch strings.ToLower(a["index"].Value) {
 		case "":

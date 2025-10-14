@@ -39,10 +39,11 @@ type uid = uint64
 type id = uint32
 
 var supportedEntityAnnotations = map[string]bool{
-	"name":      false, // TODO
-	"sync":      true,
-	"transient": true,
-	"uid":       true,
+	"name":         false, // TODO
+	"sync":         true,
+	"transient":    true,
+	"uid":          true,
+	"external-name": true,
 }
 
 var supportedPropertyAnnotations = map[string]bool{
@@ -60,6 +61,8 @@ var supportedPropertyAnnotations = map[string]bool{
 	"type":         true,
 	"uid":          true,
 	"unique":       true,
+	"external-name": true,
+	"external-type": true,
 }
 
 // astReader contains information about the processed set of Entities
@@ -509,6 +512,12 @@ func (field *Field) processType(f field) (fields fieldList, err error) {
 		relDetails["name"] = &binding.Annotation{Value: field.Name}
 		relDetails["to"] = property.annotations["link"]
 		relDetails["uid"] = property.annotations["uid"]
+		if property.annotations["external-name"] != nil {
+			relDetails["external-name"] = property.annotations["external-name"]
+		}
+		if property.annotations["external-type"] != nil {
+			relDetails["external-type"] = property.annotations["external-type"]
+		}
 		if rel, err := field.Entity.AddRelation(relDetails); err != nil {
 			return nil, err
 		} else {
@@ -568,7 +577,6 @@ func (field *Field) fillInfo(f field, typ typeErrorful) {
 
 func (entity *Entity) setAnnotations(comments []*ast.Comment) error {
 	lines := parseCommentsLines(comments)
-
 	var annotations = make(map[string]*binding.Annotation)
 
 	for _, tags := range lines {
