@@ -8,7 +8,7 @@ include(FetchContent)
 FetchContent_Declare(
     objectbox
     GIT_REPOSITORY https://github.com/objectbox/objectbox-c.git
-    GIT_TAG        v4.3.1
+    GIT_TAG        v5.0.0-rc
 )
 FetchContent_MakeAvailable(objectbox)
 

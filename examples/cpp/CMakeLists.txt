@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.14)
 
 project("objectbox-test" CXX)
 
@@ -6,7 +6,7 @@ include(FetchContent)
 FetchContent_Declare(
     objectbox
     GIT_REPOSITORY https://github.com/objectbox/objectbox-c.git
-    GIT_TAG        v4.2.0
+    GIT_TAG        v5.0.0-rc
 )
 FetchContent_MakeAvailable(objectbox)
 

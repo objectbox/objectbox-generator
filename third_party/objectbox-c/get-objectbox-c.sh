@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cVersion=4.3.1
+cVersion=5.0.0-rc
 
 scriptDir=$(dirname "${BASH_SOURCE[0]}")
 
