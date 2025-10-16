@@ -20,14 +20,13 @@ bt:linux-x64:go1.18:
   before_script:
     - export PATH=/usr/lib/go-1.18/bin:$PATH
 
-# Second-latest go version
-bt:linux-x64:go1.24:
+bt:linux-x64:go-2nd-latest:
   extends: [ .build-linux ]
   before_script:
     - export PATH=/usr/local/go1.24.9/bin:$PATH
 
-# Latest go version
-bt:linux-x64:go1.25:
+# Uses the latest go version (available in the Docker image)
+bt:linux-x64:
   extends: [ .build-linux ]
   after_script:
     - zip objectbox-generator-Linux.zip objectbox-generator
@@ -46,7 +45,7 @@ bt:mac:
     paths:
       - objectbox-generator-macOS.zip
 
-t:cmake:win-x64:
+bt:win-x64:
   extends: [ .build ]
   tags: [ windows, go ]
   after_script:
