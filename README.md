@@ -5,11 +5,15 @@
 
 # ObjectBox Generator
 
-Current version: 4.0.0
+Current version: 5.0.0-rc1
 
 ObjectBox is a superfast cross-platform object-oriented database.
-ObjectBox Generator produces code for ObjectBox C, C++ and Go APIs (more languages to be supported in the future).
-This greatly simplifies using ObjectBox in your favourite language.
+ObjectBox Generator produces code for the ObjectBox SDKs of the following programing languages:
+
+* Go: integrated via `go:generate` and annotations in Go sources (no need to run the generator manually)
+* C and C++: reads FlatBuffers schema files (`.fbs`); integrated via CMake
+* JavaScript/TypeScript: preview based on FlatBuffers schema files (`.fbs`) generates JavaScript code;
+  for now, you need to run the generator manually.
 
 ## Download
 
@@ -53,7 +57,7 @@ To get started, have a look at the specific language bindings (the approaches di
 
 ```
 ObjectBox Generator - a build time tool for ObjectBox
-Copyright (C) 2018-2024 ObjectBox Ltd. All rights reserved.
+Copyright (C) 2018-2025 ObjectBox Ltd. All rights reserved.
 https://objectbox.io
 This file is part of ObjectBox Generator.
 
