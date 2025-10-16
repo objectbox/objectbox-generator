@@ -11,32 +11,25 @@
   extends: [ .build ]
   tags: [ x64, linux, docker ]
   image:
-    name: objectboxio/buildenv-generator-ubuntu:2024-02-26
+    # For available go versions, check ci/docker/versions.md
+    name: objectboxio/buildenv-generator-ubuntu:2025-10-16
     pull_policy: [if-not-present]
-
-# Available go versions in objectboxio/buildenv-generator-ubuntu:2024-02-26:
-#
-# Version | Location (GOROOT)     | Notes
-# ------- | --------------------- | -------------------------------------------------
-# 1.18.1  | /usr/lib/go-1.18      | (Ubuntu 22.04 package)
-# 1.22.0  | /usr/local/go1.22     | Manual installed version (default first on PATH)
-# 1.19.13 | /root/sdk/go1.19.13   | Additional version installed via go install
 
 bt:linux-x64:go1.18:
   extends: [ .build-linux ]
   before_script:
     - export PATH=/usr/lib/go-1.18/bin:$PATH
 
-bt:linux-x64:go1.19:
+# Second-latest go version
+bt:linux-x64:go1.24:
   extends: [ .build-linux ]
   before_script:
-    - export PATH=/root/sdk/go1.19.13/bin:$PATH
+    - export PATH=/usr/local/go1.24.9/bin:$PATH
 
-bt:linux-x64:go1.22:
+# Latest go version
+bt:linux-x64:go1.25:
   extends: [ .build-linux ]
   after_script:
-    - apt-get update
-    - apt-get install -y zip
     - zip objectbox-generator-Linux.zip objectbox-generator
   artifacts:
     expire_in: 1 day

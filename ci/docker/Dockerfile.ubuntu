@@ -1,17 +1,18 @@
+# Not using the latest LTS version to depend only on the second latest C and C++ libraries for the C/C++ builds.
+# TODO Or does this not matter as we do a full static build including the C and C++ libraries?
 FROM ubuntu:22.04
 RUN apt-get update && \
     apt-get install -y make cmake golang git curl ccache zip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Installation of additional go versions from ubuntu's go1.18 via 
-#     go install golang.org/dl/go1.19.13@latest 
-# fails with 
-#     [...]/version.go:537:38: undefined: signalsToIgnore
-# Thus, installation of a recent go version manually and add older versions afterwards
+# Install the newest Go version manually and make it the default
+RUN curl -sS -L --fail https://go.dev/dl/go1.25.3.linux-amd64.tar.gz | tar xz -v --one-top-level=go1.25 --strip-components 1 -C /usr/local
+ENV PATH=/root/go/bin:/usr/local/go1.25/bin:$PATH
 
-RUN curl -sS -L --fail https://go.dev/dl/go1.22.0.linux-amd64.tar.gz | tar xz -v --one-top-level=go1.22 --strip-components 1 -C /usr/local
-ENV PATH=/root/go/bin:/usr/local/go1.22/bin:$PATH
+# Also install the second newest Go version
+RUN curl -sS -L --fail https://go.dev/dl/go1.24.9.linux-amd64.tar.gz | tar xz -v --one-top-level=go1.24.9 --strip-components 1 -C /usr/local
 
-RUN go install golang.org/dl/go1.19.13@latest 
-RUN go1.19.13 download
+# Utilities to display versions from within the container
+COPY print-versions.sh /print-versions.sh
+RUN chmod +x /print-versions.sh
