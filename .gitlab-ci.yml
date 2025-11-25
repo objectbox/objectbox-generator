@@ -1,5 +1,9 @@
 # https://docs.gitlab.com/ce/ci/yaml/
 
+stages:
+  - test
+  - publish
+
 .build:
   script:
     - make info
@@ -54,3 +58,34 @@ bt:win-x64:
     expire_in: 1 day
     paths:
       - objectbox-generator-Windows.zip
+
+publish:
+  tags: [ gh-cli ]
+  stage: publish
+  dependencies:
+    - bt:linux-x64
+    - bt:mac
+    - bt:win-x64
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^[vV][0-9]+\.[0-9]+\..*/   # only built for version tags (e.g., v1.2.3)
+  script:
+    - ci/send-to-gchat.sh "$GOOGLE_CHAT_WEBHOOK_CI" --thread $CI_COMMIT_SHA "*Releasing ObjectBox Generator...* $CI_JOB_NAME from $CI_COMMIT_TAG ($CI_COMMIT_BRANCH $CI_COMMIT_SHORT_SHA)..."
+    - mkdir artifacts
+    - mv objectbox-generator-*.zip artifacts/
+    - ls -alh artifacts
+    - |
+      if [[ ${CI_COMMIT_TAG:-} =~ ^[vV] ]]; then
+        package_version="${CI_COMMIT_TAG:1}"  # cut first 2 chars
+      else
+        echo "Inconsistent conditions and filter rules; please edit this file. Commit tag: ${CI_COMMIT_TAG:-}"
+        exit 1
+      fi
+      echo "Package version: $package_version"
+      ci/publish-to-github.sh ${OBX_GENERATOR_RELEASE_SCRIPT_ADDITIONAL_PARAM} "$package_version"
+    - ci/send-to-gchat.sh "$GOOGLE_CHAT_WEBHOOK_CI" --thread $CI_COMMIT_SHA "*Released ObjectBox Generator* $CI_JOB_NAME from $CI_COMMIT_TAG ($CI_COMMIT_BRANCH $CI_COMMIT_SHORT_SHA)"
+  after_script:
+    - |
+      if [[ "$CI_JOB_STATUS" == "failed" ]]; then
+        ci/send-to-gchat.sh "$GOOGLE_CHAT_WEBHOOK_CI" --thread $CI_COMMIT_SHA "*Release failed for ObjectBox Generator* $CI_JOB_NAME from $CI_COMMIT_TAG ($CI_COMMIT_BRANCH $CI_COMMIT_SHORT_SHA)"
+      fi
