@@ -17,7 +17,7 @@ Currently supported platforms are Linux/x86-64, macOS and Windows/x86-64.
 
 .. code-block:: cmake
 
-  find_package(ObjectBoxGenerator 4.0.0 REQUIRED)
+  find_package(ObjectBoxGenerator 5.0.0 REQUIRED)
 
 The following variables are defined by this module:
 
@@ -31,7 +31,7 @@ The following variables are defined by this module:
 
 .. variable:: ObjectBoxGenerator_VERSION
 
-  The full version string of the used ObjectBox Generator executable, e.g. "4.0.0" or "4.0.0-beta".
+  The full version string of the used ObjectBox Generator executable, e.g. "5.0.0" or "5.0.0-beta".
 
 .. variable:: ObjectBoxGenerator_VERSION_MAJOR
 .. variable:: ObjectBoxGenerator_VERSION_MINOR
@@ -127,8 +127,8 @@ Generated headers and sources are written to the sub-directories ``ObjectBoxGene
 
 option(OBX_GENERATOR_ALLOW_FETCH "Opt-in automatic download and prepare for local execution" ON)
 
-# Updated by maintainer to latest available version:
-set(ObjectBoxGenerator_FETCH_VERSION 4.0.0) # Note: must be safe for filename
+# Version to download (must be a GitHub release with attached binaries):
+set(ObjectBoxGenerator_FETCH_VERSION 5.0.0-rc)
 # Using the version in the directories used for the generator executable to cleanly support multiple versions.
 # This is e.g. relevant when updating to ensure fetching the new version.
 set(ObjectBoxGenerator_FETCH_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-download/${ObjectBoxGenerator_FETCH_VERSION}/fetch)
