@@ -91,7 +91,10 @@ if gh release view --repo "${github_repo}" "${github_tag}"; then
     fi
 else
   echo "No release found for '${github_tag}'; creating a new release draft..."
+  commit_id=$(git rev-parse HEAD)
+  echo "Using commit ID (this commit must also exist in GitHub): $commit_id"
   gh release create --draft --repo "${github_repo}" "${github_tag}" \
+    --target "${commit_id}" \
     --title "ObjectBox Generator ${github_tag}" \
     --notes "See CHANGELOG.md for details."
   echo "Uploading artifacts to new release draft..."
