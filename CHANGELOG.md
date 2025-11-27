@@ -1,13 +1,13 @@
 ObjectBox Generator changelog
 =============================
 
-## 5.0.0-rc (2025-11-25)
+## 5.0.0 (2025-11-27)
 
 C/C++
 
 * Support for external name and type annotations
-* Add new vector distance type 'Geo'
-* Bump CMake min version to 3.5 for compatibility with CMake 4.x
+* Add the new vector distance type "Geo"
+* Bump the CMake min version to 3.5 for compatibility with CMake 4.x
 
 Go
 

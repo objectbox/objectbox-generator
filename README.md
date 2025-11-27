@@ -5,7 +5,7 @@
 
 # ObjectBox Generator
 
-Current version: 5.0.0-rc
+Current version: 5.0.0
 
 ObjectBox is a superfast cross-platform object-oriented database.
 ObjectBox Generator produces code for the ObjectBox SDKs of the following programing languages:
