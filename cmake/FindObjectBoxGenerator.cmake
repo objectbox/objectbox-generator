@@ -127,8 +127,8 @@ Generated headers and sources are written to the sub-directories ``ObjectBoxGene
 
 option(OBX_GENERATOR_ALLOW_FETCH "Opt-in automatic download and prepare for local execution" ON)
 
-# Version to download (must be a GitHub release with attached binaries):
-set(ObjectBoxGenerator_FETCH_VERSION 5.0.0-rc)
+# Version to download (must be a GitHub release with attached binaries); also change Version in generator.go
+set(ObjectBoxGenerator_FETCH_VERSION 5.0.0-rc2)
 # Using the version in the directories used for the generator executable to cleanly support multiple versions.
 # This is e.g. relevant when updating to ensure fetching the new version.
 set(ObjectBoxGenerator_FETCH_DIR ${CMAKE_BINARY_DIR}/ObjectBoxGenerator-download/${ObjectBoxGenerator_FETCH_VERSION}/fetch)

@@ -10,6 +10,7 @@ tmpDir="${repoDir}"/scripts/tmp-generated
 # Note: we're using objectbox-generator's flatc-integration.
 # If you can't build objectbox-generator, you can build and use flatbuffers flatc binary instead.
 flatc="go run ./cmd/objectbox-generator FLATC"
+# flatc="../objectbox-generator FLATC" # You can use this if objectbox-generator was already build locally
 
 if [[ "${repoDir}" == "" ]]; then
     echo "Invalid repo directory detected"
