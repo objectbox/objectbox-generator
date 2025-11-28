@@ -24,6 +24,11 @@ jobs:
       - name: Get sources
         uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
       - name: Cache Deps
         uses: actions/cache@v4
         with:
