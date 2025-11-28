@@ -13,6 +13,7 @@ defaults:
 jobs:
   build:
     strategy:
+      fail-fast: false # One failing job should not prevent the others from running
       matrix:
         # Available runners: https://docs.github.com/en/actions/reference/runners/github-hosted-runners
         os: [ ubuntu-latest, macos-latest, macos-26, windows-latest ]
